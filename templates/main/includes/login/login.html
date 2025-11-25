@@ -1,0 +1,108 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+    <head>
+        <title>(دیوان)اداره کل تولید و فنی صدا</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="مدیریت شیفت و مالی اداره کل تولید و فنی صدا">
+        <link rel="shortcut icon" href="{% static 'assets/images/11.png' %}">
+
+        <!-- BEGIN CSS -->
+        <link href="{% static 'assets/plugins/bootstrap/bootstrap5/css/bootstrap.rtl.min.css' %}" rel="stylesheet">
+        <link href="{% static 'assets/plugins/simple-line-icons/css/simple-line-icons.min.css' %}" rel="stylesheet">
+        <link href="{% static 'assets/plugins/sweetalert2/dist/sweetalert2.min.css' %}" rel="stylesheet">
+        <link href="{% static 'assets/plugins/paper-ripple/dist/paper-ripple.min.css' %}" rel="stylesheet">
+        <link href="{% static 'assets/plugins/iCheck/skins/square/_all.css' %}" rel="stylesheet">
+        <link href="{% static 'assets/css/style.css' %}" rel="stylesheet">
+        <link href="{% static 'assets/css/colors.css' %}" rel="stylesheet">
+        <!-- END CSS -->
+        
+        
+    </head>
+    <body class="fix-header active-ripple theme-darkpurple dark modal-wrapper">
+        <!-- BEGIN LOEADING -->
+        <div id="loader">
+            <div class="spinner"></div>
+        </div><!-- /.loader -->
+        <!-- END LOEADING -->
+        
+        <!-- BEGIN WRAPPER -->
+        <div class="fixed-modal-bg"></div>
+        <a href="#" class="btn btn-primary btn-icon btn-round btn-lg" id="toggle-dark-mode">
+            <i class="icon-bulb"></i>
+        </a>
+
+        <div class="modal-page shadow">
+            <div class="container-fluid">                
+                <div class="row">
+                    
+                    <div class="col-md-12">
+                        <div class="logo-con m-t-10 m-b-10">
+                            <h1 class="text-center" style="color: #a2f9ab ;">اداره کل تولید و فنی صدا</h1>
+                            <img src="{% static 'assets/images/divan.png' %}" class="img-fluid mx-auto d-block w-75" alt="logo">
+                            
+                        </div><!-- /.logo-con -->
+
+                        <h2 class="text-center m-b-20">وارد شوید</h2>
+                        <hr>
+                        {% if messages %}
+                        <div class="alert alert-danger">
+                            {% for message in messages %}
+                                {{ message }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        <form method="post" action="{% url 'login:login' %}">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label for="username" class="sr-only">نام کاربری</label>
+                                <div class="input-group">
+                                    <span class="input-group-addon">
+                                        <i class="icon-people"></i>
+                                    </span>
+                                    <input id="username" name="username" class="form-control ltr text-left" type="text" required>
+                                </div><!-- /.input-group -->
+                            </div><!-- /.form-group -->
+                            <div class="form-group">
+                                <label for="password" class="sr-only">رمز عبور</label>
+                                <div class="input-group has-btn-toggle-pass">
+                                    <span class="input-group-addon">
+                                        <i class="icon-key"></i>
+                                    </span>
+                                    <input id="password" name="password" class="form-control ltr text-left" type="password" minlength="5" required>
+                                    <span class="btn-toggle-pass">
+                                        <i class="icon-eye"></i>
+                                    </span>
+                                </div><!-- /.input-group -->
+                            </div><!-- /.form-group -->
+                            <p>
+                                <button class="btn btn-success btn-block" type="submit">
+                                    <i class="icon-login font-lg"></i>
+                                    ورود
+                                </button>
+                            </p>
+                        </form>
+                    </div><!-- /.col-md-12 -->                    
+                </div><!-- /.row -->
+            </div><!-- /.container-fluid -->
+        </div><!-- /.modal-page -->
+        <!-- END WRAPPER -->
+        
+        <!-- BEGIN JS -->
+        <script src="{% static 'assets/plugins/jquery/dist/jquery-3.6.1.min.js' %}"></script>
+        <script src="{% static 'assets/plugins/jquery-migrate/jquery-migrate-1.2.1.min.js' %}"></script>
+        <script src="{% static 'assets/plugins/bootstrap/bootstrap5/js/bootstrap.bundle.min.js' %}"></script>
+        <script src="{% static 'assets/plugins/paper-ripple/dist/PaperRipple.min.js' %}"></script>
+        <script src="{% static 'assets/plugins/sweetalert2/dist/sweetalert2.min.js' %}"></script>
+        <script src="{% static 'assets/plugins/iCheck/icheck.min.js' %}"></script>
+        <script src="{% static 'assets/plugins/jquery-validation/dist/jquery.validate.min.js' %}"></script>
+        <script src="{% static 'assets/plugins/jquery-validation/src/localization/messages_fa.js' %}"></script>
+        <script src="{% static 'assets/js/core.js' %}"></script>
+        
+        <!-- BEGIN PAGE JAVASCRIPT -->
+        <script src="{% static 'assets/js/pages/login.js' %}"></script>
+        <!-- END PAGE JAVASCRIPT -->
+                
+    </body>
+</html>

@@ -1,0 +1,92 @@
+		-- ====== شروع بخش بررسی همپوشانی قوی (قرار بده قبل از INSERT/UPDATE) ======
+		DECLARE 
+			@conflict_shift_name NVARCHAR(100),
+			@conflict_date DATE,
+			@conflict_network_name NVARCHAR(100),
+			@conflict_date_str NVARCHAR(10),
+			@conflict_start NVARCHAR(5),
+			@conflict_end NVARCHAR(5);
+
+		;WITH Existing AS
+		(
+			SELECT A.*, S1.Shift_name, S1.Start_time AS S1_Start_time, S1.End_time AS S1_End_time, N.Network
+			FROM Tbl_Sound_Shift_Assignment A
+			JOIN Tbl_Shift S1 ON A.Id_shift = S1.Id_shift
+			JOIN Tbl_Network N ON A.Id_network = N.Id_network
+			WHERE 
+				A.Id_sound_recorder = @id_sound_recorder
+				AND A.Shift_date = @shift_date
+				AND A.Active = 1
+				AND A.Del = 0
+				AND A.Id_network <> @id_network  -- بررسی فقط شبکه‌های دیگر (در صورت نیاز این شرط را بردار)
+				-- اگر می‌خواهی رکوردی که دقیقاً همان (date,shift,network) است را استثناء کنی، اضافه کن:
+				-- AND NOT (A.Id_shift = @id_shift AND A.Id_network = @id_network AND A.Shift_date = @shift_date)
+		)
+		SELECT TOP 1
+			@conflict_shift_name = E.Shift_name,
+			@conflict_date = E.Shift_date,
+			@conflict_network_name = E.Network,
+			@conflict_start = CONVERT(NVARCHAR(5), E.S1_Start_time, 108),
+			@conflict_end = CONVERT(NVARCHAR(5), E.S1_End_time, 108)
+		FROM Existing E
+		CROSS APPLY
+		(
+			-- مقادیر دقیقه‌ای برای شیفت موجود (S1)
+			SELECT
+				DATEPART(HOUR, E.S1_Start_time) * 60 + DATEPART(MINUTE, E.S1_Start_time) AS s1_s,
+				DATEPART(HOUR, E.S1_End_time) * 60 + DATEPART(MINUTE, E.S1_End_time)   AS s1_e
+		) AS S1
+		CROSS APPLY
+		(
+			-- مقادیر دقیقه‌ای برای شیفت جدید (S2)
+			SELECT
+				DATEPART(HOUR, (SELECT Start_time FROM Tbl_Shift WHERE Id_shift = @id_shift)) * 60 
+					+ DATEPART(MINUTE, (SELECT Start_time FROM Tbl_Shift WHERE Id_shift = @id_shift)) AS s2_s,
+				DATEPART(HOUR, (SELECT End_time FROM Tbl_Shift WHERE Id_shift = @id_shift)) * 60 
+					+ DATEPART(MINUTE, (SELECT End_time FROM Tbl_Shift WHERE Id_shift = @id_shift))   AS s2_e
+		) AS S2
+		CROSS APPLY
+		(
+			-- نرمال‌سازی: اگر end <= start یعنی wrap-around داریم، end را +1440 می‌کنیم
+			SELECT
+				S1.s1_s AS s1_start,
+				CASE WHEN S1.s1_e <= S1.s1_s THEN S1.s1_e + 1440 ELSE S1.s1_e END AS s1_end,
+				S1.s1_s + 1440 AS s1_start_plus24,
+				CASE WHEN S1.s1_e <= S1.s1_s THEN S1.s1_e + 1440 ELSE S1.s1_e + 1440 END AS s1_end_plus24
+		) AS N1
+		CROSS APPLY
+		(
+			SELECT
+				S2.s2_s AS s2_start,
+				CASE WHEN S2.s2_e <= S2.s2_s THEN S2.s2_e + 1440 ELSE S2.s2_e END AS s2_end,
+				S2.s2_s + 1440 AS s2_start_plus24,
+				CASE WHEN S2.s2_e <= S2.s2_s THEN S2.s2_e + 1440 ELSE S2.s2_e + 1440 END AS s2_end_plus24
+		) AS N2
+		WHERE
+			-- بررسی وجود هرگونه هم‌پوشانی بین هر یک از ترکیبات (نرمال/شیفت‌به‌عقب و ...):
+			(
+				(N1.s1_start < N2.s2_end AND N2.s2_start < N1.s1_end)
+			 OR (N1.s1_start < N2.s2_end_plus24 AND N2.s2_start_plus24 < N1.s1_end)
+			 OR (N1.s1_start_plus24 < N2.s2_end AND N2.s2_start < N1.s1_end_plus24)
+			 OR (N1.s1_start_plus24 < N2.s2_end_plus24 AND N2.s2_start_plus24 < N1.s1_end_plus24)
+			)
+			-- و در عین حال مطمئن شویم که شیفت موجود، دقیقاً همان شیفت مورد نظر در همان شبکه نیست
+			AND NOT (E.Id_shift = @id_shift AND E.Id_network = @id_network)
+		;
+
+		IF (@conflict_shift_name IS NOT NULL)
+		BEGIN
+			SET @conflict_date_str = CONVERT(NVARCHAR(10), @conflict_date, 23);
+			ROLLBACK TRANSACTION;
+			SELECT 
+				N'⛔ هم‌پوشانی زمانی با شیفت "' + @conflict_shift_name + 
+				N'" (' + @conflict_start + N' تا ' + @conflict_end + 
+				N') در تاریخ ' + @conflict_date_str + 
+				N' در شبکه "' + @conflict_network_name + N'" وجود دارد.' AS Message,
+				-2 AS Id_sound_shift,
+				@conflict_date_str AS ConflictDate,
+				@conflict_shift_name AS ConflictShift,
+				@conflict_network_name AS ConflictNetwork;
+			RETURN;
+		END;
+		-- ====== پایان بخش همپوشانی ======

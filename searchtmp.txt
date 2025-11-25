@@ -1,0 +1,406 @@
+{% extends 'main/base.html' %}
+{% load static %}
+{% load custom_tags %}
+
+
+{% block content %}
+    <style>
+    input[type="text"], select, textarea {
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 6px 10px;
+        width: 150px;
+        height: 35px;
+        font-size: 12px;
+        transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    input[type="text"]:focus, select:focus, textarea:focus {
+        border-color: #66afe9;
+        outline: none;
+        font-size: 12px;
+        box-shadow: 0 0 5px rgba(102, 175, 233, 0.6);
+    }
+
+    label {
+        margin-left: 8px;
+        font-weight: bold;
+        font-size: 12px;
+        
+    }
+
+    li {
+        margin-bottom: 12px;
+    }
+
+    button[type="submit"] {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        width: 100px;
+        height: 40px;
+    }
+    button[type="submit"]:hover {
+        background-color: #0056b3;
+    }
+    .small-table{
+        font-size: 12px;
+    }
+    /* رنگ پس‌زمینه سطر اول (سرتیترها) */
+    table thead th {
+        background-color: #e6f2ff   !important;   
+        color: white;
+        font-size: 12px;/* رنگ نوشته‌ها */
+    }
+    
+    /* رنگ پس‌زمینه ستون اول در تمام ردیف‌ها */
+    table tbody td:first-child {
+        background-color: white; 
+        font-size: 12px;
+        
+}
+    .dropdown-checkboxes {
+        position: relative;
+        display: inline-block;
+        width: 100%;
+    }
+    .dropdown-checkboxes .dropdown-menu {
+        max-height: 250px;
+        overflow-y: auto;
+        padding: 10px;
+        width: 100%;
+    }
+    .dropdown-toggle-label {
+        font-size: 14px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+    .scrollable-table {
+        overflow-x: auto;
+        width: 100%;
+    }
+
+    .scrollable-table table {
+        min-width: 900px; /* یا بیشتر، مثلاً 1200px */
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .scrollable-table th,
+    .scrollable-table td {
+        white-space: nowrap;
+    }
+@media print {
+    body * {
+        visibility: hidden;
+    }
+
+    .printable, .printable * {
+        visibility: visible;
+    }
+
+    .printable {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+    }
+}
+</style>
+                <div class="container-fluid">
+                   <div class="row">
+                        <!-- BEGIN BREADCRUMB -->
+                        <div class="col-md-12">
+                            <div class="breadcrumb-box shadow">
+                                <ul class="breadcrumb">
+                                    <li><a href="http://localhost:8000/home/">آمار و اطلاعات فنی</a></li>
+                                    <li class="active">جستجو</li>
+                                </ul>
+                                <!-- END BREADCRUMB -->
+                                <!-- فرم سرچ  -->
+                                 <div class="col-lg-12">
+                                <div class="portlet box shadow">
+                                    <div class="portlet-heading">
+                                        <div class="portlet-title">
+                                            
+                                        </div><!-- /.portlet-title -->
+                                        <div class="buttons-box">
+                                            
+                                            <div class="code-modal hide">
+                                            </div>
+                                         
+                                            <a class="btn btn-sm btn-default btn-round btn-collapse" rel="tooltip" title="کوچک کردن" href="#">
+                                                <i class="icon-arrow-up"></i>
+                                            </a>
+                                            
+                                               
+                                            </div><!-- /.portlet-heading -->
+                                            <div class="portlet-body">
+                                                
+                                                    <!-- فیلدهای متنی -->
+                                            <form method="post">
+                                            {% csrf_token %}
+                                            {{ form.non_field_errors }}
+                                            
+                                            <div style="display: flex; gap: 20px;">
+                                                <div>
+                                                    {{ form.name.label_tag }} {{ form.name }}
+                                                </div>
+                                                    <div>
+                                                    {{ form.family.label_tag }} {{ form.family }}
+                                                </div>
+                                                <div>
+                                                    {{ form.national_code.label_tag }} {{ form.national_code }}
+                                                </div>
+                                                
+                                                <div>
+                                                    {{ form.employment_id.label_tag }} {{ form.employment_id }}
+                                                </div>
+                                                </div>
+                                            
+                                            <div style="display: flex; gap: 40px; margin-top: 20px;">
+                                            
+                                                <!-- اسکریپت خواندن مقادیر dropdown -->
+                                            <script>
+                                                function toggleDropdown(id) {
+                                                    const el = document.getElementById(id);
+                                                    el.style.display = (el.style.display === 'none' || el.style.display === '') ? 'block' : 'none';
+                                                }
+                                            </script>
+                                                
+                                            <div style="position: relative;">
+                                                <a href="#" onclick="toggleDropdown('genderDropdown')" class="dropdown-toggle-label">
+                                                    جنسیت <i class="fa fa-caret-down"></i>
+                                                </a>
+                                                <div id="genderDropdown" style="display: none; margin-top: 5px;">
+                                                    {{ form.gender }}
+                                                </div>
+                                            </div>
+                                            
+                                                <!-- وضعیت تأهل -->
+                                            <div style="position: relative;">
+                                                 <a href="#" onclick="toggleDropdown('maritalDropdown')" class="dropdown-toggle-label">
+                                                    وضعیت تأهل <i class="fa fa-caret-down"></i>
+                                                </a>
+                                                 <div id="maritalDropdown" style="display: none; margin-top: 5px;">
+                                                     {{ form.marital_status }}
+                                                 </div>
+                                            </div>
+                                            <!-- عنوان شغلی -->
+                                            <div style="position: relative;">
+                                                 <a href="#" onclick="toggleDropdown('JobTittleDropdown')" class="dropdown-toggle-label">
+                                                    عنوان شغلی <i class="fa fa-caret-down"></i>
+                                                </a>
+                                                 <div id="JobTittleDropdown" style="display: none; margin-top: 5px;">
+                                                     {{ form.job_title }}
+                                                 </div>
+                                            </div>
+                                                <!-- نوع همکاری -->
+                                            <div style="position: relative;">
+                                                 <a href="#" onclick="toggleDropdown('JobRelDropdown')" class="dropdown-toggle-label">
+                                                    نوع همکاری <i class="fa fa-caret-down"></i>
+                                                </a>
+                                                 <div id="JobRelDropdown" style="display: none; margin-top: 5px;">
+                                                     {{ form.job_relation }}
+                                                 </div>
+                                            </div>
+                                            <!-- واحد خدمتی -->
+                                            <div style="position: relative;">
+                                                 <a href="#" onclick="toggleDropdown('JobUnitDropdown')" class="dropdown-toggle-label">
+                                                     واحد <i class="fa fa-caret-down"></i>
+                                                </a>
+                                                 <div id="JobUnitDropdown" style="display: none; margin-top: 5px;">
+                                                     {{ form.job_unit }}
+                                                 </div>
+                                            </div>    
+                                            </div>
+                                            
+                                                <div style="display: flex; gap: 40px; margin-top: 20px;">
+                                                <button type="submit">جستجو</button>
+                                                <a href="{% url 'search:export_excel' %}" class="btn btn-success">دریافت فایل </a>
+
+                                    </div><!-- /.portlet -->
+                                    <!-- /.انتخاب ستون ها -->
+                                    <div class="form-group">
+                                        <label style="font-weight: bold; font-size: 14px"> نمایش ستون ها:</label>
+                                        <div class="dropdown-checkboxes">
+                                            <button class="btn btn-light form-control dropdown-toggle text-start" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                انتخاب کنید
+                                            </button>
+                                            <div class="dropdown-menu">
+                                                <label class="dropdown-item">
+                                                    <input type="checkbox" name="fields" value="First_name" {% if "First_name" in selected_fields %}checked{% endif %}>
+                                                    نام
+                                                </label>
+                                                <label class="dropdown-item">
+                                                    <input type="checkbox" name="fields" value="Last_name" {% if "Last_name" in selected_fields %}checked{% endif %}>
+                                                    نام خانوادگی
+                                                </label>
+                                                <label class="dropdown-item">
+                                                    <input type="checkbox" name="fields" value="National_code" {% if "National_code" in selected_fields %}checked{% endif %}>
+                                                    کد ملی
+                                                </label>
+                                                <label class="dropdown-item">
+                                                    <input type="checkbox" name="fields" value="Employment_id" {% if "Employment_id" in selected_fields %}checked{% endif %}>
+                                                    شماره کارمندی
+                                                </label>
+                                                <label class="dropdown-item">
+                                                    <input type="checkbox" name="fields" value="Job_unit" {% if "Job_unit" in selected_fields %}checked{% endif %}>
+                                                    واحد خدمتی
+                                                </label>
+                                                <label class="dropdown-item">
+                                                    <input type="checkbox" name="fields" value="Job_title" {% if "Job_title" in selected_fields %}checked{% endif %}>
+                                                    عنوان شغلی
+                                                </label>
+                                                <label class="dropdown-item">
+                                                    <input type="checkbox" name="fields" value="Levels" {% if "Levels" in selected_fields %}checked{% endif %}>
+                                                    رده شغلی
+                                                </label>
+                                                <label class="dropdown-item">
+                                                    <input type="checkbox" name="fields" value="Job_relation" {% if "Job_relation" in selected_fields %}checked{% endif %}>
+                                                    رابطه شغلی
+                                                </label>
+                                                <label class="dropdown-item">
+                                                    <input type="checkbox" name="fields" value="Salary_base" {% if "Salary_base" in selected_fields %}checked{% endif %}>
+                                                    پایه حقوق
+                                                </label>
+                                                <label class="dropdown-item">
+                                                    <input type="checkbox" name="fields" value="Marital_status" {% if "Marital_status" in selected_fields %}checked{% endif %}>
+                                                    وضعیت تأهل
+                                                </label>
+                                                <label class="dropdown-item">
+                                                    <input type="checkbox" name="fields" value="Gender_status" {% if "Gender_status" in selected_fields %}checked{% endif %}>
+                                                    جنسیت
+                                                </label>
+                                                <label class="dropdown-item">
+                                                    <input type="checkbox" name="fields" value="Marital_status" {% if "Educational_status" in selected_fields %}checked{% endif %}>
+                                                    تحصیلات
+                                                </label>
+                                                <label class="dropdown-item">
+                                                    <input type="checkbox" name="fields" value="Marital_status" {% if "Marital_status" in selected_fields %}checked{% endif %}>
+                                                    رشته تحصیلی
+                                                </label>
+                                                <label class="dropdown-item">
+                                                    <input type="checkbox" name="fields" value="Activity_type" {% if "Activity_typ" in selected_fields %}checked{% endif %}>
+                                                    نوع خدمت
+                                                </label>
+                                                <label class="dropdown-item">
+                                                    <input type="checkbox" name="fields" value="Current_job" {% if "Current_job" in selected_fields %}checked{% endif %}>
+                                                    شغل فعلی
+                                                </label>
+                                                <label class="dropdown-item">
+                                                    <input type="checkbox" name="fields" value="Levels" {% if "Levels" in selected_fields %}checked{% endif %}>
+                                                    رده شغل فعلی
+                                                </label>
+                                                <label class="dropdown-item">
+                                                    <input type="checkbox" name="fields" value="Hire_status" {% if "Hire_status" in selected_fields %}checked{% endif %}>
+                                                    نوع استخدام
+                                                </label>
+                                                <label class="dropdown-item">
+                                                    <input type="checkbox" name="fields" value="Payment_type" {% if "Payment_type" in selected_fields %}checked{% endif %}>
+                                                    نوع پرداخت
+                                                </label>
+                                                <label class="dropdown-item">
+                                                    <input type="checkbox" name="fields" value="Insurance_type" {% if "Insurance_type" in selected_fields %}checked{% endif %}>
+                                                    نوع بیمه
+                                                </label>
+                                                <label class="dropdown-item">
+                                                    <input type="checkbox" name="fields" value="Account_number" {% if "Account_number" in selected_fields %}checked{% endif %}>
+                                                    شماره حساب
+                                                </label>
+                                                <label class="dropdown-item">
+                                                    <input type="checkbox" name="fields" value="Sheba_number" {% if "Sheba_number" in selected_fields %}checked{% endif %}>
+                                                    شماره شبا
+                                                </label>
+                                                <label class="dropdown-item">
+                                                    <input type="checkbox" name="fields" value="Bank" {% if "Bank" in selected_fields %}checked{% endif %}>
+                                                     بانک
+                                                </label>
+                                                <label class="dropdown-item"></label>
+                                            </div>
+                                        </div>
+                                    </div>
+                    <!-- Django Messages Display -->
+    {% if messages %}
+    <div class="row mb-3">
+        <div class="col-lg-12">
+            {% for message in messages %}
+                <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags == 'warning' %}warning{% elif message.tags == 'success' %}success{% else %}info{% endif %} alert-dismissible fade show" role="alert">
+                    <i class="icon-{% if message.tags == 'error' %}close{% elif message.tags == 'warning' %}warning{% elif message.tags == 'success' %}check{% else %}info{% endif %}"></i>
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+                                {% if results %}
+                            <hr>
+                            <div class="scrollable-table">
+                            <table class="table table-bordered table-striped table-hover small-table">
+                                <thead>
+                                    <tr>
+                                        {% for col in selected_fields %}
+                                            <th>
+                                                {% if col == "First_name" %}نام{% elif col == "Last_name" %}نام خانوادگی
+                                                {% elif col == "National_code" %}کد ملی{% elif col == "Employment_id" %}شماره کارمندی
+                                                {% elif col == "Activity_type" %}نوع خدمت{% elif col == "Payment_type" %}نوع پرداخت
+                                                {% elif col == "Marital_status" %}وضعیت تأهل{% elif col == "Gender_status" %}جنسیت
+                                                {% elif col == "Current_job" %} شغل فعلی{% elif col == "Levels" %}رده شغلی فعلی
+                                                {% elif col == "Levels" %}رده شغلی{% elif col == "Hire_status" %}نوع استخدام
+                                                {% elif col == "Job_relation" %}رابطه شغلی{% elif col == "Job_title" %}عنوان شغلی
+                                                {% elif col == "Job_unit" %}واحد خدمتی{% elif col == "Insurance_type" %}نوع بیمه
+                                                {% elif col == "Salary_base" %}حقوق پایه{% elif col == "Bank" %}بانک
+                                                {% elif col == "Account_number" %}شماره حساب{% elif col == "Sheba_number" %}شماره شبا
+                                                {% endif %}
+                                            </th>
+                                        {% endfor %}
+                                    </tr>
+                                </thead>
+                                <tbody>
+            {% for row in results %}
+                <tr>
+                    {% for col in selected_fields %}
+                        <td>
+                            {% if col == "Gender_status" %}
+                                {% if row|get_item:col == "M" %}مرد
+                                {% elif row|get_item:col == "F" %}زن
+                                {% else %}نامشخص{% endif %}
+                            {% elif col == "Marital_status" %}
+                                {% if row|get_item:col == "S" %}مجرد
+                                {% elif row|get_item:col == "M" %}متاهل
+                                {% else %}نامشخص{% endif %}
+                            {% elif col == "Basij" %}
+                                {% if row|get_item:col == 1 %}دارد
+                                {% else %}ندارد{% endif %}
+                            {% elif col == "Isargari" %}
+                                {% if row|get_item:col == 1 %}دارد
+                                {% else %}ندارد{% endif %}
+                            {% elif col == "Work_permit" %}
+                                {% if row|get_item:col == 1 %}دارد
+                                {% else %}ندارد{% endif %}
+                            {% else %}
+                                {{ row|get_item:col }}
+                            {% endif %}
+                        </td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </tbody>
+                            </table>
+                            </div>
+                              
+                        {% endif %}
+</form>
+
+
+</div>
+</div>
+</div>
+</div></div></div></div></div>
+{% endblock %}

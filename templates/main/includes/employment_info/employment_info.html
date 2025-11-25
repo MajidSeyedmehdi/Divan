@@ -1,0 +1,920 @@
+{% extends 'main/base.html' %}
+{% load static %}
+{% load humanize %}
+
+
+<!-- style="border: 1px solid #333; box-shadow: 0 4px 10px rgba(0,0,0,0.4);" -->
+{% block content %}
+ <style>
+  .required-star {
+    color: red;
+    margin-left: 4px;
+  }
+</style>
+   
+
+    
+<div class="container-fluid">
+
+    <div class="row">
+                        <!-- BEGIN BREADCRUMB -->
+                        <div class="col-md-12">
+                            <div class="breadcrumb-box shadow">
+                                <ul class="breadcrumb">
+                                    <li><a href="http://localhost:8000/home/">آمار و اطلاعات فنی</a></li>
+                                    <li class="active">اطلاعات کارمندان</li>
+                                </ul>
+                                <!-- END BREADCRUMB -->
+    <!-- Search National Code -->
+    <div class="row mb-3">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="row align-items-end">
+                            <div class="col-md-4">
+                                <label class="form-label">بررسی کد ملی:</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control border-danger border-3 fw-bold" name="national_code" placeholder="کد ملی 10 رقمی" maxlength="10" required value="{{ prefilled_data.national_code|default:'' }}">
+                                    <button type="submit" name="search_national_code" class="btn btn-outline-primary">
+                                        <i class="icon-search"></i> بررسی
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-md-8">
+                                <small class="text-muted">
+                                    اگر کد ملی در سیستم موجود باشد، فرم با اطلاعات موجود پر خواهد شد.
+                                </small>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Django Messages Display -->
+    {% if messages %}
+    <div class="row mb-3">
+        <div class="col-lg-12">
+            {% for message in messages %}
+                <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags == 'warning' %}warning{% elif message.tags == 'success' %}success{% else %}info{% endif %} alert-dismissible fade show" role="alert">
+                    <i class="icon-{% if message.tags == 'error' %}close{% elif message.tags == 'warning' %}warning{% elif message.tags == 'success' %}check{% else %}info{% endif %}"></i>
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Tabs Navigation -->
+    <div class="row">
+    <ul class="nav nav-tabs" id="employmentTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link {% if tab == 'personal' or not tab %}active{% endif %}" id="personal-tab" data-bs-toggle="tab" data-bs-target="#personal" type="button" role="tab">اطلاعات پرسنلی</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link {% if tab == 'family' %}active{% endif %}" id="family-tab" data-bs-toggle="tab" data-bs-target="#family" type="button" role="tab">اطلاعات خانوادگی</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link {% if tab == 'official' %}active{% endif %}" id="official-tab" data-bs-toggle="tab" data-bs-target="#official" type="button" role="tab">اطلاعات اداری</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link {% if tab == 'financial' %}active{% endif %}" id="financial-tab" data-bs-toggle="tab" data-bs-target="#financial" type="button" role="tab">اطلاعات مالی</button>
+        </li>
+    </ul>
+    <div class="tab-content" id="employmentTabsContent">
+        <!-- Personal Tab -->
+        <div class="tab-pane fade {% if tab == 'personal' or not tab %}show active{% endif %}" id="personal" role="tabpanel">
+            <form method="post">
+                {% csrf_token %}
+                <div class="row mt-4">
+                    <!-- Personal Info -->
+                    <div class="col-lg-4">
+                        <div class="portlet box shadow mb-4" >
+                            <div class="portlet-heading">
+                                <div class="portlet-title"><h4><i class="icon-user"></i> اطلاعات فردی</h4></div>
+                            </div>
+                            <div class="buttons-box" >
+                                        <a class="btn btn-sm btn-default btn-round btn-fullscreen" rel="tooltip" title="تمام صفحه" href="#">
+                                            <i class="icon-size-fullscreen"></i>
+                                        </a>
+                                        <a class="btn btn-sm btn-default btn-round btn-collapse" rel="tooltip" title="کوچک کردن" href="#">
+                                            <i class="icon-arrow-up"></i>
+                                        </a>
+                                    </div><!-- /.buttons-box -->
+                            <div class="portlet-body">
+                                <div class="form-group row mb-2" >
+                                    <label class="col-sm-4 col-form-label">
+                                        <span style="color: red;">* </span>نام
+                                    </label>
+                                    <div class="col-sm-8"><input type="text" class="form-control" name="first_name" required value="{{ prefilled_data.first_name|default:'' }}"></div>
+                                </div>
+                                <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">
+                                        <span style="color: red;">* </span>نام خانوادگی
+                                    </label>
+                                    <div class="col-sm-8"><input type="text" class="form-control" name="last_name" required value="{{ prefilled_data.last_name|default:'' }}"></div>
+                                </div>
+                                <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">
+                                        <span style="color: red;">* </span>نام پدر
+                                    </label>
+                                    <div class="col-sm-8"><input type="text" class="form-control" name="father_name" required value="{{ prefilled_data.father_name|default:'' }}"></div>
+                                </div>
+                                <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">
+                                        <span style="color: red;">* </span>
+                                        شماره شناسنامه</label>
+                                    <div class="col-sm-8"><input type="text" class="form-control" name="birth_number" required value="{{ prefilled_data.birth_number|default:'' }}"></div>
+                                </div>
+                                <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">
+                                        <span style="color: red;">* </span>
+                                        کد ملی</label>
+                                    <div class="col-sm-8"><input type="text" class="form-control" name="national_code" required maxlength="10" value="{{ prefilled_data.national_code|default:'' }}"></div>
+                                </div>
+                                <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">
+                                        <span style="color: red;">* </span>
+                                        جنسیت</label>
+                                    <div class="col-sm-8">
+                                        <select class="form-control" required name="gender_status">
+                                            <option value="">انتخاب کنید</option>
+                                            <option value="M" {% if prefilled_data.gender_status == 'M' %}selected{% endif %}>مرد</option>
+                                            <option value="F" {% if prefilled_data.gender_status == 'F' %}selected{% endif %}>زن</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">
+                                        <span style="color: red;">* </span>
+                                        وضعیت تاهل</label>
+                                    <div class="col-sm-8">
+                                        <select class="form-control" name="marital_status">
+                                            <option value="">انتخاب کنید</option>
+                                            <option value="S" {% if prefilled_data.marital_status == 'S' %}selected{% endif %}>مجرد</option>
+                                            <option value="M" {% if prefilled_data.marital_status == 'M' %}selected{% endif %}>متاهل</option>
+                                            <option value="D" {% if prefilled_data.marital_status == 'D' %}selected{% endif %}>طلاق</option>
+                                            <option value="W" {% if prefilled_data.marital_status == 'W' %}selected{% endif %}>فوت همسر</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">
+                                        <span style="color: red;">* </span>
+                                        تاریخ تولد</label>
+                                    <div class="col-sm-8"><input type="text" class="form-control" name="birth_date" value="{{ prefilled_data.birth_date|default:'' }}"></div>
+                                </div>
+                                <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">محل تولد</label>
+                                    <div class="col-sm-8"><input type="text" class="form-control" name="birth_city" value="{{ prefilled_data.birth_city|default:'' }}"></div>
+                                </div>
+                                <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">ایمیل</label>
+                                    <div class="col-sm-8"><input type="email" class="form-control" name="email" value="{{ prefilled_data.email|default:'' }}"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Education Info -->
+                    <div class="col-lg-4">
+                        <div class="portlet box shadow mb-4">
+                            <div class="portlet-heading">
+                                <div class="portlet-title"><h4><i class="icon-graduation"></i> اطلاعات تحصیلی</h4></div>
+                            </div>
+                            <div class="buttons-box">
+                                        <a class="btn btn-sm btn-default btn-round btn-fullscreen" rel="tooltip" title="تمام صفحه" href="#">
+                                            <i class="icon-size-fullscreen"></i>
+                                        </a>
+                                        <a class="btn btn-sm btn-default btn-round btn-collapse" rel="tooltip" title="کوچک کردن" href="#">
+                                            <i class="icon-arrow-up"></i>
+                                        </a>
+                                    </div><!-- /.buttons-box -->
+                            <div class="portlet-body">
+                                <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">
+                                        <span style="color: red;">* </span>
+                                        رشته تحصیلی</label>
+                                    <div class="col-sm-8"><input type="text" class="form-control" name="field_study" value="{{ prefilled_data.field_study|default:'' }}"></div>
+                                </div>
+                                <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">
+                                        <span style="color: red;">* </span>
+                                        سطح تحصیلات</label>
+                                    <div class="col-sm-8">
+                                        <select class="form-control" name="educational_level">
+                                            <option value="">انتخاب کنید</option>
+                                            {% for level in educational_levels %}
+                                                <option value="{{ level.id_educational_level }}" {% if prefilled_data.educational_level == level.id_educational_level %}selected{% endif %}>{{ level.educational_level }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">دانشگاه</label>
+                                    <div class="col-sm-8"><input type="text" class="form-control" name="university" value="{{ prefilled_data.university|default:'' }}"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Contact & Address Info -->
+                    <div class="col-lg-4">
+                        <div class="portlet box shadow mb-4">
+                            <div class="portlet-heading">
+                                <div class="portlet-title"><h4><i class="icon-phone"></i> اطلاعات تماس و آدرس</h4></div>
+                            </div>
+                            <div class="buttons-box">
+                                        <a class="btn btn-sm btn-default btn-round btn-fullscreen" rel="tooltip" title="تمام صفحه" href="#">
+                                            <i class="icon-size-fullscreen"></i>
+                                        </a>
+                                        <a class="btn btn-sm btn-default btn-round btn-collapse" rel="tooltip" title="کوچک کردن" href="#">
+                                            <i class="icon-arrow-up"></i>
+                                        </a>
+                                    </div><!-- /.buttons-box -->
+                            <div class="portlet-body">
+                                <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">شماره موبایل</label>
+                                    <div class="col-sm-8"><input type="text" class="form-control" name="mobile_number" value="{{ prefilled_data.mobile_number|default:'' }}"></div>
+                                </div>
+                                <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">شماره تلفن</label>
+                                    <div class="col-sm-8"><input type="text" class="form-control" name="phone_number" value="{{ prefilled_data.phone_number|default:'' }}"></div>
+                                </div>
+                                <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">
+                                        <span style="color: red;">* </span>
+                                        شهر</label>
+                                    <div class="col-sm-8"><input type="text" class="form-control" name="city" value="{{ prefilled_data.city|default:'' }}"></div>
+                                </div>
+                                <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">کد پستی</label>
+                                    <div class="col-sm-8"><input type="text" class="form-control" name="postal_code" value="{{ prefilled_data.postal_code|default:'' }}"></div>
+                                </div>
+                                <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">
+                                        <span style="color: red;">* </span>
+                                        آدرس</label>
+                                    <div class="col-sm-8"><input type="text" class="form-control" name="address" value="{{ prefilled_data.address|default:'' }}"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 text-center">
+                      <button type="submit" name="save_personal" class="btn btn-primary">ثبت / ویرایش اطلاعات</button>
+                </div>
+            </form>
+        </div>
+        <!-- Family Tab -->
+        <div class="tab-pane fade {% if tab == 'family' %}show active{% endif %}" id="family" role="tabpanel">
+            {% if family_list %}
+            <div class="table-responsive mb-3">
+                <table class="table table-bordered table-striped text-center align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>انتخاب</th>
+                            <th>نام</th>
+                            <th>نام خانوادگی</th>
+                            <th>کد ملی</th>
+                            <th>تاریخ تولد</th>
+                            <th>رابطه خانوادگی</th>
+                            <th>حذف</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for fam in family_list %}
+                        <tr>
+                            <td>
+                                <form method="post" style="display: inline;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="select_family_member" value="{{ fam.id_family }}">
+                                    <input type="hidden" name="family_first_name" value="{{ fam.first_name }}">
+                                    <input type="hidden" name="family_last_name" value="{{ fam.last_name }}">
+                                    <input type="hidden" name="family_national_code" value="{{ fam.national_code }}">
+                                    <input type="hidden" name="family_birth_date" value="{{ fam.birth_date }}">
+                                    <input type="hidden" name="family_type" value="{{ fam.type }}">
+                                    <input type="hidden" name="active_tab" value="family">
+                                    <input type="hidden" name="id_personal" value="{{ prefilled_data.id_personal }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-primary">
+                                        <i class="checkboxes"></i> انتخاب
+                                    </button>
+                                </form>
+                            </td>
+                            <td>{{ fam.first_name }}</td>
+                            <td>{{ fam.last_name }}</td>
+                            <td>{{ fam.national_code }}</td>
+                            <td>{{ fam.birth_date }}</td>
+                            <td>
+                                {% if fam.type == 'S' %}همسر{% elif fam.type == 'CHM' %}فرزند پسر{% elif fam.type == 'CHF' %}فرزند دختر{% else %}{{ fam.type }}{% endif %}
+                            </td>
+                            <td>
+                                <form method="post" style="display:inline;" onsubmit="return confirm('آیا از حذف عضو خانواده مطمئن هستید؟');">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="id_personal" value="{{ prefilled_data.id_personal }}">
+                                    <button type="submit" name="delete_family_member" value="{{ fam.id_family }}" class="btn btn-sm btn-outline-danger" title="حذف">
+                                        <i class="icon-close"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="id_personal" value="{{ prefilled_data.id_personal }}">
+                <input type="hidden" name="id_official" value="{{ prefilled_data.id_official }}">
+                {% if prefilled_data.family_id %}
+                    <input type="hidden" name="id_family" value="{{ prefilled_data.family_id }}">
+                {% endif %}
+                <div class="row mt-4">
+                    <div class="col-lg-4">
+                        <div class="portlet box shadow mb-4">
+                            <div class="portlet-heading">
+                                <div class="portlet-title"><h4><i class="icon-users"></i> اطلاعات خانوادگی</h4></div>
+                            </div>
+                            <div class="buttons-box">
+                                <a class="btn btn-sm btn-default btn-round btn-fullscreen" rel="tooltip" title="تمام صفحه" href="#">
+                                    <i class="icon-size-fullscreen"></i>
+                                </a>
+                                <a class="btn btn-sm btn-default btn-round btn-collapse" rel="tooltip" title="کوچک کردن" href="#">
+                                    <i class="icon-arrow-up"></i>
+                                </a>
+                                    </div><!-- /.buttons-box -->
+                            <div class="portlet-body">
+                                <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">
+                                        <span style="color: red;">* </span>
+                                        نام</label>
+                                    <div class="col-sm-8"><input type="text" class="form-control" name="first_name" value="{{ prefilled_data.family_first_name|default:'' }}"></div>
+                                </div>
+                                <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">
+                                        <span style="color: red;">* </span>
+                                        نام خانوادگی</label>
+                                    <div class="col-sm-8"><input type="text" class="form-control" name="last_name" value="{{ prefilled_data.family_last_name|default:'' }}"></div>
+                                </div>
+                                <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">کد ملی</label>
+                                    <div class="col-sm-8"><input type="text" class="form-control" name="national_code" value="{{ prefilled_data.family_national_code|default:'' }}"></div>
+                                </div>
+                                <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">
+                                        <span style="color: red;">* </span>
+                                        تاریخ تولد</label>
+                                    <div class="col-sm-8"><input type="text" class="form-control" name="birth_date" value="{{ prefilled_data.family_birth_date|default:'' }}"></div>
+                                </div>
+                                <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">
+                                        <span style="color: red;">* </span>
+                                        رابطه خانوادگی</label>
+                                    <div class="col-sm-8">
+                                        <select class="form-control" name="type">
+                                            <option value="">انتخاب کنید</option>
+                                            <option value="S" {% if prefilled_data.family_type == 'S' %}selected{% endif %}>همسر</option>
+                                            <option value="CHM" {% if prefilled_data.family_type == 'CHM' %}selected{% endif %}>فرزند پسر</option>
+                                            <option value="CHF" {% if prefilled_data.family_type == 'CHF' %}selected{% endif %}>فرزند دختر</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 text-center">
+                    <button type="submit" name="save_family" class="btn btn-primary">ثبت / ویرایش اطلاعات خانوادگی</button>
+                    <button type="submit" name="new_family_member" value="1" class="btn btn-primary">عضو خانواده جدید</button>
+                </div>
+            </form>
+        </div>
+        <!-- Official Tab -->
+        <div class="tab-pane fade {% if tab == 'official' %}show active{% endif %}" id="official" role="tabpanel">
+            {% if official_form.errors %}
+              <div class="alert alert-danger">
+                {{ official_form.errors }}
+              </div>
+            {% endif %}
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="id_personal" value="{{ prefilled_data.id_personal }}">
+                <input type="hidden" name="id_official" value="{{ prefilled_data.id_official }}">
+                <div class="row mt-4">
+                    <!-- ستون اطلاعات استخدامی -->
+                    <div class="col-lg-4">
+                        <div class="portlet box shadow mb-4">
+                            <div class="portlet-heading">
+                                <div class="portlet-title"><h4><i class="icon-briefcase"></i> اطلاعات استخدامی</h4></div>
+                            </div>
+                            <div class="buttons-box">
+                                <a class="btn btn-sm btn-default btn-round btn-fullscreen" rel="tooltip" title="تمام صفحه" href="#">
+                                    <i class="icon-size-fullscreen"></i>
+                                </a>
+                                <a class="btn btn-sm btn-default btn-round btn-collapse" rel="tooltip" title="کوچک کردن" href="#">
+                                    <i class="icon-arrow-up"></i>
+                                </a>
+                            </div><!-- /.buttons-box -->
+                            <div class="portlet-body">
+                                <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">
+                                        <span style="color: red;">* </span>
+                                        شماره کارمندی</label>
+                                    <div class="col-sm-8"><input type="text" class="form-control" name="employment_id" value="{{ prefilled_data.employment_id|default:'' }}"></div>
+                                </div>
+                                <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">
+                                        <span style="color: red;">* </span>
+                                        نوع فعالیت</label>
+                                    <div class="col-sm-8">
+                                        <select class="form-control" name="id_activity_type">
+                                            <option value="">انتخاب کنید</option>
+                                            {% for type in activity_type %}
+                                                <option value="{{ type.id_activity_type }}" {% if prefilled_data.id_activity_type == type.id_activity_type %}selected{% endif %}>{{ type.activity_type }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">
+                                        <span style="color: red;">* </span>
+                                        نوع پرداختی</label>
+                                    <div class="col-sm-8">
+                                        <select class="form-control" name="id_payment_type">
+                                            <option value="">انتخاب کنید</option>
+                                            {% for type in payment_type %}
+                                                <option value="{{ type.id_payment_type }}" {% if prefilled_data.id_payment_type == type.id_payment_type %}selected{% endif %}>{{ type.payment_type }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">
+                                        <span style="color: red;">* </span>
+                                        وضعیت استخدامی</label>
+                                    <div class="col-sm-8">
+                                        <select class="form-control" name="id_hire_status">
+                                            <option value="">انتخاب کنید</option>
+                                            {% for status in hire_statuses %}
+                                                <option value="{{ status.id_hire_status }}" {% if prefilled_data.id_hire_status == status.id_hire_status %}selected{% endif %}>{{ status.hire_status }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">
+                                        <span style="color: red;">* </span>
+                                        نوع همکاری</label>
+                                    <div class="col-sm-8">
+                                        <select class="form-control" name="id_job_relation">
+                                            <option value="">انتخاب کنید</option>
+                                            {% for relation in job_relations %}
+                                                <option value="{{ relation.id_job_relation }}" {% if prefilled_data.id_job_relation == relation.id_job_relation %}selected{% endif %}>{{ relation.job_relation }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">
+                                        <span style="color: red;">* </span>
+                                        ساعت موظف</label>
+                                    <div class="col-sm-8">
+                                        <select class="form-control" name="id_mandatory_hours">
+                                            <option value="">انتخاب کنید</option>
+                                            {% for hours in mandatory_Hours %}
+                                                <option value="{{ hours.id_mandatory_hours }}" {% if prefilled_data.id_mandatory_hours == hours.id_mandatory_hours %}selected{% endif %}>{{ hours.mandatory_hours }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- ستون اطلاعات شغلی -->
+                    <div class="col-lg-4">
+                        <div class="portlet box shadow mb-4">
+                            <div class="portlet-heading">
+                                <div class="portlet-title"><h4><i class="icon-user"></i> اطلاعات شغلی</h4></div>
+                            </div>
+                            <div class="buttons-box">
+                                <a class="btn btn-sm btn-default btn-round btn-fullscreen" rel="tooltip" title="تمام صفحه" href="#">
+                                    <i class="icon-size-fullscreen"></i>
+                                </a>
+                                <a class="btn btn-sm btn-default btn-round btn-collapse" rel="tooltip" title="کوچک کردن" href="#">
+                                    <i class="icon-arrow-up"></i>
+                                </a>
+                            </div><!-- /.buttons-box -->
+                            <div class="portlet-body">
+                                <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">
+                                        <span style="color: red;">* </span>
+                                        عنوان شغلی</label>
+                                    <div class="col-sm-8">
+                                        <select class="form-control" name="id_job_title">
+                                            <option value="">انتخاب کنید</option>
+                                            {% for title in job_titles %}
+                                                <option value="{{ title.id_job_title }}" {% if prefilled_data.id_job_title == title.id_job_title %}selected{% endif %}>{{ title.job_title }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">
+                                        <span style="color: red;">* </span>
+                                        رده شغلی</label>
+                                    <div class="col-sm-8">
+                                        <select class="form-control" name="id_job_level">
+                                            <option value="">انتخاب کنید</option>
+                                            {% for level in levels %}
+                                                <option value="{{ level.id_levels }}" {% if prefilled_data.id_job_level == level.id_levels %}selected{% endif %}>{{ level.levels }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">
+                                        <span style="color: red;">* </span>
+                                        مسئولیت فعلی</label>
+                                    <div class="col-sm-8">
+                                        <select class="form-control" name="id_current_job">
+                                            <option value="">انتخاب کنید</option>
+                                            {% for job in current_jobs %}
+                                                <option value="{{ job.id_current_job }}" {% if prefilled_data.id_current_job == job.id_current_job %}selected{% endif %}>{{ job.current_job }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">
+                                        <span style="color: red;">* </span>
+                                        رده مسئولیت فعلی</label>
+                                    <div class="col-sm-8">
+                                        <select class="form-control" name="id_current_job_level">
+                                            <option value="">انتخاب کنید</option>
+                                            {% for level in levels %}
+                                                <option value="{{ level.id_levels }}" {% if prefilled_data.id_current_job_level == level.id_levels %}selected{% endif %}>{{ level.levels }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">
+                                        <span style="color: red;">* </span>
+                                        واحد خدمتی</label>
+                                    <div class="col-sm-8">
+                                        <select class="form-control" name="id_job_unit">
+                                            <option value="">انتخاب کنید</option>
+                                            {% for unit in job_units %}
+                                                <option value="{{ unit.id_job_unit }}" {% if prefilled_data.id_job_unit == unit.id_job_unit %}selected{% endif %}>{{ unit.job_unit }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- ستون سایر اطلاعات -->
+                    <div class="col-lg-4">
+                        <div class="portlet box shadow mb-4">
+                            <div class="portlet-heading">
+                                <div class="portlet-title"><h4><i class="icon-info"></i> سایر اطلاعات</h4></div>
+                            </div>
+                            <div class="buttons-box">
+                                <a class="btn btn-sm btn-default btn-round btn-fullscreen" rel="tooltip" title="تمام صفحه" href="#">
+                                    <i class="icon-size-fullscreen"></i>
+                                </a>
+                                <a class="btn btn-sm btn-default btn-round btn-collapse" rel="tooltip" title="کوچک کردن" href="#">
+                                    <i class="icon-arrow-up"></i>
+                                </a>
+                            </div><!-- /.buttons-box -->
+                            <div class="portlet-body">
+                                <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">
+                                        <span style="color: red;">* </span>
+                                        تاریخ استخدام</label>
+                                    <div class="col-sm-8"><input type="text" class="form-control" name="hire_date" value="{{ prefilled_data.hire_date|default:'' }}"></div>
+                                </div>
+                                <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">تاریخ آخرین ترفیع</label>
+                                    <div class="col-sm-8"><input type="text" class="form-control" name="last_promotion_date" value="{{ prefilled_data.last_promotion_date|default:'' }}"></div>
+                                </div>
+                                <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">کد برنامه‌سازی</label>
+                                    <div class="col-sm-8"><input type="text" class="form-control" name="programming_code" value="{{ prefilled_data.programming_code|default:'' }}"></div>
+                                </div>
+                                <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">تاریخ بازنشستگی</label>
+                                    <div class="col-sm-8"><input type="text" class="form-control" name="retirement_date" value="{{ prefilled_data.retirement_date|default:'' }}"></div>
+                                </div>
+                                <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">تاریخ قطع همکاری</label>
+                                    <div class="col-sm-8"><input type="text" class="form-control" name="end_date_cooperation" value="{{ prefilled_data.end_date_cooperation|default:'' }}"></div>
+                                </div>
+                                <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">ایثارگری</label>
+                                    <div class="col-sm-8">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="isargari" value="1" {% if prefilled_data.isargari %}checked{% endif %}>
+                                            <label class="form-check-label">بله</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">بسیج</label>
+                                    <div class="col-sm-8">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="basij" value="1" {% if prefilled_data.basij %}checked{% endif %}>
+                                            <label class="form-check-label">بله</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 text-center">
+                    <button type="submit" name="save_official" class="btn btn-primary">ثبت / ویرایش اطلاعات اداری</button>
+                </div>
+            </form>
+        </div>
+        <!-- Financial Tab -->
+        <div class="tab-pane fade {% if tab == 'financial' %}show active{% endif %}" id="financial" role="tabpanel">
+            {% if financial_form.errors %}
+              <div class="alert alert-danger">
+                {{ financial_form.errors }}
+              </div>
+            {% endif %}
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="id_personal" value="{{ prefilled_data.id_personal }}">
+                <input type="hidden" name="id_financial" value="{{ prefilled_data.id_financial|default:''}}">
+                <div class="row mt-4">
+                    <!-- ستون حقوق پایه -->
+                    <div class="col-lg-4">
+                        <div class="portlet box shadow mb-4">
+                            <div class="portlet-heading">
+                                <div class="portlet-title"><h4><i class="icon-money"></i> حقوق پایه</h4></div>
+                            </div>
+                            <div class="buttons-box">
+                                <a class="btn btn-sm btn-default btn-round btn-fullscreen" rel="tooltip" title="تمام صفحه" href="#">
+                                    <i class="icon-size-fullscreen"></i>
+                                </a>
+                                <a class="btn btn-sm btn-default btn-round btn-collapse" rel="tooltip" title="کوچک کردن" href="#">
+                                    <i class="icon-arrow-up"></i>
+                                </a>
+                            </div><!-- /.buttons-box -->
+                            <div class="portlet-body">
+                                <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">
+                                        <span style="color: red;">* </span>
+                                        حقوق پایه</label>
+                                    <div class="col-sm-8"><input type="number" class="form-control" name="salary_base" value="{{ prefilled_data.salary_base|default:''  }}" title="{{ prefilled_data.salary_base|intcomma }}"></div>
+                                </div>
+                                <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">سنوات</label>
+                                    <div class="col-sm-8"><input type="number" class="form-control" name="sanavat" value="{{ prefilled_data.sanavat|default:'' }}" title="{{ prefilled_data.sanavat|intcomma }}"></div>
+                                </div>
+                                <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">عیدی</label>
+                                    <div class="col-sm-8"><input type="number" class="form-control" name="eydi" value="{{ prefilled_data.eydi|default:'' }}" title="{{ prefilled_data.eydi|intcomma }}"></div>
+                                </div>
+                                <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">خاروبار</label>
+                                    <div class="col-sm-8"><input type="number" class="form-control" name="kharobar" value="{{ prefilled_data.kharobar|default:'' }}" title="{{ prefilled_data.kharobar|intcomma }}"></div>
+                                </div>
+                                <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">
+                                        <span style="color: red;">* </span>
+                                        بانک</label>
+                                    <div class="col-sm-8">
+                                        <select class="form-control" name="id_bank">
+                                            <option value="">انتخاب کنید</option>
+                                            {% for name in bank %}
+                                                <option value="{{ name.id_bank }}" {% if prefilled_data.id_bank == name.id_bank %}selected{% endif %}>{{ name.bank }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">شماره حساب</label>
+                                    <div class="col-sm-8"><input type="text" class="form-control" name="account_number" value="{{ prefilled_data.account_number|default:'' }}"></div>
+                                </div>
+                            <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">شماره شبا</label>
+                                    <div class="col-sm-8"><input type="text" class="form-control" name="sheba_number" value="{{ prefilled_data.sheba_number|default:'' }}"></div>
+                            </div>
+                            <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">جمع کل :</label>
+                                    <div class="col-sm-8"><input type="number" class="form-control" name="totalfinancial" value="{{ prefilled_data.total_financial|default:'' }}" title="{{ prefilled_data.total_financial|intcomma }}"></div>
+                                </div>
+                            <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">برآورد :</label>
+                                    <div class="col-sm-8"><input type="number" class="form-control" name="baravord" value="{{ prefilled_data.baravord|default:'' }}" title="{{ prefilled_data.total_financial|intcomma }}"></div>
+                                </div>
+                            {% if bank_accounts %}
+                                <div class="table-responsive mb-3">
+                                    <table class="table table-bordered table-striped text-center align-middle">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>انتخاب</th>
+                                                <th>بانک</th>
+                                                <th>شماره حساب</th>
+                                                <th>شماره شبا</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for account in bank_accounts %}
+                                            <tr>
+                                                <td>
+                                                    <form method="post" style="display: inline;">
+                                                        {% csrf_token %}
+                                                        <button type="submit" name="select_bank_account" value="{{ account.id_account }}" class="btn btn-sm btn-outline-primary">
+                                                            انتخاب
+                                                        </button>
+                                                    </form>
+                                                </td>
+                                                <td>{{ account.id_bank.bank }}</td>
+                                                <td class="text-nowrap w-100">{{ account.account_number }}</td>
+                                                <td class="text-nowrap w-100">{{ account.sheba_number }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% endif %}    
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- ستون بیمه -->
+                    <div class="col-lg-4">
+                        <div class="portlet box shadow mb-4">
+                            <div class="portlet-heading">
+                                <div class="portlet-title"><h4><i class="icon-shield"></i> حقوق دیگر</h4></div>
+                            </div>
+                            <div class="buttons-box">
+                                <a class="btn btn-sm btn-default btn-round btn-fullscreen" rel="tooltip" title="تمام صفحه" href="#">
+                                    <i class="icon-size-fullscreen"></i>
+                                </a>
+                                <a class="btn btn-sm btn-default btn-round btn-collapse" rel="tooltip" title="کوچک کردن" href="#">
+                                    <i class="icon-arrow-up"></i>
+                                </a>
+                            </div><!-- /.buttons-box -->
+                            <div class="portlet-body">
+                                <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">
+                                        <span style="color: red;">* </span>
+                                        نوع بیمه</label>
+                                    <div class="col-sm-8">
+                                        <select class="form-control" name="id_insurance_type">
+                                            <option value="">انتخاب کنید</option>
+                                            {% for type in insurance_type %}
+                                                <option value="{{ type.id_insurance_type }}" {% if prefilled_data.id_insurance_type == type.id_insurance_type %}selected{% endif %}>{{ type.insurance_type }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">
+                                        <span style="color: red;">* </span>
+                                        شماره بیمه</label>
+                                    <div class="col-sm-8"><input type="text" class="form-control" name="insurance_number" value="{{ prefilled_data.insurance_number|default:'' }}"></div>
+                                </div>
+                                <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">حق همسر</label>
+                                    <div class="col-sm-8"><input type="number" class="form-control" name="wife_right" value="{{ prefilled_data.wife_right|default:'' }}" title="{{ prefilled_data.wife_right|intcomma }}"></div>
+                                </div>
+                                <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">حق فرزند</label>
+                                    <div class="col-sm-8"><input type="number" class="form-control" name="children_right" value="{{ prefilled_data.children_right|default:'' }}" title="{{ prefilled_data.children_right|intcomma }}"></div>
+                                </div>
+                                <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">حق مسکن</label>
+                                    <div class="col-sm-8"><input type="number" class="form-control" name="housing_right" value="{{ prefilled_data.housing_right|default:'' }}" title="{{ prefilled_data.housing_right|intcomma }}"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- ستون فوق العاده ها -->
+                    <div class="col-lg-4">
+                        <div class="portlet box shadow mb-4">
+                            <div class="portlet-heading">
+                                <div class="portlet-title"><h4><i class="icon-plus"></i> فوق العاده ها</h4></div>
+                            </div>
+                            <div class="buttons-box">
+                                <a class="btn btn-sm btn-default btn-round btn-fullscreen" rel="tooltip" title="تمام صفحه" href="#">
+                                    <i class="icon-size-fullscreen"></i>
+                                </a>
+                                <a class="btn btn-sm btn-default btn-round btn-collapse" rel="tooltip" title="کوچک کردن" href="#">
+                                    <i class="icon-arrow-up"></i>
+                                </a>
+                            </div><!-- /.buttons-box -->
+                            <div class="portlet-body">
+                                <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">فوق العاده شغل</label>
+                                    <div class="col-sm-8"><input type="number" class="form-control" name="f_shoghl" value="{{ prefilled_data.f_shoghl|default:'' }}" title="{{ prefilled_data.f_shoghl|intcomma }}"></div>
+                                </div>
+                                <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">فوق العاده آموزشی/مهارت</label>
+                                    <div class="col-sm-8"><input type="number" class="form-control" name="f_amoozesh" value="{{ prefilled_data.f_amoozesh|default:'' }}" title="{{ prefilled_data.f_amoozesh|intcomma }}"></div>
+                                </div>
+                                <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">فوق العاده مدیریت</label>
+                                    <div class="col-sm-8"><input type="number" class="form-control" name="management_right" value="{{ prefilled_data.management_right|default:'' }}" title="{{ prefilled_data.management_right|intcomma }}"></div>
+                                </div>
+                                <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">فوق العاده ایثارگری</label>
+                                    <div class="col-sm-8"><input type="number" class="form-control" name="f_isargari" value="{{ prefilled_data.f_isargari|default:'' }}" title="{{ prefilled_data.f_isargari|intcomma }}"></div>
+                                </div>
+                                <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">فوق العاده ماده 51</label>
+                                    <div class="col-sm-8"><input type="number" class="form-control" name="f_51" value="{{ prefilled_data.f_51|default:'' }}" title="{{ prefilled_data.f_51|intcomma }}"></div>
+                                </div>
+                                <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">فوق العاده رسانه</label>
+                                    <div class="col-sm-8"><input type="number" class="form-control" name="f_resaneh" value="{{ prefilled_data.f_resaneh|default:'' }}" title="{{ prefilled_data.f_resaneh|intcomma }}"></div>
+                                </div>
+                                <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">فوق العاده مهندسی</label>
+                                    <div class="col-sm-8"><input type="number" class="form-control" name="f_mohandesi" value="{{ prefilled_data.f_mohandesi|default:'' }}" title="{{ prefilled_data.f_mohandesi|intcomma }}"></div>
+                                </div>
+                                <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">فوق العاده سختی کار</label>
+                                    <div class="col-sm-8"><input type="number" class="form-control" name="f_sakhti_kar" value="{{ prefilled_data.f_sakhti_kar|default:'' }}" title="{{ prefilled_data.f_sakhti_kar|intcomma }}"></div>
+                                </div>
+                                <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">فوق العاده بدی آب و هوا</label>
+                                    <div class="col-sm-8"><input type="number" class="form-control" name="f_abohava" value="{{ prefilled_data.f_abohava|default:'' }}" title="{{ prefilled_data.f_abohava|intcomma }}"></div>
+                                </div>
+                                <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label"> فوق العاده محرومیت از تسهیلات</label>
+                                    <div class="col-sm-8"><input type="number" class="form-control" name="f_mahroomiat" value="{{ prefilled_data.f_mahroomiat|default:'' }}" title="{{ prefilled_data.f_mahroomiat|intcomma }}"></div>
+                                </div>
+{#                                <div class="form-group row mb-2">#}
+{#                                    <label class="col-sm-4 col-form-label">فوق العاده مرزی</label>#}
+{#                                    <div class="col-sm-8"><input type="number" class="form-control" name="f_marzi" value="{{ prefilled_data.f_marzi|default:'' }}" title="{{ prefilled_data.f_marzi|intcomma }}"></div>#}
+{#                                </div>#}
+{#                                <div class="form-group row mb-2">#}
+{#                                    <label class="col-sm-4 col-form-label">فوق العاده انتقال</label>#}
+{#                                    <div class="col-sm-8"><input type="number" class="form-control" name="f_enteghal" value="{{ prefilled_data.f_enteghal|default:'' }}" title="{{ prefilled_data.f_enteghal|intcomma }}"></div>#}
+{#                                </div>#}
+{#                                <div class="form-group row mb-2">#}
+{#                                    <label class="col-sm-4 col-form-label">فوق العاده جذب مناطق محروم</label>#}
+{#                                    <div class="col-sm-8"><input type="number" class="form-control" name="f_jazb_mahroom" value="{{ prefilled_data.f_jazb_mahroom|default:'' }}" title="{{ prefilled_data.f_jazb_mahroom|intcomma }}"></div>#}
+{#                                </div>#}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <!-- دکمه ها -->
+                <div class="mt-4 text-center">
+                    <button type="submit" name="save_financial" class="btn btn-primary">ثبت / ویرایش اطلاعات مالی</button>
+                    <button type="submit" class="btn btn-primary" name="new_bank_account">حساب جدید</button>
+                </div>
+                
+            </form>
+        </div>
+    </div>
+</div>
+
+
+{% block extra_js %}
+    {% endblock %}
+<script>
+    
+    // Keep active tab after form submission
+    let activeTab = localStorage.getItem('activeEmploymentTab');
+    if (activeTab) {
+        const tab = new bootstrap.Tab(document.querySelector(activeTab));
+        tab.show();
+    }
+
+    document.querySelectorAll('button[data-bs-toggle="tab"]').forEach(tab => {
+        tab.addEventListener('shown.bs.tab', function(e) {
+            localStorage.setItem('activeEmploymentTab', '#' + e.target.id);
+        });
+    });
+
+    // Function to fill bank form with selected account data
+    function fillBankForm(bankId, accountNumber, shebaNumber) {
+        document.querySelector('select[name="id_bank"]').value = bankId;
+        document.querySelector('input[name="account_number"]').value = accountNumber;
+        document.querySelector('input[name="sheba_number"]').value = shebaNumber;
+    }
+
+    // Function to clear bank form
+    function clearBankForm() {
+        document.querySelector('select[name="id_bank"]').value = '';
+        document.querySelector('input[name="account_number"]').value = '';
+        document.querySelector('input[name="sheba_number"]').value = '';
+    }
+</script>
+    </div></div></div></div>
+{% endblock %}

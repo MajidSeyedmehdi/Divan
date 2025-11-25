@@ -1,0 +1,365 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<StiSerializer version="1.02" type="Net" application="StiReport">
+  <Culture>fa-IR</Culture>
+  <Dictionary Ref="1" type="Dictionary" isKey="true">
+    <BusinessObjects isList="true" count="0" />
+    <Databases isList="true" count="1">
+      <MS_x0020_SQL Ref="2" type="Stimulsoft.Report.Dictionary.StiSqlDatabase" isKey="true">
+        <Alias>MS SQL</Alias>
+        <ConnectionStringEncrypted>9Mhpoe9K+/Fqe73JdlTjf9FwwQ9WV0Hx4ke5BGM9pHvkeMEJxnv6/HlcZcxjTKoP3HD7I8R3S9FpeP345Gx31/9au4zNVnPFa2H18E7k4E8=</ConnectionStringEncrypted>
+        <Key>6805f35069de4d8891f9fee9947b6e91</Key>
+        <Name>MS SQL</Name>
+      </MS_x0020_SQL>
+    </Databases>
+    <DataSources isList="true" count="2">
+      <Sp_ReportShiftShow Ref="3" type="Stimulsoft.Report.Dictionary.StiSqlSource" isKey="true">
+        <Alias>Sp_ReportShiftShow</Alias>
+        <Columns isList="true" count="6">
+          <value>ORIGINAL,Shift_date,Shift_date,Shift_date,System.String,e46fb16f125e4ed3a0a95f6682aba2fc</value>
+          <value>ORIGINAL,Shift_day,Shift_day,Shift_day,System.String,_x0031_0c6caf4491046c28d5967bfc297052f</value>
+          <value>ORIGINAL,Shift_name,Shift_name,Shift_name,System.String,a6d8ea4285e447e9925ccc8569ae642e</value>
+          <value>ORIGINAL,Network,Network,Network,System.String,d19d316074804b2589ff322aba23fb67</value>
+          <value>ORIGINAL,SoundRecorderName,SoundRecorderName,SoundRecorderName,System.String,_x0036_16a9c80c67f4e4d9bc241fa15f9a21e</value>
+          <value>ORIGINAL,Id_sound_recorder,Id_sound_recorder,Id_sound_recorder,System.Int32,_x0039_3914a493aaf416ca229c966c0f2f996</value>
+        </Columns>
+        <CommandTimeout>30</CommandTimeout>
+        <Dictionary isRef="1" />
+        <Key>a04a2ee965b845ac8a8e48327b0661e7</Key>
+        <Name>Sp_ReportShiftShow</Name>
+        <NameInSource>MS SQL</NameInSource>
+        <Parameters isList="true" count="4">
+          <value>_x0040_start_date,start_date,31,0,6f365ab2735b4663a437aeb55c7187eb</value>
+          <value>_x0040_end_date,end_date,31,0,e353c53ad83445d08ded785b728fd1e5</value>
+          <value>_x0040_id_network,id_network,8,0,bf694092cb1b402e807b98cf1dbeb1c4</value>
+          <value>_x0040_id_sound_recorder,id_sound_recorder,8,0,ce535e81498448ee8d019959700b90b5</value>
+        </Parameters>
+        <SqlCommand>Sp_ReportShiftShow</SqlCommand>
+        <Type>StoredProcedure</Type>
+      </Sp_ReportShiftShow>
+      <SoundRecorderList Ref="4" type="Stimulsoft.Report.Dictionary.StiSqlSource" isKey="true">
+        <Alias>SoundRecorderList</Alias>
+        <Columns isList="true" count="2">
+          <value>ORIGINAL,FullName,FullName,FullName,System.String,_x0035_a9fcf9ce5964e5e8f94ce9cc45a0bee</value>
+          <value>ORIGINAL,Id_sound_recorder,Id_sound_recorder,Id_sound_recorder,System.Int32,_x0039_ae5ff895dd14d168eb0eec143a7f2a1</value>
+        </Columns>
+        <CommandTimeout>30</CommandTimeout>
+        <Dictionary isRef="1" />
+        <Key>ad0934779bef482b99cc0a9a87155ccb</Key>
+        <Name>SoundRecorderList</Name>
+        <NameInSource>MS SQL</NameInSource>
+        <Parameters isList="true" count="0" />
+        <SqlCommand>SELECT 
+	sr.Id_sound_recorder,
+	p.First_name + N' ' + p.Last_name AS FullName
+	FROM dbo.Tbl_Sound_Recorders AS sr
+	LEFT JOIN dbo.Tbl_Personally AS p ON sr.Id_personal = p.Id_personal
+	ORDER BY FullName;
+</SqlCommand>
+      </SoundRecorderList>
+    </DataSources>
+    <Relations isList="true" count="0" />
+    <Report isRef="0" />
+    <Resources isList="true" count="0" />
+    <Variables isList="true" count="4">
+      <value>,start_date,تاریخ_x0020_شروع,,System.Nullable`1[System.DateTime],_x0031_0_x002F_28_x002F_2025_x0020_1:06:02_x0020_PM,False,False,True,False,_x003C__x003F_xml_x0020_version_x003D__x0022_1.0_x0022__x0020_encoding_x003D__x0022_utf-16_x0022__x0020_standalone_x003D__x0022_yes_x0022__x003F__x003E__x003C_StiSerializer_x0020_version_x003D__x0022_1.02_x0022__x0020_type_x003D__x0022_Net_x0022__x0020_application_x003D__x0022_State_x0022__x003E__x003C_DateTimeType_x003E_DateAndTime_x003C__x002F_DateTimeType_x003E__x003C_SortDirection_x003E_None_x003C__x002F_SortDirection_x003E__x003C_BindingVariable_x0020_isNull_x003D__x0022_true_x0022__x0020__x002F__x003E__x003C_Keys_x0020_isList_x003D__x0022_true_x0022__x0020_count_x003D__x0022_0_x0022__x0020__x002F__x003E__x003C_Values_x0020_isList_x003D__x0022_true_x0022__x0020_count_x003D__x0022_0_x0022__x0020__x002F__x003E__x003C_CheckedStates_x0020_isList_x003D__x0022_true_x0022__x0020_count_x003D__x0022_0_x0022__x0020__x002F__x003E__x003C__x002F_StiSerializer_x003E_,_x0038_9c117368a7d491ebe7d448d4d6f8e3f</value>
+      <value>,end_date,تاریخ_x0020_پایان,,System.DateTime,_x0031_0_x002F_21_x002F_2025_x0020_11:23:20_x0020_AM,False,False,True,False,_x003C__x003F_xml_x0020_version_x003D__x0022_1.0_x0022__x0020_encoding_x003D__x0022_utf-16_x0022__x0020_standalone_x003D__x0022_yes_x0022__x003F__x003E__x003C_StiSerializer_x0020_version_x003D__x0022_1.02_x0022__x0020_type_x003D__x0022_Net_x0022__x0020_application_x003D__x0022_State_x0022__x003E__x003C_DateTimeType_x003E_DateAndTime_x003C__x002F_DateTimeType_x003E__x003C_SortDirection_x003E_None_x003C__x002F_SortDirection_x003E__x003C_BindingVariable_x0020_isNull_x003D__x0022_true_x0022__x0020__x002F__x003E__x003C_Keys_x0020_isList_x003D__x0022_true_x0022__x0020_count_x003D__x0022_0_x0022__x0020__x002F__x003E__x003C_Values_x0020_isList_x003D__x0022_true_x0022__x0020_count_x003D__x0022_0_x0022__x0020__x002F__x003E__x003C_CheckedStates_x0020_isList_x003D__x0022_true_x0022__x0020_count_x003D__x0022_0_x0022__x0020__x002F__x003E__x003C__x002F_StiSerializer_x003E_,d44651ae5b1940729025304a7adaf2ad</value>
+      <value>,id_network,شبکه,,System.Nullable`1[System.Int32],,False,False,True,False,_x003C__x003F_xml_x0020_version_x003D__x0022_1.0_x0022__x0020_encoding_x003D__x0022_utf-16_x0022__x0020_standalone_x003D__x0022_yes_x0022__x003F__x003E__x003C_StiSerializer_x0020_version_x003D__x0022_1.02_x0022__x0020_type_x003D__x0022_Net_x0022__x0020_application_x003D__x0022_State_x0022__x003E__x003C_SortDirection_x003E_None_x003C__x002F_SortDirection_x003E__x003C_BindingVariable_x0020_isNull_x003D__x0022_true_x0022__x0020__x002F__x003E__x003C_AllowUserValues_x003E_False_x003C__x002F_AllowUserValues_x003E__x003C_Keys_x0020_isList_x003D__x0022_true_x0022__x0020_count_x003D__x0022_22_x0022__x003E__x003C_value_x003E_1_x003C__x002F_value_x003E__x003C_value_x003E_2_x003C__x002F_value_x003E__x003C_value_x003E_3_x003C__x002F_value_x003E__x003C_value_x003E_4_x003C__x002F_value_x003E__x003C_value_x003E_5_x003C__x002F_value_x003E__x003C_value_x003E_6_x003C__x002F_value_x003E__x003C_value_x003E_7_x003C__x002F_value_x003E__x003C_value_x003E_8_x003C__x002F_value_x003E__x003C_value_x003E_9_x003C__x002F_value_x003E__x003C_value_x003E_10_x003C__x002F_value_x003E__x003C_value_x003E_11_x003C__x002F_value_x003E__x003C_value_x003E_12_x003C__x002F_value_x003E__x003C_value_x003E_13_x003C__x002F_value_x003E__x003C_value_x003E_14_x003C__x002F_value_x003E__x003C_value_x003E_15_x003C__x002F_value_x003E__x003C_value_x003E_16_x003C__x002F_value_x003E__x003C_value_x003E_17_x003C__x002F_value_x003E__x003C_value_x003E_18_x003C__x002F_value_x003E__x003C_value_x003E_19_x003C__x002F_value_x003E__x003C_value_x003E_20_x003C__x002F_value_x003E__x003C_value_x003E_21_x003C__x002F_value_x003E__x003C_value_x003E_22_x003C__x002F_value_x003E__x003C__x002F_Keys_x003E__x003C_Values_x0020_isList_x003D__x0022_true_x0022__x0020_count_x003D__x0022_22_x0022__x003E__x003C_value_x003E_ایران_x003C__x002F_value_x003E__x003C_value_x003E_ورزش_x003C__x002F_value_x003E__x003C_value_x003E_جوان_x003C__x002F_value_x003E__x003C_value_x003E_پیام_x003C__x002F_value_x003E__x003C_value_x003E_آوا_x003C__x002F_value_x003E__x003C_value_x003E_اقتصاد_x003C__x002F_value_x003E__x003C_value_x003E_فرهنگ_x003C__x002F_value_x003E__x003C_value_x003E_قرآن_x003C__x002F_value_x003E__x003C_value_x003E_سلامت_x003C__x002F_value_x003E__x003C_value_x003E_تهران_x003C__x002F_value_x003E__x003C_value_x003E_ترتیل_x003C__x002F_value_x003E__x003C_value_x003E_صبا_x003C__x002F_value_x003E__x003C_value_x003E_گفتگو_x003C__x002F_value_x003E__x003C_value_x003E_نمایش_x003C__x002F_value_x003E__x003C_value_x003E_صدای_x0020_شهر_x003C__x002F_value_x003E__x003C_value_x003E_تلاوت_x003C__x002F_value_x003E__x003C_value_x003E_فصلی_x003C__x002F_value_x003E__x003C_value_x003E_ناظر_x0020_جام_x0020_جم_x003C__x002F_value_x003E__x003C_value_x003E_رزرو_x0020_جام_x0020_جم_x003C__x002F_value_x003E__x003C_value_x003E_رزرو_x0020_قدیم_x003C__x002F_value_x003E__x003C_value_x003E_رزرو_x0020_15_x0020_خرداد_x003C__x002F_value_x003E__x003C_value_x003E_رزرو_x0020_شیشه_x0020_ای_x003C__x002F_value_x003E__x003C__x002F_Values_x003E__x003C_CheckedStates_x0020_isList_x003D__x0022_true_x0022__x0020_count_x003D__x0022_22_x0022__x003E__x003C_value_x003E_True_x003C__x002F_value_x003E__x003C_value_x003E_True_x003C__x002F_value_x003E__x003C_value_x003E_True_x003C__x002F_value_x003E__x003C_value_x003E_True_x003C__x002F_value_x003E__x003C_value_x003E_True_x003C__x002F_value_x003E__x003C_value_x003E_True_x003C__x002F_value_x003E__x003C_value_x003E_True_x003C__x002F_value_x003E__x003C_value_x003E_True_x003C__x002F_value_x003E__x003C_value_x003E_True_x003C__x002F_value_x003E__x003C_value_x003E_True_x003C__x002F_value_x003E__x003C_value_x003E_True_x003C__x002F_value_x003E__x003C_value_x003E_True_x003C__x002F_value_x003E__x003C_value_x003E_True_x003C__x002F_value_x003E__x003C_value_x003E_True_x003C__x002F_value_x003E__x003C_value_x003E_True_x003C__x002F_value_x003E__x003C_value_x003E_True_x003C__x002F_value_x003E__x003C_value_x003E_True_x003C__x002F_value_x003E__x003C_value_x003E_True_x003C__x002F_value_x003E__x003C_value_x003E_True_x003C__x002F_value_x003E__x003C_value_x003E_True_x003C__x002F_value_x003E__x003C_value_x003E_True_x003C__x002F_value_x003E__x003C_value_x003E_True_x003C__x002F_value_x003E__x003C__x002F_CheckedStates_x003E__x003C__x002F_StiSerializer_x003E_,b2f5dceb138e4eacb4c0025656b77dfc</value>
+      <value>,id_sound_recorder,صدابردار,,System.Int32,,False,False,True,False,_x003C__x003F_xml_x0020_version_x003D__x0022_1.0_x0022__x0020_encoding_x003D__x0022_utf-16_x0022__x0020_standalone_x003D__x0022_yes_x0022__x003F__x003E__x003C_StiSerializer_x0020_version_x003D__x0022_1.02_x0022__x0020_type_x003D__x0022_Net_x0022__x0020_application_x003D__x0022_State_x0022__x003E__x003C_SortDirection_x003E_None_x003C__x002F_SortDirection_x003E__x003C_ItemsInitializationType_x003E_Columns_x003C__x002F_ItemsInitializationType_x003E__x003C_KeysColumn_x003E_SoundRecorderList.Id_sound_recorder_x003C__x002F_KeysColumn_x003E__x003C_ValuesColumn_x003E_SoundRecorderList.FullName_x003C__x002F_ValuesColumn_x003E__x003C_BindingVariable_x0020_isNull_x003D__x0022_true_x0022__x0020__x002F__x003E__x003C_Keys_x0020_isList_x003D__x0022_true_x0022__x0020_count_x003D__x0022_0_x0022__x0020__x002F__x003E__x003C_Values_x0020_isList_x003D__x0022_true_x0022__x0020_count_x003D__x0022_0_x0022__x0020__x002F__x003E__x003C_CheckedStates_x0020_isList_x003D__x0022_true_x0022__x0020_count_x003D__x0022_0_x0022__x0020__x002F__x003E__x003C__x002F_StiSerializer_x003E_,_x0032_b93b5a7aeb0457c81859b4526fdf9c6</value>
+    </Variables>
+  </Dictionary>
+  <EngineVersion>EngineV2</EngineVersion>
+  <GlobalizationStrings isList="true" count="0" />
+  <Key>b24e7be301fc48a08fb5746be548aab0</Key>
+  <MetaTags isList="true" count="0" />
+  <Pages isList="true" count="1">
+    <Page1 Ref="5" type="Page" isKey="true">
+      <Border>None;Black;2;Solid;False;4;Black</Border>
+      <Brush>Transparent</Brush>
+      <Components isList="true" count="2">
+        <PageHeaderBand1 Ref="6" type="PageHeaderBand" isKey="true">
+          <Brush>Transparent</Brush>
+          <ClientRectangle>0,0.4,19.59,1.78</ClientRectangle>
+          <Components isList="true" count="6">
+            <Text2 Ref="7" type="Text" isKey="true">
+              <Border>All;Black;1;Solid;False;4;Black</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>18.03,0,1.53,1.27</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>B Mitra,22</Font>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text2</Name>
+              <Page isRef="5" />
+              <Parent isRef="6" />
+              <Text>ردیف</Text>
+              <TextBrush>Black</TextBrush>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text2>
+            <Text3 Ref="8" type="Text" isKey="true">
+              <Border>All;Black;1;Solid;False;4;Black</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>13.97,0,4.06,1.27</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>B Mitra,22</Font>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text3</Name>
+              <Page isRef="5" />
+              <Parent isRef="6" />
+              <Text>تاریخ</Text>
+              <TextBrush>Black</TextBrush>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text3>
+            <Text4 Ref="9" type="Text" isKey="true">
+              <Border>All;Black;1;Solid;False;4;Black</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>11.18,0,2.79,1.27</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>B Mitra,22</Font>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text4</Name>
+              <Page isRef="5" />
+              <Parent isRef="6" />
+              <Text>روز</Text>
+              <TextBrush>Black</TextBrush>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text4>
+            <Text5 Ref="10" type="Text" isKey="true">
+              <Border>All;Black;1;Solid;False;4;Black</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>8.38,0,2.8,1.27</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>B Mitra,22</Font>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text5</Name>
+              <Page isRef="5" />
+              <Parent isRef="6" />
+              <Text> شبکه</Text>
+              <TextBrush>Black</TextBrush>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text5>
+            <Text6 Ref="11" type="Text" isKey="true">
+              <Border>All;Black;1;Solid;False;4;Black</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>0,0,5.59,1.27</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>B Mitra,22</Font>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text6</Name>
+              <Page isRef="5" />
+              <Parent isRef="6" />
+              <Text>صدابردار</Text>
+              <TextBrush>Black</TextBrush>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text6>
+            <Text8 Ref="12" type="Text" isKey="true">
+              <Border>All;Black;1;Solid;False;4;Black</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>5.59,0,2.79,1.27</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>B Mitra,22</Font>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text8</Name>
+              <Page isRef="5" />
+              <Parent isRef="6" />
+              <Text> شیفت</Text>
+              <TextBrush>Black</TextBrush>
+              <Type>Expression</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text8>
+          </Components>
+          <Conditions isList="true" count="0" />
+          <Expressions isList="true" count="0" />
+          <Name>PageHeaderBand1</Name>
+          <Page isRef="5" />
+          <Parent isRef="5" />
+        </PageHeaderBand1>
+        <DataBand1 Ref="13" type="DataBand" isKey="true">
+          <Brush>Transparent</Brush>
+          <BusinessObjectGuid isNull="true" />
+          <ClientRectangle>0,2.98,19.59,1.53</ClientRectangle>
+          <Components isList="true" count="6">
+            <Text1 Ref="14" type="Text" isKey="true">
+              <Border>All;Black;1;Solid;False;4;Black</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>18.03,0,1.53,1.27</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>B Mitra,16</Font>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text1</Name>
+              <Page isRef="5" />
+              <Parent isRef="13" />
+              <Text>{Line}</Text>
+              <TextBrush>Black</TextBrush>
+              <Type>SystemVariables</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text1>
+            <Text7 Ref="15" type="Text" isKey="true">
+              <Border>All;Black;1;Solid;False;4;Black</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>13.97,0,4.06,1.27</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>B Mitra,16</Font>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text7</Name>
+              <Page isRef="5" />
+              <Parent isRef="13" />
+              <Text>{Sp_ReportShiftShow.Shift_date}</Text>
+              <TextBrush>Black</TextBrush>
+              <Type>DataColumn</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text7>
+            <Text9 Ref="16" type="Text" isKey="true">
+              <Border>All;Black;1;Solid;False;4;Black</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>11.18,0,2.79,1.27</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>B Mitra,16</Font>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text9</Name>
+              <Page isRef="5" />
+              <Parent isRef="13" />
+              <Text>{Sp_ReportShiftShow.Shift_day}</Text>
+              <TextBrush>Black</TextBrush>
+              <Type>DataColumn</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text9>
+            <Text10 Ref="17" type="Text" isKey="true">
+              <Border>All;Black;1;Solid;False;4;Black</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>8.38,0,2.8,1.27</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>B Mitra,16</Font>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text10</Name>
+              <Page isRef="5" />
+              <Parent isRef="13" />
+              <Text>{Sp_ReportShiftShow.Network}</Text>
+              <TextBrush>Black</TextBrush>
+              <Type>DataColumn</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text10>
+            <Text11 Ref="18" type="Text" isKey="true">
+              <Border>All;Black;1;Solid;False;4;Black</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>0,0,5.59,1.27</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>B Mitra,16</Font>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text11</Name>
+              <Page isRef="5" />
+              <Parent isRef="13" />
+              <Text>{Sp_ReportShiftShow.SoundRecorderName}</Text>
+              <TextBrush>Black</TextBrush>
+              <Type>DataColumn</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text11>
+            <Text12 Ref="19" type="Text" isKey="true">
+              <Border>All;Black;1;Solid;False;4;Black</Border>
+              <Brush>Transparent</Brush>
+              <ClientRectangle>5.59,0,2.79,1.27</ClientRectangle>
+              <Conditions isList="true" count="0" />
+              <Expressions isList="true" count="0" />
+              <Font>B Mitra,16</Font>
+              <HorAlignment>Center</HorAlignment>
+              <Margins>0,0,0,0</Margins>
+              <Name>Text12</Name>
+              <Page isRef="5" />
+              <Parent isRef="13" />
+              <Text>{Sp_ReportShiftShow.Shift_name}</Text>
+              <TextBrush>Black</TextBrush>
+              <Type>DataColumn</Type>
+              <VertAlignment>Center</VertAlignment>
+            </Text12>
+          </Components>
+          <Conditions isList="true" count="0" />
+          <DataRelationName isNull="true" />
+          <DataSourceName>shifts</DataSourceName>
+          <Expressions isList="true" count="0" />
+          <Filters isList="true" count="0" />
+          <Name>DataBand1</Name>
+          <Page isRef="5" />
+          <Parent isRef="5" />
+          <Sort isList="true" count="0" />
+        </DataBand1>
+      </Components>
+      <Conditions isList="true" count="0" />
+      <Expressions isList="true" count="0" />
+      <Guid>a62b3d19440445419b4b571cde4acea1</Guid>
+      <Margins>1,1,1,1</Margins>
+      <Name>Page1</Name>
+      <PageHeight>27.94</PageHeight>
+      <PageWidth>21.59</PageWidth>
+      <PaperSize>Letter</PaperSize>
+      <Report isRef="0" />
+      <RightToLeft>True</RightToLeft>
+    </Page1>
+  </Pages>
+  <ReferencedAssemblies isList="true" count="8">
+    <value>System.Dll</value>
+    <value>System.Drawing.Dll</value>
+    <value>System.Windows.Forms.Dll</value>
+    <value>System.Data.Dll</value>
+    <value>System.Xml.Dll</value>
+    <value>Stimulsoft.Controls.Dll</value>
+    <value>Stimulsoft.Base.Dll</value>
+    <value>Stimulsoft.Report.Dll</value>
+  </ReferencedAssemblies>
+  <ReportAlias>Report</ReportAlias>
+  <ReportChanged>10/29/2025 2:40:20 PM</ReportChanged>
+  <ReportCreated>10/15/2025 11:31:18 AM</ReportCreated>
+  <ReportGuid>fe29aa6b5c3a4091a40e0617048d322f</ReportGuid>
+  <ReportName>Report</ReportName>
+  <ReportUnit>Centimeters</ReportUnit>
+  <ReportVersion>2023.1.1.0</ReportVersion>
+  <Script>using System;
+using System.Drawing;
+using System.Windows.Forms;
+using System.Data;
+using Stimulsoft.Controls;
+using Stimulsoft.Base.Drawing;
+using Stimulsoft.Report;
+using Stimulsoft.Report.Dialogs;
+using Stimulsoft.Report.Components;
+
+namespace Reports
+{
+    public class Report : Stimulsoft.Report.StiReport
+    {
+        public Report()        {
+            this.InitializeComponent();
+        }
+
+        #region StiReport Designer generated code - do not modify
+		#endregion StiReport Designer generated code - do not modify
+    }
+}
+</Script>
+  <ScriptLanguage>CSharp</ScriptLanguage>
+  <Styles isList="true" count="0" />
+</StiSerializer>

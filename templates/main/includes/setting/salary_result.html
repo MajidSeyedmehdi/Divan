@@ -1,0 +1,206 @@
+{% extends 'main/base.html' %}
+{% load static %}
+{% load humanize %}
+{% block content %}
+<style>
+    input[type="text"], select, textarea {
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 6px 10px;
+        width: 200px;
+        font-size: 12px;
+        transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    input[type="text"]:focus, select:focus, textarea:focus {
+        border-color: #66afe9;
+        outline: none;
+        font-size: 12px;
+        box-shadow: 0 0 5px rgba(102, 175, 233, 0.6);
+    }
+
+    label {
+        margin-left: 8px;
+        font-weight: bold;
+        font-size: 12px;
+        min-width: 80px;
+    }
+
+    li {
+        margin-bottom: 12px;
+    }
+
+    button[type="submit"] {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+    button[type="submit"]:hover {
+        background-color: #0056b3;
+    }
+    .small-table{
+        font-size: 12px;
+    }
+    /* رنگ پس‌زمینه سطر اول (سرتیترها) */
+    table thead th {
+        background-color: #cff3fc !important;   
+        color: white;
+        font-size: 12px;/* رنگ نوشته‌ها */
+    }
+    
+    /* رنگ پس‌زمینه ستون اول در تمام ردیف‌ها */
+    table tbody td:first-child {
+        background-color: white; 
+        font-size: 12px;
+        
+}
+</style>
+                <div class="container-fluid">
+                    <div class="row">                    
+                        <!-- BEGIN BREADCRUMB -->
+                        <div class="col-md-12">
+                            <div class="breadcrumb-box shadow">
+                                <ul class="breadcrumb">
+                                    <li><a href="http://localhost:8000/home/">آمار و اطلاعات فنی</a></li>
+                                    <li class="active">تنظیمات</li>
+                                </ul>
+                        <!-- END BREADCRUMB -->                        
+                        
+                        <div class="col-lg-12">
+                            <div class="portlet box shadow">
+                                <div class="portlet-heading">
+                                    <div class="portlet-title">
+                                        <h3 class="title">                                        
+                                            <i class="icon-frane"></i>
+                                             نمایش جدول مالی
+                                        </h3>
+                                    </div><!-- /.portlet-title -->
+                                    <div class="buttons-box">
+                                        
+                                        <div class="code-modal hide">
+
+                                        </div>
+                                        
+                                        <a class="btn btn-sm btn-default btn-round btn-collapse" rel="tooltip" title="کوچک کردن" href="#">
+                                            <i class="icon-arrow-up"></i>
+                                        </a>
+                                    </div><!-- /.buttons-box -->
+                                </div><!-- /.portlet-heading -->
+                                <div class="portlet-body">
+                                    <div class="table-responsive">
+        <table class="table table-bordered table-striped table-hover small-table">
+  <thead>
+    <tr>
+      <th>ردیف</th>  
+      <th>کد ملی</th>
+      <th> نام</th>
+      <th>نام خانوادگی</th>
+      <th>رابطه سازمانی</th>
+      <th>عنوان شغلی</th>
+      <th>رده </th>
+      <th> واحد</th>
+      <th> حقوق پایه</th>
+      <th>نرخ ساعت</th>
+      <th>حقوق حکم</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for r in page_obj  %}
+    <tr>
+        <td>{{ forloop.counter }}</td>
+        <td>{{ r.national_code }}</td>
+        <td>{{ r.first_name }}</td>
+        <td>{{ r.last_name }}</td>
+        <td>{{ r.job_relation }}</td>
+        <td>{{ r.job_title }}</td>
+        <td>{{ r.job_level }}</td>
+        <td>{{ r.job_unit }}</td>
+        <td>{{ r.salary_base | intcomma }}</td>
+        <td>{{ r.hour_salary | intcomma }}</td>
+        <td>{{ r.final_salary | intcomma }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+ <div class="text-center">
+    <ul class="pagination round">
+         <!-- رفتن به آخرین صفحه -->
+        {% if page_obj.has_previous %}
+            <li title="اولین صفحه">
+                <a href="?page=1">
+                    <i class="icon-control-end"></i>
+                </a>
+            </li>
+        {% else %}
+            <li class="disabled">
+                <span><i class="icon-control-end"></i></span>
+            </li>
+        {% endif %}
+        
+
+        <!-- صفحه قبل -->
+        {% if page_obj.has_previous %}
+            <li title="صفحه قبل">
+                <a href="?page={{ page_obj.previous_page_number }}">
+                    <i class="icon-arrow-right"></i>
+                </a>
+            </li>
+        {% else %}
+            <li class="disabled">
+                <span><i class="icon-arrow-right"></i></span>
+            </li>
+        {% endif %}
+
+        <!-- شماره صفحات -->
+        {% for num in page_obj.paginator.page_range %}
+            {% if num == page_obj.number %}
+                <li><span class="active">{{ num }}</span></li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <li><a href="?page={{ num }}">{{ num }}</a></li>
+            {% endif %}
+        {% endfor %}
+
+        <!-- صفحه بعد -->
+        {% if page_obj.has_next %}
+            <li title="صفحه بعد">
+                <a href="?page={{ page_obj.next_page_number }}">
+                    <i class="icon-arrow-left"></i>
+                </a>
+            </li>
+        {% else %}
+            <li class="disabled">
+                <span><i class="icon-arrow-left"></i></span>
+            </li>
+        {% endif %}
+        <!-- رفتن به اولین صفحه -->
+        {% if page_obj.has_next %}
+            <li title="آخرین صفحه">
+                    <a href="?page={{ page_obj.paginator.num_pages }}">
+                    <i class="icon-control-start"></i>
+                </a>
+            </li>
+        {% else %}
+            <li class="disabled">
+                <span><i class="icon-control-start"></i></span>
+            </li>
+        {% endif %}
+       
+    </ul>
+</div>                      
+<a href="{% url 'setting:export_excel' %}" class="btn btn-success">دریافت فایل </a>
+
+
+                                    </div><!-- /.table-responsive -->
+                                </div><!-- /.portlet-body -->
+                            </div><!-- /.portlet -->
+                        </div><!-- /.col-lg-12 -->
+                  </div><!-- /.row -->
+                </div>
+ </div> </div>
+        
+ {% endblock %}       

@@ -1,0 +1,6 @@
+from django.apps import AppConfig
+
+
+class InformationConfig(AppConfig):
+    default_auto_field = 'django.db.models.BigAutoField'
+    name = 'sound_recorders.current_affairs.sound_shift_search'

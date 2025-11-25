@@ -1,0 +1,38 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">به دیوان اداره کل تولید و فنی صدا خوش آمدید</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">اطلاعات کاربر</h5>
+                                    <p>نام: {{ full_name }}</p>
+                                    <p>نقش: {{ role }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">تاریخ و زمان</h5>
+                                    <p>تاریخ: {{ persian_date }}</p>
+                                    <p>روز: {{ persian_day }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

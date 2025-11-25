@@ -1,0 +1,84 @@
+/*@import "etc.scss";*/
+$bgColor : #f5f5f5;
+$bgColor2 : #212529;
+
+
+/*--------------------- General Color Start ----------------------*/
+body, #page-content{
+    background: $bgColor;
+}
+#wrapper{
+    background: $bgColor2;
+}
+/*---------------------- General Color End -----------------------*/
+
+
+
+@mixin printColors($colorName, $color){
+/*--------------------- Start #{$colorName} ----------------------*/
+    .theme-#{$colorName}.sidebar-collapse .metismenu li.conditional-bg>a{
+        background: $color;
+        color: #fff;
+    }
+    .theme-#{$colorName} #toggle-setting{
+        color: $color;
+    }
+    .theme-#{$colorName}{ 
+        .spinner{    
+            border: 1px solid $color;
+            border-left-color:#fff;
+        }
+        .grid-example{
+            border: 1px solid $color;
+        }
+        .double-bounce1, .double-bounce2, .scaleout, .bounces>div, .folding-cube .cube:before,
+        .header-right,
+        .metismenu a.current, .metismenu a:hover, .metismenu a:focus, .metismenu a:active {
+            background: $color;
+        }
+        .pagination>.active>a, .pagination>.active>a:focus, .pagination>.active>a:hover, .pagination>.active>span, .pagination>.active>span:focus, .pagination>.active>span:hover {
+            background-color: $color;
+            border-color: $color;
+        }
+    }
+    body.dark.theme-#{$colorName}{ 
+        .spinner{
+            border-left-color: #fff;
+        }
+    }
+    .bg-#{$colorName}, .btn-#{$colorName}, .btn-#{$colorName}.active, .btn-#{$colorName}:hover,.btn-#{$colorName}:active, .btn-#{$colorName}:focus{
+        background: $color;
+    }
+    body.theme-#{$colorName} ul.sidebar-bg li.active img{
+        border-color: $color;
+    }
+/*---------------------- End #{$colorName} -----------------------*/
+}
+
+
+$blueColor : #14B9D6;
+$redColor : #f55145;
+$greenColor : #53a96b;
+$orangeColor : #ffbd15;
+$purpleColor : #c450d8;
+$deepOrangeColor : #ff8a65;
+$roseColor : #e91e63;
+$cyanColor : #13a2a6;
+$limeColor : #90ca4b;
+$darkOrangeColor : #ee7825;
+$darkPurpleColor : #4527a0;
+$darkBlueColor : #071774;
+
+
+@include printColors('blue', $blueColor);
+@include printColors('red', $redColor);
+@include printColors('green', $greenColor);
+@include printColors('orange', $orangeColor);
+@include printColors('purple', $purpleColor);
+@include printColors('deeporange', $deepOrangeColor);
+@include printColors('rose', $roseColor);
+@include printColors('cyan', $cyanColor);
+@include printColors('lime', $limeColor);
+@include printColors('darkorange', $darkOrangeColor);
+@include printColors('darkpurple', $darkPurpleColor);
+@include printColors('darkblue', $darkBlueColor);
