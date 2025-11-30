@@ -13,11 +13,22 @@ class HeaderForm(forms.Form):
         label="تاریخ",
         required=True
     )
-    network = forms.ModelChoiceField(
-        queryset=Network.objects.filter(active=True, is_active=True, del_field=False),
+    # network = forms.ModelChoiceField(
+    #     queryset=Network.objects.filter(active=True, is_active=True, del_field=False),
+    #     label="شبکه",
+    #     required=False,
+    #     empty_label="انتخاب کنید",
+    #
+    # )
+    # اضافه کردن گزینه "انتخاب کنید" و "همه"
+    ALL_NETWORK = 'all'
+    network = forms.ChoiceField(
+        choices=[('', 'انتخاب کنید')] +  # گزینه "انتخاب کنید" به عنوان پیش‌فرض
+                [(ALL_NETWORK, 'همه')] +  # گزینه "همه" اضافه می‌شود
+                [(network.id_network, network.network) for network in Network.objects.filter(active=True, is_active=True, del_field=False)],
         label="شبکه",
         required=False,
-        empty_label="انتخاب کنید"
+        initial='',  # پیش‌فرض "انتخاب کنید" باشد
     )
     sound_recorder = forms.ModelChoiceField(
         queryset=SelectSoundRecorder.objects.all(),

@@ -385,9 +385,14 @@ class Official(models.Model):
     end_date_cooperation = models.CharField(db_column='End_date_cooperation', max_length=50,
                                             db_collation='Persian_100_CI_AS', blank=True,
                                             null=True)
-
-    active = models.BooleanField(db_column='Active', default=True, null=False)
-    del_field = models.BooleanField(db_column='Del', default=False, null=False)
+    permision_studio = models.BooleanField(db_column='Permision_studio', default=False, null=False)
+    permision_fanni_pakhsh = models.BooleanField(db_column='Permision_fanni_pakhsh', default=False, null=True)
+    permision_reportaj = models.BooleanField(db_column='Permision_reportaj', default=False, null=True)
+    permision_15_khordad = models.BooleanField(db_column='Permision_15_khordad', default=False, null=True)
+    permision_fanni_poshtibani = models.BooleanField(db_column='Permision_fanni_poshtibani', default=False, null=True)
+    permision_sound_recorders = models.BooleanField(db_column='Permision_sound_recorders', default=False, null=True)
+    active = models.BooleanField(db_column='Active', default=True, null=True)
+    del_field = models.BooleanField(db_column='Del', default=False, null=True)
     user_name = models.CharField(db_column='User_name', max_length=50, db_collation='Persian_100_CI_AS')
     update_date = models.DateTimeField(db_column='Update_date', default=timezone.now)
 

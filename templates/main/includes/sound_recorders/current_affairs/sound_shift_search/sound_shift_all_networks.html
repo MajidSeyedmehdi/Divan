@@ -1,0 +1,55 @@
+{% extends 'main/base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+<link rel="stylesheet" href="{% static 'assets/css/style.css' %}">
+{% block content %}
+<script src="{% static 'admin/js/vendor/jquery/jquery.js' %}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<h1>گزارش شیفت‌ها برای همه شبکه‌ها</h1>
+
+
+<table id="shift-table" class="table table-bordered text-center">
+  <thead>
+    <tr>
+      <th>تاریخ</th>
+      <th>روز</th>
+      {% for shift in shifts %}
+        <th>{{ shift.shift_name }}</th>
+      {% endfor %}
+    </tr>
+  </thead>
+  <tbody>
+    {% for day in daily_forms %}
+    <tr>
+      <td>{{ day.jalali_date }}</td>
+      <td>{{ day.jalali_day_name }}</td>
+
+      {% for shift in shifts %}
+        {% with date_str=day.greg_date|stringformat:"s" %}
+          {% if shift_lookup[date_str] %}
+            {% with network_shifts=shift_lookup[date_str] %}
+              {% if network_shifts %}
+                {% for network_id, network_shifts_data in network_shifts.items %}
+                  <td>
+                    {% for shift_id, shift_data in network_shifts_data.items %}
+                      {{ shift_data.shift_name }} - {{ shift_data.name }}
+                    {% endfor %}
+                  </td>
+                {% endfor %}
+              {% else %}
+                <td></td>
+              {% endif %}
+            {% endwith %}
+          {% else %}
+            <td></td>
+          {% endif %}
+        {% endwith %}
+      {% endfor %}
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% endblock %}

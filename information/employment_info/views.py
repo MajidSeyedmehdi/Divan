@@ -72,6 +72,12 @@ def employment_info_view(request):
                 'end_date_cooperation': official.end_date_cooperation,
                 'isargari': official.isargari,
                 'basij': official.basij,
+                'permision_studio': official.permision_studio,
+                'permision_fanni_pakhsh' : official.permision_fanni_pakhsh,
+                'permision_reportaj' : official.permision_reportaj,
+                'permision_15_khordad' : official.permision_15_khordad,
+                'permision_fanni_poshtibani' : official.permision_fanni_poshtibani,
+                'permision_sound_recorders' : official.permision_sound_recorders,
             })
         financial = Financial.objects.filter(id_personal=person).first()
         if financial:
