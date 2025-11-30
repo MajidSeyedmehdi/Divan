@@ -36,35 +36,35 @@
         margin-bottom: 12px;
     }
 
-    button[type="submit"] {
-        background-color: #D8B7DD;
-        color: BLACK;
-        border: none;
-        padding: 8px 16px;
-        border-radius: 6px;
-        cursor: pointer;
-        font-size: 14px;
-        width: 100px;
-        height: 40px;
-    }
-    button[type="submit"]:hover {
-        background-color: #D8B7DD;
-    }
-/* دکمه اکسل*/
-    button[type="button"] {
-        background-color: #D8B7DD;
-        color: BLACK;
-        border: none;
-        padding: 8px 16px;
-        border-radius: 6px;
-        cursor: pointer;
-        font-size: 14px;
-        width: 100px;
-        height: 40px;
-    }
-    button[type="button"]:hover {
-        background-color: #C8A2C8;
-    }
+{#    button[type="submit"] {#}
+{#        background-color: #D8B7DD;#}
+{#        color: BLACK;#}
+{#        border: none;#}
+{#        padding: 8px 16px;#}
+{#        border-radius: 6px;#}
+{#        cursor: pointer;#}
+{#        font-size: 14px;#}
+{#        width: 100px;#}
+{#        height: 40px;#}
+{#    }#}
+{#    button[type="submit"]:hover {#}
+{#        background-color: #D8B7DD;#}
+{#    }#}
+{#/* دکمه اکسل*/#}
+{#    button[type="button"] {#}
+{#        background-color: #D8B7DD;#}
+{#        color: BLACK;#}
+{#        border: none;#}
+{#        padding: 8px 16px;#}
+{#        border-radius: 6px;#}
+{#        cursor: pointer;#}
+{#        font-size: 14px;#}
+{#        width: 100px;#}
+{#        height: 40px;#}
+{#    }#}
+{#    button[type="button"]:hover {#}
+{#        background-color: #C8A2C8;#}
+{#    }#}
 
 /* فاصله بین دکمه‌ها */
 .btn + .btn {
@@ -454,9 +454,17 @@ table th, table td {
 
           <!-- دکمه‌ها -->
           <div class="col-auto d-flex align-items-center gap-2">
-              <button type="submit" name="show_button" class="btn btn-primary">نمایش</button>
-              <button type="button" id="btn-print-hardcopy" class="btn btn-warning">چاپ </button>
-              <button type="button" id="btn-excel" class="btn btn-success">ذخیره اکسل</button>
+              <button type="submit" name="show_button" class="btn btn-info">
+                  <span class="fa fa-eye"></span> نمایش</button>
+              <button type="button" id="btn-print-hardcopy" class="btn btn-warning btn-lg">
+                  <span class="fa fa-print"></span>
+                  چاپ
+                  
+              </button>
+              <button type="button" id="btn-excel" class="btn btn-success btn">
+                  <span class="fas fa-file-excel"></span>
+                  ذخیره اکسل
+              </button>
 {#              <button type="button" id="btn-pdf" class="btn btn-danger">ذخیره PDF</button>#}
           </div>
 
@@ -475,12 +483,9 @@ table th, table td {
       </summary>
       <div class="help-body">
         <ul class="mb-0">
-          <li><strong>نمایش:</strong>قبل از نمایش شیفت ها دقت کنید فقط شبکه یا صدابردار را انتخاب کنید و حتما جدول شیفت انتخاب شود.</li>
-          <li><strong>دکمه "جابجایی":</strong> برای انتساب صدابردار انتخاب‌شده به سلول‌های انتخابی.</li>
-          <li><strong>دکمه "ثبت اولیه":</strong> داده‌ها را موقت ثبت می‌کند (قابل تغییر است).</li>
-          <li><strong>دکمه "ثبت نهایی":</strong> پس از تکمیل تمام سلول‌ها، ثبت قطعی انجام می‌شود.</li>
-          <li><strong>دکمه "نمایش جدول ماه قبل":</strong> جدول شیفت‌های ماه قبل شبکه انتخاب‌شده را نشان می‌دهد.</li>
-          <li><strong>نکته:</strong> اگر صدابردار بیش از ۱۶ ساعت شیفت متوالی داشته باشد یا شیفتش با شیفت دیگری هم‌پوشانی داشته باشد، ثبت انجام نمی‌شود.</li>
+          <li><strong>دکمه "نمایش" : </strong>قبل از نمایش شیفت ها دقت کنید فقط شبکه یا صدابردار را انتخاب کنید و حتما جدول شیفت انتخاب شود.</li>
+          <li><strong>دکمه "چاپ" : </strong> برای چاپ و ذخیره فایل pdf. در هنگام چاپ برای نمایش رنگ ها حتما گزینه 'Print backgrounds' فعال باشد.</li>
+          <li><strong>نکته : </strong> اگر صدابردار بیش از ۱۶ ساعت شیفت متوالی داشته باشد یا شیفتش با شیفت دیگری هم‌پوشانی داشته باشد، ثبت انجام نمی‌شود.</li>
         </ul>
       </div>
     </details>

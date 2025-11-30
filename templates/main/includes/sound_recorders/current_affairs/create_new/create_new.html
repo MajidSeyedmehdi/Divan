@@ -33,66 +33,66 @@
     li {
         margin-bottom: 12px;
     }
-/* دکمه ها*/
-button[type="submit"] {
-        background-color: #D8B7DD;
-        color: BLACK;
-        border: none;
-        padding: 8px 16px;
-        border-radius: 6px;
-        cursor: pointer;
-        font-size: 14px;
-        width: 100px;
-        height: 40px;
-}
-button[type="submit"]:hover {
-        background-color: #0056b3;
-}
-#btn_swap {
-    background-color: #D6C6A5 !important;
-    color: black !important;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 14px;
-    width: 100px;
-    height: 35px;
-}
-
-#btn_swap:hover {
-    background-color: #D6C6A5 !important;
-}
-#btn_initial {
-    background-color: #A3B59C !important;
-    color: black !important;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 14px;
-    width: 100px;
-    height: 35px;
-}
-
-#btn_initial:hover {
-    background-color: #D6C6A5 !important;
-}
-#btn_finalize {
-    background-color: #A3B59C !important;
-    color: black !important;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 14px;
-    width: 100px;
-    height: 35px;
-}
-
-#btn_finalize:hover {
-    background-color: #D6C6A5 !important;
-}
+{#/* دکمه ها*/#}
+{#button[type="submit"] {#}
+{#        background-color: #D8B7DD;#}
+{#        color: BLACK;#}
+{#        border: none;#}
+{#        padding: 8px 16px;#}
+{#        border-radius: 6px;#}
+{#        cursor: pointer;#}
+{#        font-size: 14px;#}
+{#        width: 100px;#}
+{#        height: 40px;#}
+{#}#}
+{#button[type="submit"]:hover {#}
+{#        background-color: #0056b3;#}
+{#}#}
+{##btn_swap {#}
+{#    background-color: #D6C6A5 !important;#}
+{#    color: black !important;#}
+{#    border: none;#}
+{#    padding: 8px 16px;#}
+{#    border-radius: 6px;#}
+{#    cursor: pointer;#}
+{#    font-size: 14px;#}
+{#    width: 100px;#}
+{#    height: 35px;#}
+{#}#}
+{##}
+{##btn_swap:hover {#}
+{#    background-color: #D6C6A5 !important;#}
+{#}#}
+{##btn_initial {#}
+{#    background-color: #A3B59C !important;#}
+{#    color: black !important;#}
+{#    border: none;#}
+{#    padding: 8px 16px;#}
+{#    border-radius: 6px;#}
+{#    cursor: pointer;#}
+{#    font-size: 14px;#}
+{#    width: 100px;#}
+{#    height: 35px;#}
+{#}#}
+{##}
+{##btn_initial:hover {#}
+{#    background-color: #D6C6A5 !important;#}
+{#}#}
+{##btn_finalize {#}
+{#    background-color: #A3B59C !important;#}
+{#    color: black !important;#}
+{#    border: none;#}
+{#    padding: 8px 16px;#}
+{#    border-radius: 6px;#}
+{#    cursor: pointer;#}
+{#    font-size: 14px;#}
+{#    width: 100px;#}
+{#    height: 35px;#}
+{#}#}
+{##}
+{##btn_finalize:hover {#}
+{#    background-color: #D6C6A5 !important;#}
+{#}#}
 
     .small-table{
         font-size: 16px;
@@ -292,13 +292,12 @@ table th, table td {
             {{ header_form.network }}
 
             <div class="d-flex gap-2">
-              <button type="submit" class="btn btn-primary btn-sm flex-grow-1" name="action" value="current_month" style="min-width: 180px;">
-                نمایش جدول ابتدایی
-              </button>
-              <button type="submit" class="btn btn-primary btn-sm flex-grow-1" name="action" value="final_month" style="min-width: 180px;">
-                نمایش جدول برآورد
-              </button>
-                    <button type="submit" class="btn btn-primary btn-sm flex-grow-1" name="action" value="transfer_previous" style="min-width: 180px;">
+              <button type="submit" class="btn btn-info btn-sm" name="action" value="current_month">
+                  <span class="fa fa-eye"></span> نمایش شیفت اولیه</button>
+
+              <button type="submit" class="btn btn-info btn-sm flex-grow-1" name="action" value="final_month">
+                  <span class="fa fa-eye"></span> نمایش شیفت نهایی</button>
+                    <button type="submit" class="btn btn-primary btn-sm flex-grow-1" name="action" value="transfer_previous">
                 انتقال از ماه قبل >>
               </button>
             </div>
@@ -314,9 +313,12 @@ table th, table td {
             {{ header_form.sound_recorder }}
           </div>
           <div class="col-auto">
-            <button id="btn_swap" class="btn btn-secondary btn-sm"> جابجایی </button>
-            <button id="btn_initial" class="btn btn-success btn-sm" data-action="initial">ثبت اولیه</button>
-            <button id="btn_finalize" class="btn btn-primary btn-sm" data-action="final">ثبت نهایی</button>
+            <button id="btn_swap" class="btn btn-warning btn-sm">
+               <span class=" fas fa-arrow-right-arrow-left"></span> جابجایی</button>
+            <button id="btn_initial" class="btn btn-success btn-sm" data-action="initial">
+               <span class=" fas fa-check"></span> ثبت اولیه</button>
+            <button id="btn_finalize" class="btn btn-danger btn-sm" data-action="final">
+                <span class=" fas fa-check-double"></span> ثبت نهایی</button>
 {#            <button type="button" class="btn btn-danger btn-sm" name="action" id="btn_monthly_report">#}
 {#                 گزارش لوح ابتدایی#}
 {#            </button>#}
