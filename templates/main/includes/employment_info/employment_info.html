@@ -82,6 +82,9 @@
             <button class="nav-link {% if tab == 'official' %}active{% endif %}" id="official-tab" data-bs-toggle="tab" data-bs-target="#official" type="button" role="tab">اطلاعات اداری</button>
         </li>
         <li class="nav-item" role="presentation">
+            <button class="nav-link {% if tab == 'permisions' %}active{% endif %}" id="permisions-tab" data-bs-toggle="tab" data-bs-target="#permisions" type="button" role="tab">مجوزها</button>
+        </li>
+        <li class="nav-item" role="presentation">
             <button class="nav-link {% if tab == 'financial' %}active{% endif %}" id="financial-tab" data-bs-toggle="tab" data-bs-target="#financial" type="button" role="tab">اطلاعات مالی</button>
         </li>
     </ul>
@@ -643,6 +646,88 @@
                 </div>
             </form>
         </div>
+        <!-- Permisions Tab -->
+        <div class="tab-pane fade {% if tab == 'permisions' %}show active{% endif %}" id="permisions" role="tabpanel">
+            {% if official_form.errors %}
+              <div class="alert alert-danger">
+                {{ permisions_form.errors }}
+              </div>
+            {% endif %}
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="id_personal" value="{{ prefilled_data.id_personal }}">
+                <input type="hidden" name="id_official" value="{{ prefilled_data.id_official }}">
+                <div class="row mt-4">
+                    <!-- ستون سایر اطلاعات -->
+                    <div class="col-lg-4">
+                        <div class="portlet box shadow mb-4">
+                            <div class="portlet-heading">
+                                <div class="portlet-title"><h4><i class="icon-info"></i> مجوز فعالیت</h4></div>
+                            </div>
+                            <div class="buttons-box">
+                                <a class="btn btn-sm btn-default btn-round btn-fullscreen" rel="tooltip" title="تمام صفحه" href="#">
+                                    <i class="icon-size-fullscreen"></i>
+                                </a>
+                                <a class="btn btn-sm btn-default btn-round btn-collapse" rel="tooltip" title="کوچک کردن" href="#">
+                                    <i class="icon-arrow-up"></i>
+                                </a>
+                            </div><!-- /.buttons-box -->
+                            <div class="portlet-body">
+                                <div class="form-group row mb-2">
+                                    <label class="col-sm-4 col-form-label">استودیوها</label>
+                                    <div class="col-sm-8">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="permision_studio" value="1" {% if prefilled_data.permision_studio %}checked{% endif %}>
+                                            <label class="form-check-label">بله</label>
+                                        </div>
+                                    </div>
+                                    <label class="col-sm-4 col-form-label">فنی پخش</label>
+                                    <div class="col-sm-8">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="permision_fanni_pakhsh" value="1" {% if prefilled_data.permision_fanni_pakhsh %}checked{% endif %}>
+                                            <label class="form-check-label">بله</label>
+                                        </div>
+                                    </div>
+                                    <label class="col-sm-4 col-form-label">رپرتاژ</label>
+                                    <div class="col-sm-8">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="permision_reportaj" value="1" {% if prefilled_data.permision_reportaj %}checked{% endif %}>
+                                            <label class="form-check-label">بله</label>
+                                        </div>
+                                    </div>
+                                    <label class="col-sm-4 col-form-label">فنی 15 خرداد</label>
+                                    <div class="col-sm-8">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="permision_15_khordad" value="1" {% if prefilled_data.permision_15_khordad %}checked{% endif %}>
+                                            <label class="form-check-label">بله</label>
+                                        </div>
+                                    </div>
+                                    <label class="col-sm-4 col-form-label">پشتیبانی فنی</label>
+                                    <div class="col-sm-8">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="permision_fanni_poshtibani" value="1" {% if prefilled_data.permision_fanni_poshtibani %}checked{% endif %}>
+                                            <label class="form-check-label">بله</label>
+                                        </div>
+                                    </div>
+                                    <label class="col-sm-4 col-form-label">صدابرداران</label>
+                                    <div class="col-sm-8">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="permision_sound_recorders" value="1" {% if prefilled_data.permision_sound_recorders %}checked{% endif %}>
+                                            <label class="form-check-label">بله</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                            </div>
+                        </div>
+                    </div>                    
+                <div class="mt-4 text-center">
+                <button type="submit" name="save_official" class="btn btn-primary">ثبت / ویرایش اطلاعات اداری</button>
+            </div>
+        </form>
+    </div>
+                
+                
         <!-- Financial Tab -->
         <div class="tab-pane fade {% if tab == 'financial' %}show active{% endif %}" id="financial" role="tabpanel">
             {% if financial_form.errors %}
