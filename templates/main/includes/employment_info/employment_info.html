@@ -656,7 +656,7 @@
             <form method="post">
                 {% csrf_token %}
                 <input type="hidden" name="id_personal" value="{{ prefilled_data.id_personal }}">
-                <input type="hidden" name="id_official" value="{{ prefilled_data.id_official }}">
+                <input type="hidden" name="id_permision" value="{{ prefilled_data.id_permision }}">
                 <div class="row mt-4">
                     <!-- ستون سایر اطلاعات -->
                     <div class="col-lg-4">
@@ -722,7 +722,7 @@
                         </div>
                     </div>                    
                 <div class="mt-4 text-center">
-                <button type="submit" name="save_official" class="btn btn-primary">ثبت / ویرایش اطلاعات اداری</button>
+                <button type="submit" name="save_permisions" class="btn btn-primary">ثبت / ویرایش اطلاعات مجوزها</button>
             </div>
         </form>
     </div>

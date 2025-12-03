@@ -1,10 +1,10 @@
 from django.shortcuts import render
 from django.contrib import messages
-from .forms import PersonallyForm, FamilyForm, OfficialForm, FinancialForm
+from .forms import PersonallyForm, FamilyForm, OfficialForm, FinancialForm, PermisionsForm
 from .models import (Personally, Location, Education, Phone, Family, Educational_level, Official, JobUnit, JobTitle,
-                     CurrentJob, HireStatus, JobRelation, Financial,Levels,Activity_Type,Accounting,Payment_Type,
-                     Insurance_Type,Bank,Mandatory_Hours,OfficialHire,Formula,
-                     OfficialActivity,OfficialPaymentType,OfficialJobRelation,OfficialJobUnit)
+                     CurrentJob, HireStatus, JobRelation, Financial, Levels, Activity_Type, Accounting, Payment_Type,
+                     Insurance_Type, Bank, Mandatory_Hours, OfficialHire, Formula,
+                     OfficialActivity, OfficialPaymentType, OfficialJobRelation, OfficialJobUnit, Permisions)
 
 def employment_info_view(request):
     context = {
@@ -72,12 +72,19 @@ def employment_info_view(request):
                 'end_date_cooperation': official.end_date_cooperation,
                 'isargari': official.isargari,
                 'basij': official.basij,
-                'permision_studio': official.permision_studio,
-                'permision_fanni_pakhsh' : official.permision_fanni_pakhsh,
-                'permision_reportaj' : official.permision_reportaj,
-                'permision_15_khordad' : official.permision_15_khordad,
-                'permision_fanni_poshtibani' : official.permision_fanni_poshtibani,
-                'permision_sound_recorders' : official.permision_sound_recorders,
+
+            })
+        permisions = Permisions.objects.filter(id_personal=person).first()
+        if permisions:
+            prefilled.update({
+                'id_permision': permisions.id_permision,
+                # 'id_official': permisions.id_official,
+                'permision_studio': permisions.permision_studio,
+                'permision_fanni_pakhsh': permisions.permision_fanni_pakhsh,
+                'permision_reportaj': permisions.permision_reportaj,
+                'permision_15_khordad': permisions.permision_15_khordad,
+                'permision_fanni_poshtibani': permisions.permision_fanni_poshtibani,
+                'permision_sound_recorders': permisions.permision_sound_recorders,
             })
         financial = Financial.objects.filter(id_personal=person).first()
         if financial:
@@ -313,6 +320,7 @@ def employment_info_view(request):
                     context['family_form'] = FamilyForm(initial=context['prefilled_data'])
                     context['official_form'] = OfficialForm(initial=context['prefilled_data'])
                     context['financial_form'] = FinancialForm(initial=context['prefilled_data'])
+                    context['permisions_form'] = PermisionsForm(initial=context['prefilled_data'])
                 except Exception as e:
                     messages.error(request, f'خطا در ثبت اطلاعات اداری: {e}')
                 context['tab'] = 'official'
@@ -321,6 +329,30 @@ def employment_info_view(request):
                     messages.error(request, official_form.errors)
                     messages.error(request, 'خطا در اعتبارسنجی فرم اداری.')
                 context['tab'] = 'official'
+        elif 'save_permisions' in request.POST:
+            id_permision = request.POST.get('id_permision')
+            permisions_form = PermisionsForm(request.POST)
+            context['permisions_form'] = permisions_form
+            if permisions_form.is_valid() and id_personal:
+                try:
+                    result=permisions_form.save_sp(request.user, id_personal=id_personal , id_permision=id_permision)
+                    messages.success(request, 'اطلاعات مجوزها با موفقیت ثبت/ویرایش شد.')
+                    person = Personally.objects.filter(id_personal=id_personal).first()
+                    reload_person_data(person, context)
+                    # Re-initialize forms with updated data
+                    context['personal_form'] = PersonallyForm(initial=context['prefilled_data'])
+                    context['family_form'] = FamilyForm(initial=context['prefilled_data'])
+                    context['official_form'] = OfficialForm(initial=context['prefilled_data'])
+                    context['financial_form'] = FinancialForm(initial=context['prefilled_data'])
+                    context['permisions_form'] = PermisionsForm(initial=context['prefilled_data'])
+                except Exception as e:
+                    messages.error(request, f'خطا در ثبت اطلاعات مجوزها: {e}')
+                context['tab'] = 'permisions'
+            else:
+                if not permisions_form.is_valid():
+                    messages.error(request, permisions_form.errors)
+                    messages.error(request, 'خطا در اعتبارسنجی فرم مجوزها.')
+                context['tab'] = 'permisions'
 
         elif 'save_financial' in request.POST:
             id_financial = request.POST.get('id_financial')
@@ -338,6 +370,7 @@ def employment_info_view(request):
                     context['family_form'] = FamilyForm(initial=context['prefilled_data'])
                     context['official_form'] = OfficialForm(initial=context['prefilled_data'])
                     context['financial_form'] = FinancialForm(initial=context['prefilled_data'])
+                    context['permisions_form'] = PermisionsForm(initial=context['prefilled_data'])
                 except Exception as e:
                     messages.error(request, f'خطا در ثبت اطلاعات مالی: {e}')
                 context['tab'] = 'financial'

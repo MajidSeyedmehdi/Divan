@@ -1,7 +1,11 @@
-from django import forms
-from .models import Personally,Family,Official, Financial ,Bank
-from django.db import connection
 import sys
+
+from django import forms
+from django.contrib.auth.models import Permission
+from django.db import connection
+
+from .models import Personally, Family, Official, Financial, Bank , Permisions
+
 sys.stdout.reconfigure(encoding='utf-8')
 
 class CommaSeparatedIntegerField(forms.CharField):
@@ -202,6 +206,43 @@ class OfficialForm(forms.ModelForm):
             if result and (('ErrorMessage' in result) or (isinstance(result, dict) and result.get('ErrorMessage')) or (isinstance(result, tuple) and any('Error' in str(x) for x in result if x))):
                 raise forms.ValidationError(result)
             return result
+
+class PermisionsForm(forms.ModelForm):
+    class Meta:
+        model = Permisions
+        fields = [
+            'id_permision', 'permision_studio', 'permision_fanni_pakhsh', 'permision_reportaj','permision_15_khordad', 'permision_fanni_poshtibani', 'permision_sound_recorders'
+        ]
+
+    def save_sp(self, user, update=False, id_personal=None, id_permision=None):
+        id_permision = id_permision if id_permision not in [None, '', '0'] else None
+
+        with connection.cursor() as cursor:
+            params = [
+                id_permision,
+                id_personal,
+                int(self.cleaned_data.get('permision_studio', False)),
+                int(self.cleaned_data.get('permision_fanni_pakhsh', False)),
+                int(self.cleaned_data.get('permision_reportaj', False)),
+                int(self.cleaned_data.get('permision_15_khordad', False)),
+                int(self.cleaned_data.get('permision_fanni_poshtibani', False)),
+                int(self.cleaned_data.get('permision_sound_recorders', False)),
+                user.username,  # @permision_user_name
+
+            ]
+
+            cursor.execute("""
+                EXEC Sp_UpdatePermisionsInformation
+                    @id_permision=%s, @id_personal=%s, @permision_studio=%s, @permision_fanni_pakhsh=%s, @permision_reportaje=%s,
+                    @permision_15_khordad=%s, @permision_fanni_poshtibani=%s, @permision_sound_recorders=%s,  @permision_user_name=%s
+            """, params)
+            result = cursor.fetchone()
+
+            if result and (('ErrorMessage' in result) or (isinstance(result, dict) and result.get('ErrorMessage')) or (
+                    isinstance(result, tuple) and any('Error' in str(x) for x in result if x))):
+                raise forms.ValidationError(result)
+            return result
+
 
 class FinancialForm(forms.ModelForm):
     id_financial = forms.IntegerField(required=False, widget=forms.HiddenInput())

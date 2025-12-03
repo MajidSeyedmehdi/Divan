@@ -385,6 +385,20 @@ class Official(models.Model):
     end_date_cooperation = models.CharField(db_column='End_date_cooperation', max_length=50,
                                             db_collation='Persian_100_CI_AS', blank=True,
                                             null=True)
+
+    active = models.BooleanField(db_column='Active', default=True, null=True)
+    del_field = models.BooleanField(db_column='Del', default=False, null=True)
+    user_name = models.CharField(db_column='User_name', max_length=50, db_collation='Persian_100_CI_AS')
+    update_date = models.DateTimeField(db_column='Update_date', default=timezone.now)
+
+    class Meta:
+        managed = False
+        db_table = 'Tbl_Official'
+
+
+class Permisions(models.Model):
+    id_permision = models.AutoField(db_column='Id_permision', primary_key=True)
+    id_personal = models.ForeignKey('Personally', models.DO_NOTHING,db_column='Id_personal')
     permision_studio = models.BooleanField(db_column='Permision_studio', default=False, null=False)
     permision_fanni_pakhsh = models.BooleanField(db_column='Permision_fanni_pakhsh', default=False, null=True)
     permision_reportaj = models.BooleanField(db_column='Permision_reportaj', default=False, null=True)
@@ -398,8 +412,7 @@ class Official(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'Tbl_Official'
-
+        db_table = 'Tbl_Permisions'
 
 class OfficialHire(models.Model):
     id_official_hire = models.AutoField(db_column='Id_official_hire', primary_key=True)  # Field name made lowercase.
