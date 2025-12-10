@@ -33,5 +33,5 @@ urlpatterns = [
     path('sound_recorders/current_affairs/', include('sound_recorders.current_affairs.urls')),
     path('sound_recorders/current_affairs/create_new/', include('sound_recorders.current_affairs.create_new.urls')),
 
-    path('sound_recorders/report/', include('sound_recorders.report.urls')),
+
 ]

@@ -50,7 +50,7 @@ INSTALLED_APPS = [
     'sound_recorders.current_affairs',
     'jalali_date',
     'django_jalali',
-    'sound_recorders.report',
+
     'sound_recorders.current_affairs.sound_shift_search'
 
     # 'sound_recorders',

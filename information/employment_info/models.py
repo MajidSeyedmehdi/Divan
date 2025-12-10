@@ -1,4 +1,5 @@
 from django.db import models
+from django import forms
 from django.utils import timezone
 
 
@@ -53,6 +54,10 @@ class Personally(models.Model):
     class Meta:
         managed = False
         db_table = 'Tbl_Personally'
+
+
+    def __str__(self):
+        return f"{self.first_name} {self.last_name}"
 
 
 class Location(models.Model):
@@ -399,7 +404,7 @@ class Official(models.Model):
 class Permisions(models.Model):
     id_permision = models.AutoField(db_column='Id_permision', primary_key=True)
     id_personal = models.ForeignKey('Personally', models.DO_NOTHING,db_column='Id_personal')
-    permision_studio = models.BooleanField(db_column='Permision_studio', default=False, null=False)
+    permision_studio = models.BooleanField(db_column='Permision_studio', default=False, null=True)
     permision_fanni_pakhsh = models.BooleanField(db_column='Permision_fanni_pakhsh', default=False, null=True)
     permision_reportaj = models.BooleanField(db_column='Permision_reportaj', default=False, null=True)
     permision_15_khordad = models.BooleanField(db_column='Permision_15_khordad', default=False, null=True)
@@ -413,6 +418,7 @@ class Permisions(models.Model):
     class Meta:
         managed = False
         db_table = 'Tbl_Permisions'
+
 
 class OfficialHire(models.Model):
     id_official_hire = models.AutoField(db_column='Id_official_hire', primary_key=True)  # Field name made lowercase.

@@ -1,4 +1,6 @@
 from django import forms
+
+from information.employment_info.models import Permisions
 from .models import DailySchedule, SelectNetwork, PersianCalender,Network,Sound_Recorders,SelectSoundRecorder
 from jalali_date.widgets import AdminJalaliDateWidget
 from jalali_date.fields import JalaliDateField
@@ -7,7 +9,7 @@ from django.db import connection
 
 
 
-class HeaderForm(forms.Form):
+class HeaderForm1(forms.Form):
     p_date = jDateField(
         widget=AdminJalaliDateWidget(attrs={'class': 'form-control'}),
         label="تاریخ",
@@ -53,6 +55,52 @@ class HeaderForm(forms.Form):
     #     self.fields['network'].choices = [('', 'انتخاب کنید')] + list(networks)
 
 #فرم مربوط به لوح شیفت
+
+class HeaderForm(forms.Form):
+    ALL_NETWORK = "all"
+    ALL_RECORDER = "all_rec"
+
+    p_date = jDateField(
+        widget=AdminJalaliDateWidget(attrs={'class': 'form-control'}),
+        label="تاریخ",
+        required=True
+    )
+    network = forms.ChoiceField(
+        label="شبکه",
+        required=False
+    )
+
+    sound_recorder = forms.ChoiceField(
+        label="صدابردار",
+        required=False
+    )
+
+    shift_table_choice = forms.ChoiceField(
+        label='انتخاب جدول شیفت',
+        choices=[('1', 'لوح ابتدایی'), ('2', 'لوح برآورد')],
+        widget=forms.Select(attrs={
+            'class': 'form-select',
+            'style': 'min-width:150px; max-width:300px;'
+        }),
+        required=False
+    )
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # ---- شبکه ----
+        nets = [(str(n.id_network), n.network) for n in SelectNetwork.objects.all()]
+        self.fields["network"].choices = [
+            ("", "انتخاب کنید"),
+            (self.ALL_NETWORK, "همه"),
+        ] + nets
+
+        # ---- صدابردار ----
+        recs = [(str(r.id_sound_recorder), str(r)) for r in SelectSoundRecorder.objects.filter(id_personal__in=Permisions.objects.filter(permision_sound_recorders=True).values_list('id_personal_id',
+                                                                                                  flat=True))]
+        self.fields["sound_recorder"].choices = [
+            ("", "انتخاب کنید"),
+            (self.ALL_RECORDER, "همه"),
+        ] + recs
 class DailyScheduleForm(forms.ModelForm):
     date = jDateField(widget=AdminJalaliDateWidget, label="تاریخ")
     day = forms.CharField(label="روز", required=False)

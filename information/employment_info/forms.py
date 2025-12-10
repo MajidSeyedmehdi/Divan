@@ -211,29 +211,37 @@ class PermisionsForm(forms.ModelForm):
     class Meta:
         model = Permisions
         fields = [
-            'id_permision', 'permision_studio', 'permision_fanni_pakhsh', 'permision_reportaj','permision_15_khordad', 'permision_fanni_poshtibani', 'permision_sound_recorders'
+            'permision_studio', 'permision_fanni_pakhsh', 'permision_reportaj','permision_15_khordad', 'permision_fanni_poshtibani', 'permision_sound_recorders'
         ]
+        widgets = {
+            'permision_studio': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'permision_fanni_pakhsh': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'permision_reportaj': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'permision_15_khordad': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'permision_fanni_poshtibani': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'permision_sound_recorders': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
 
     def save_sp(self, user, update=False, id_personal=None, id_permision=None):
         id_permision = id_permision if id_permision not in [None, '', '0'] else None
-
+        print(self.cleaned_data)
         with connection.cursor() as cursor:
             params = [
                 id_permision,
                 id_personal,
-                int(self.cleaned_data.get('permision_studio', False)),
-                int(self.cleaned_data.get('permision_fanni_pakhsh', False)),
-                int(self.cleaned_data.get('permision_reportaj', False)),
-                int(self.cleaned_data.get('permision_15_khordad', False)),
-                int(self.cleaned_data.get('permision_fanni_poshtibani', False)),
-                int(self.cleaned_data.get('permision_sound_recorders', False)),
+                int(bool(self.cleaned_data.get('permision_studio'))),
+                int(bool(self.cleaned_data.get('permision_fanni_pakhsh'))),
+                int(bool(self.cleaned_data.get('permision_reportaj'))),
+                int(bool(self.cleaned_data.get('permision_15_khordad'))),
+                int(bool(self.cleaned_data.get('permision_fanni_poshtibani'))),
+                int(bool(self.cleaned_data.get('permision_sound_recorders'))),
                 user.username,  # @permision_user_name
 
             ]
 
             cursor.execute("""
                 EXEC Sp_UpdatePermisionsInformation
-                    @id_permision=%s, @id_personal=%s, @permision_studio=%s, @permision_fanni_pakhsh=%s, @permision_reportaje=%s,
+                    @id_permision=%s, @id_personal=%s, @permision_studio=%s, @permision_fanni_pakhsh=%s, @permision_reportaj=%s,
                     @permision_15_khordad=%s, @permision_fanni_poshtibani=%s, @permision_sound_recorders=%s,  @permision_user_name=%s
             """, params)
             result = cursor.fetchone()

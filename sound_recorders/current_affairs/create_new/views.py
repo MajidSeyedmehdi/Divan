@@ -148,15 +148,19 @@ def save_shift_assignments_bulk(request):
         network_id = data.get("network_id")
         action = data.get("action")  # 'initial' یا 'final'
         user_name = request.user.username if request.user.is_authenticated else "system"
-
+        # print(assignments)
         with connect_db() as conn:
             cursor = conn.cursor()
-
             for a in assignments:
                 shift_date = a["date"]
                 # دریافت نام روز (در صورت نیاز می‌توانید locale تنظیم کنید)
                 shift_day = pyodbc.Date.fromisoformat(shift_date).strftime('%A')
-
+                # print(a["sound_recorder_id"],
+                #             a["shift_id"],
+                #             network_id,
+                #             shift_date,
+                #             shift_day,
+                #             user_name)
                 # اجرای پروسیجر بر اساس action
                 if action == "initial":
                     cursor.execute(
@@ -256,11 +260,33 @@ def save_shift_assignments_bulk(request):
                         # بیش از 16 ساعت
                         elif returned_id == -3:
                             total_minutes = first[2] if len(first) > 2 else None
+                            conflict_date = first[3] if len(first) > 3 else None
+                            conflict_shift = first[4] if len(first) > 4 else None
+                            conflict_network = first[5] if len(first) > 5 else None
+
+                            # تبدیل تاریخ میلادی به شمسی
+                            jalali_display = None
+                            if conflict_date:
+                                try:
+                                    greg_date = datetime.strptime(str(conflict_date), "%Y-%m-%d").date()
+                                    j_date = jdatetime.date.fromgregorian(date=greg_date)
+                                    jalali_display = f"{j_date.year}/{j_date.month:02}/{j_date.day:02}"
+                                except Exception:
+                                    pass
+
                             msg = "⛔ مجموع ساعات شیفت‌های این صدابردار در بازهٔ ۲۴ ساعته بیش از ۱۶ ساعت است."
                             if total_minutes:
-                                msg += f" (در حال حاضر {total_minutes // 60} ساعت و {total_minutes % 60} دقیقه)"
+                                msg += f" (در حال حاضر {total_minutes // 60} ساعت و {total_minutes % 60} دقیقه)***"
+                            if jalali_display:
+                                msg += f"(تاریخ: {jalali_display})***"
+                            if conflict_shift:
+                                msg += f"( {conflict_shift})***"
+                            if conflict_network:
+                                msg += f"(شبکه: {conflict_network})***"
+
                             conn.rollback()
                             return JsonResponse({"status": "error", "message": msg}, status=400)
+
 
                         # سایر خطاهای احتمالی
                         else:

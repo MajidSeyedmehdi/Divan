@@ -12,6 +12,7 @@ def employment_info_view(request):
         'family_form': FamilyForm(),
         'official_form': OfficialForm(),
         'financial_form': FinancialForm(),
+        'permisions_form' : PermisionsForm(),
         'prefilled_data': {},
         'tab': 'personal',
         'educational_levels': Educational_level.objects.filter(active=True, del_field=False),
@@ -171,6 +172,9 @@ def employment_info_view(request):
             context['family_form'] = FamilyForm(initial=context['prefilled_data'])
             context['official_form'] = OfficialForm(initial=context['prefilled_data'])
             context['financial_form'] = FinancialForm(initial=context['prefilled_data'])
+            permision_instance = Permisions.objects.filter(id_personal=person).first()
+            context['permisions_form'] = PermisionsForm(
+                instance=permision_instance) if permision_instance else PermisionsForm()
 
     if request.method == 'POST':
         id_personal = request.POST.get('id_personal')
@@ -250,6 +254,10 @@ def employment_info_view(request):
                 bank_accounts = Accounting.objects.filter(id_financial__id_personal=person, active=True,
                                                           del_field=False)
                 context['bank_accounts'] = bank_accounts
+                permision_instance = Permisions.objects.filter(id_personal=person).first()
+                context['permisions_form'] = PermisionsForm(
+                    instance=permision_instance) if permision_instance else PermisionsForm()
+
                 messages.success(request, 'کارمند یافت شد و اطلاعات بارگذاری شد.')
             else:
                 messages.error(request, 'کد ملی یافت نشد.')
@@ -320,7 +328,9 @@ def employment_info_view(request):
                     context['family_form'] = FamilyForm(initial=context['prefilled_data'])
                     context['official_form'] = OfficialForm(initial=context['prefilled_data'])
                     context['financial_form'] = FinancialForm(initial=context['prefilled_data'])
-                    context['permisions_form'] = PermisionsForm(initial=context['prefilled_data'])
+                    permision_instance = Permisions.objects.filter(id_personal=id_personal).first()
+                    context['permisions_form'] = PermisionsForm(
+                        instance=permision_instance) if permision_instance else PermisionsForm()
                 except Exception as e:
                     messages.error(request, f'خطا در ثبت اطلاعات اداری: {e}')
                 context['tab'] = 'official'
@@ -332,10 +342,20 @@ def employment_info_view(request):
         elif 'save_permisions' in request.POST:
             id_permision = request.POST.get('id_permision')
             permisions_form = PermisionsForm(request.POST)
+            # گرفتن رکورد پرمیشن اگر وجود داشته باشه
+            permision_instance = None
+            if id_permision:
+                permision_instance = Permisions.objects.filter(id_permision=id_permision).first()
+
+            # ساخت فرم با instance یا خالی
+            permisions_form = PermisionsForm(request.POST, instance=permision_instance)
+
             context['permisions_form'] = permisions_form
+            # print(request.POST)
+            # print(permisions_form.errors)
             if permisions_form.is_valid() and id_personal:
                 try:
-                    result=permisions_form.save_sp(request.user, id_personal=id_personal , id_permision=id_permision)
+                    permisions_form.save_sp(request.user, id_personal=id_personal , id_permision=id_permision)
                     messages.success(request, 'اطلاعات مجوزها با موفقیت ثبت/ویرایش شد.')
                     person = Personally.objects.filter(id_personal=id_personal).first()
                     reload_person_data(person, context)
@@ -344,7 +364,9 @@ def employment_info_view(request):
                     context['family_form'] = FamilyForm(initial=context['prefilled_data'])
                     context['official_form'] = OfficialForm(initial=context['prefilled_data'])
                     context['financial_form'] = FinancialForm(initial=context['prefilled_data'])
-                    context['permisions_form'] = PermisionsForm(initial=context['prefilled_data'])
+                    permision_instance = Permisions.objects.filter(id_personal=id_personal).first()
+                    context['permisions_form'] = PermisionsForm(
+                        instance=permision_instance) if permision_instance else PermisionsForm()
                 except Exception as e:
                     messages.error(request, f'خطا در ثبت اطلاعات مجوزها: {e}')
                 context['tab'] = 'permisions'
@@ -370,7 +392,9 @@ def employment_info_view(request):
                     context['family_form'] = FamilyForm(initial=context['prefilled_data'])
                     context['official_form'] = OfficialForm(initial=context['prefilled_data'])
                     context['financial_form'] = FinancialForm(initial=context['prefilled_data'])
-                    context['permisions_form'] = PermisionsForm(initial=context['prefilled_data'])
+                    permision_instance = Permisions.objects.filter(id_personal=id_personal).first()
+                    context['permisions_form'] = PermisionsForm(
+                        instance=permision_instance) if permision_instance else PermisionsForm()
                 except Exception as e:
                     messages.error(request, f'خطا در ثبت اطلاعات مالی: {e}')
                 context['tab'] = 'financial'
