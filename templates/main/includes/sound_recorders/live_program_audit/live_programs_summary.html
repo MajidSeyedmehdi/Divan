@@ -370,19 +370,23 @@
             <td>{{ prog.Status_Name }}</td>
             <td>واحد مالی</td>
             <td>
-                <form method="post" action="" class="d-inline">
-                    {% csrf_token %}
-                    <input type="hidden" name="id_manual_program" value="{{ prog.Id_manual_program }}">
-                    <input type="hidden" name="start_date" value="{{ filter_start_date|default:'' }}">
-                    <input type="hidden" name="end_date" value="{{ filter_end_date|default:'' }}">
-                    {% if prog.Pending_Payment_Count|default:0 > 0 %}
-                        <button type="submit" name="action" value="reject"
-                                class="btn btn-sm btn-outline-danger" title="بازگشت به ثبت شده">✖</button>
-                    {% else %}
-                        <button type="submit" name="action" value="confirm"
-                                class="btn btn-sm btn-outline-success" title="ارسال به انتظار پرداخت">✔</button>
-                    {% endif %}
-                </form>
+                {% if prog.Has_Estimate_Code %}
+                    <form method="post" action="" class="d-inline">
+                        {% csrf_token %}
+                        <input type="hidden" name="id_manual_program" value="{{ prog.Id_manual_program }}">
+                        <input type="hidden" name="start_date" value="{{ filter_start_date|default:'' }}">
+                        <input type="hidden" name="end_date" value="{{ filter_end_date|default:'' }}">
+                        {% if prog.Has_Pending %}
+                            <button type="submit" name="action" value="reject"
+                                    class="btn btn-sm btn-outline-danger" title="بازگشت به ثبت شده">✖</button>
+                        {% else %}
+                            <button type="submit" name="action" value="confirm"
+                                    class="btn btn-sm btn-outline-success" title="ارسال به انتظار پرداخت">✔</button>
+                        {% endif %}
+                    </form>
+                {% else %}
+                    <span class="text-muted" title="برنامه فاقد کد برآورد است">—</span>
+                {% endif %}
             </td>
             <td>
                 <a href="{% url 'sound_recorders:live_program_audit:live_financial_calculation:live_program_details' prog.Id_manual_program %}" class="btn btn-sm btn-primary">مشاهده جزئیات</a>
