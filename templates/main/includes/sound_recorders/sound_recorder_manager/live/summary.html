@@ -361,7 +361,7 @@
             <td>واحد مالی</td>
             <td><span class="badge bg-warning text-dark">در انتظار پرداخت</span></td>
             <td>
-                <a href="{% url 'sound_recorders:soundrecorders_manager:live:details' prog.Id_manual_program %}?start_date={{ filter_start_date|urlencode }}&end_date={{ filter_end_date|urlencode }}" class="btn btn-sm btn-primary">مشاهده جزئیات</a>
+                <a href="{% url 'sound_recorders:soundrecorders_manager:live:details' prog.Id_manual_program %}?start_date={{ start_date|urlencode }}&end_date={{ end_date|urlencode }}" class="btn btn-sm btn-primary">مشاهده جزئیات</a>
             </td>
         </tr>
         {% empty %}
