@@ -108,7 +108,7 @@ def manager_live_details(request, id_manual_program):
         context["error"] = "فرمت تاریخ واردشده معتبر نیست."
         return render(
             request,
-            "main/includes/sound_recorders/live_program_audit/live_program_details.html",
+            "main/includes/sound_recorders/sound_recorder_manager/live/details.html",
             context,
         )
     if start_greg and end_greg and start_greg > end_greg:
