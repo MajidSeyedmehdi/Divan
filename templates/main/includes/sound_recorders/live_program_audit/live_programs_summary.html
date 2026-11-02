@@ -1,0 +1,401 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+<link rel="stylesheet" href="{% static 'assets/css/style.css' %}">
+
+{% block content %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<style>
+    input[type="text"], select, textarea {
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 6px 10px;
+        width: 150px;
+        height: 35px;
+        font-size: 12px;
+        transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    input[type="text"]:focus, select:focus, textarea:focus {
+        border-color: #66afe9;
+        outline: none;
+        font-size: 12px;
+        box-shadow: 0 0 5px rgba(102, 175, 233, 0.6);
+    }
+
+    label {
+        margin-left: 8px;
+        font-weight: bold;
+        font-size: 12px;
+    }
+
+    li {
+        margin-bottom: 12px;
+    }
+
+    /* استایل جدول بدون اسکرول افقی */
+.fit-table {
+    width: 100% !important;
+    table-layout: auto; /* یا fixed بر حسب نیاز */
+    font-size: 11px !important; /* کوچک‌تر کردن فونت جهت جا شدن */
+}
+
+/* فشرده‌سازی فاصله‌های داخل سلول‌ها */
+.fit-table th,
+.fit-table td {
+    padding: 4px 2px !important; /* حداقل پدینگ افقی */
+    vertical-align: middle;
+    text-align: center;
+    word-wrap: break-word;
+}
+
+/* شکستن خطوط برای متن‌های طولانی */
+.fit-table th {
+    font-size: 11px !important;
+    white-space: normal !important; /* اجازه به شکستن خط در سرتیترها */
+    line-height: 1.2;
+}
+
+/* کاهش اندازه بَج‌ها */
+.fit-table .badge {
+    font-size: 10px;
+    padding: 2px 4px;
+}
+    table thead th {
+        background-color: #e6f2ff !important;
+        color: white;
+        font-size: 14px;
+    }
+
+    .dropdown-checkboxes {
+        position: relative;
+        display: inline-block;
+        width: 100%;
+    }
+    .dropdown-checkboxes .dropdown-menu {
+        max-height: 250px;
+        overflow-y: auto;
+        padding: 10px;
+        width: 100%;
+    }
+    .dropdown-toggle-label {
+        font-size: 14px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .table-wrapper {
+        border: 2px solid #e0e0e0;
+        border-radius: 12px;
+        padding: 15px;
+        background-color: #fff;
+        box-shadow: 0 0 3px rgba(0, 0, 0, 0.12);
+        overflow-y: hidden;
+        overflow-x: auto;
+        width: 100%;
+        scrollbar-width:auto;
+    }
+    .table-wrapper table{
+        width: max-content;
+        min-width: 100%;
+        white-space: nowrap;
+    }
+
+    .financial-table {
+        width: 100%;
+        margin-bottom: 0;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-family: 'Vazir-Black', serif;
+    }
+
+    #financial-table th,
+    #financial-table td {
+        border: 1.5px solid #000000 !important;
+    }
+
+    #financial-table thead tr:first-child th:first-child { border-top-right-radius: 10px; }
+    #financial-table thead tr:first-child th:last-child { border-top-left-radius: 10px; }
+    #financial-table tbody tr:last-child td:first-child { border-bottom-right-radius: 10px; }
+    #financial-table tbody tr:last-child td:last-child { border-bottom-left-radius: 10px; }
+
+    @font-face {
+        font-family: 'Vazir-Black';
+        font-weight: normal;
+        font-style: normal;
+    }
+
+    body, input, select, textarea {
+        font-family: 'Vazir', sans-serif !important;
+        direction: rtl;
+        text-align: right;
+    }
+
+    .ui-datepicker, .ui-datepicker table, .ui-datepicker td, .ui-datepicker th {
+        font-family: 'Vazir', sans-serif !important;
+        direction: rtl !important;
+        text-align: center;
+    }
+
+    .breadcrumb-box {
+        background: #fff;
+        border-radius: 12px;
+        padding: 15px 20px;
+        position: relative;
+        border: 1px solid #e0e0e0;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
+    .breadcrumb-box::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 10px;
+        width: 100%;
+        background: #00CED1;
+        border-top-left-radius: 12px;
+        border-top-right-radius: 12px;
+    }
+
+    .breadcrumb-box label { font-weight: 600; color: #333; }
+
+    .breadcrumb-box input[type="text"],
+    .breadcrumb-box select {
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 5px 10px;
+        font-size: 13px;
+        transition: all 0.2s ease;
+        background-color: #fafafa;
+    }
+
+    .breadcrumb-box input[type="text"]:focus,
+    .breadcrumb-box select:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 3px rgba(0, 123, 255, 0.3);
+        outline: none;
+    }
+
+    input[readonly].date-readonly {
+        border: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        outline: none !important;
+        padding: 0 !important;
+        text-align: center;
+        font-size: 12px;
+        cursor: default;
+        font-family: 'Vazir-Black', serif;
+    }
+
+    #modal-table th, #modal-table td {
+        border: 1.5px solid #000000 !important;
+    }
+
+    .modal-table {
+        width: 100%;
+        margin-bottom: 0;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-family: 'Vazir-Black', serif;
+    }
+
+    .modal-table thead > tr > th {
+        background-color: #e6f2ff !important;
+        color: #000000 !important;
+        font-weight: 700;
+        font-size: 13px;
+        text-align: center;
+        vertical-align: middle;
+        border: 1px solid #6fbab1 !important;
+        padding: 8px 6px;
+    }
+
+    .modal-table tbody td {
+        vertical-align: middle;
+        padding: 6px;
+        border: 1px solid #dee2e6;
+        background-color: #fff;
+    }
+
+    .close-modal-btn {
+        background-color: #009688;
+        color: white;
+        border: none;
+    }
+
+    .close-modal-btn:hover {
+        background-color: #C88787;
+        color: white;
+    }
+    /* استایل بوردر مشکی پررنگ برای تمام جدول‌های مالی */
+.financial-table,
+.financial-table th,
+.financial-table td {
+    border: 1.5px solid #000000 !important;
+}
+
+.financial-table {
+    width: 100%;
+    margin-bottom: 0;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-family: 'Vazir-Black', serif;
+}
+
+/* گرد کردن گوشه‌های جدول */
+.financial-table thead tr:first-child th:first-child { border-top-right-radius: 10px; }
+.financial-table thead tr:first-child th:last-child { border-top-left-radius: 10px; }
+.financial-table tbody tr:last-child td:first-child { border-bottom-right-radius: 10px; }
+.financial-table tbody tr:last-child td:last-child { border-bottom-left-radius: 10px; }
+
+/* استایل کلیک کردن روی سلول */
+.selected-cell {
+    background-color: #d4edda !important;
+    color: #ffffff !important;
+    outline: 2px solid #155724;
+    cursor: pointer;
+}
+.link-button {
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    color: #0d6efd;
+    text-decoration: underline;
+    cursor: pointer;
+    font: inherit;
+}
+
+.link-button:hover {
+    color: #0a58ca;
+}
+    input[type="time"]::-webkit-calendar-picker-indicator {
+        display: none;
+        -webkit-appearance: none;
+    }
+
+</style>
+
+<div class="container-fluid">
+{% if messages %}
+                <div class="row mb-3">
+                    <div class="col-lg-12">
+                        {% for message in messages %}
+                            <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags == 'warning' %}warning{% elif message.tags == 'success' %}success{% else %}info{% endif %} alert-dismissible fade show" role="alert">
+                                <i class="icon-{% if message.tags == 'error' %}close{% elif message.tags == 'warning' %}warning{% elif message.tags == 'success' %}check{% else %}info{% endif %}"></i>
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+    {{ header_form.media }}
+    <div class="col-md-12">
+        <div class="breadcrumb-box shadow">
+            <div class="breadcrumb-right">
+
+                <div class="d-flex flex-wrap align-items-center gap-4">
+
+                    <!-- تاریخ شروع -->
+                    <div class="d-flex align-items-center gap-2">
+                        <label class="form-label mb-0">
+                            تاریخ شروع
+                        </label>
+
+                        {{ header_form.start_date }}
+                    </div>
+                                        <!-- تاریخ پایان -->
+                    <div class="d-flex align-items-center gap-2">
+                        <label class="form-label mb-0">
+                            تاریخ پایان
+                        </label>
+
+                        {{ header_form.end_date }}
+                    </div>
+                    <!-- شبکه اصلی -->
+                        <div class="d-flex align-items-center gap-2">
+                            <label for="{{ header_form.network.id_for_label }}">شبکه:</label>
+                            {{ header_form.network }}
+                        </div>
+                    
+                                        <!-- شبکه اصلی -->
+                        <div class="d-flex align-items-center gap-2">
+                            <label for="{{ header_form.live_status.id_for_label }}">وضعیت:</label>
+                            {{ header_form.live_status }}
+                        </div>
+
+                        <button type="submit" class="btn btn-primary px-4" style="height: 35px; border-radius: 8px;">جستجو</button>
+
+        </div>  
+            
+        </div>
+            
+      </div>
+<table class="table table-bordered text-center">
+    <thead>
+        <tr>
+            <th>نام برنامه</th>
+            <th>کد برآورد</th>
+            <th>تاریخ شروع</th>
+            <th>تاریخ پایان</th>
+            <th>تعداد مجاز</th>
+            <th>تعداد استفاده شده</th>
+            <th>جدید</th>
+            <th>در انتظار پرداخت</th>
+            <th>وضعیت</th>
+            <th>واحد رسیدگی کننده</th>
+            <th>تایید / عدم تایید</th>
+            <th>جزئیات</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for prog in programs %}
+        <tr>
+            <td>{{ prog.Program_name }}</td>
+            <td>{{ prog.Prog_Code }}</td>
+            <td>{{ prog.Start_date }}</td>
+            <td>{{ prog.End_date }}</td>
+            <td>{{ prog.Permitted_count }}</td>
+            <td>{{ prog.Used_count }}</td>
+            <td><span class="badge bg-info">{{ prog.Registered_Count }}</span></td>
+            <td><span class="badge bg-warning">{{ prog.Pending_Payment_Count }}</span></td>
+            <td>{{ prog.Status_Name }}</td>
+            <td>واحد مالی</td>
+            <td>
+                <!-- دکمه سوییچ تایید / عدم تایید -->
+                <button class="btn btn-sm btn-outline-success toggle-approve" onclick="toggleApproval(this)">
+                    ✔
+                </button>
+            </td>
+            <td>
+                <a href="{% url 'sound_recorders:live_program_audit:live_financial_calculation:live_program_details' prog.Id_manual_program %}" class="btn btn-sm btn-primary">مشاهده جزئیات</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="12">اطلاعاتی یافت نشد.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<script>
+function toggleApproval(btn) {
+    if (btn.innerText.trim() === "✔") {
+        btn.innerText = "✖";
+        btn.classList.remove("btn-outline-success");
+        btn.classList.add("btn-outline-danger");
+    } else {
+        btn.innerText = "✔";
+        btn.classList.remove("btn-outline-danger");
+        btn.classList.add("btn-outline-success");
+    }
+}
+</script>
+{% endblock %}

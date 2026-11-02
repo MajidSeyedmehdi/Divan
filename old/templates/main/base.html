@@ -1,0 +1,65 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" class="rtl">
+
+    <head>
+        <title>دیوان(اداره کل تولید و فنی صدا)</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="دیوان(اداره کل تولید و فنی صدا) ">
+        <meta name="fontiran.com:license" content="NE29X">
+        <link rel="shortcut icon" href="{% static 'assets/images/11.png' %}">
+
+        <!-- BEGIN CSS -->
+        <link href="{% static 'assets/plugins/bootstrap/bootstrap5/css/bootstrap.rtl.min.css' %}" rel="stylesheet">
+        <link href="{% static 'assets/plugins/metisMenu/dist/metisMenu.min.css' %}" rel="stylesheet">
+        <link href="{% static 'assets/plugins/simple-line-icons/css/simple-line-icons.min.css' %}" rel="stylesheet">
+        <link href="{% static 'assets/plugins/font-awesome/css/all.min.css' %}" rel="stylesheet">
+        <link href="{% static 'assets/plugins/malihu-custom-scrollbar-plugin/jquery.mCustomScrollbar.min.css' %}" rel="stylesheet">
+        <link href="{% static 'assets/plugins/switchery/dist/switchery.min.css' %}" rel="stylesheet">
+        <link href="{% static 'assets/plugins/sweetalert2/dist/sweetalert2.min.css' %}" rel="stylesheet">
+        <link href="{% static 'assets/plugins/paper-ripple/dist/paper-ripple.min.css' %}" rel="stylesheet">
+        <link href="{% static 'assets/plugins/iCheck/skins/square/_all.css' %}" rel="stylesheet">
+        <link href="{% static 'assets/css/style.css' %}" rel="stylesheet">
+        <link href="{% static 'assets/css/colors.css' %}" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+        <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+        <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
+        <!-- END CSS -->
+        
+    </head>
+
+<body class="active-ripple theme-darkpurple fix-header sidebar-extra bg-1">
+    <!-- BEGIN LOEADING -->
+        <div id="loader">
+            <div class="spinner"></div>
+        </div><!-- /loader -->
+        <!-- END LOEADING -->
+        {% include "main/includes/header/header.html" %}
+        {% include "main/includes/sidebar/sidebar.html" %}
+        
+        <!-- Main Content -->
+        <div id="page-content">
+            <div class="container-fluid">
+                
+                {% block content %}
+                {% endblock %}
+            </div>
+        </div>
+
+        {% include "main/includes/footer/footer.html" %}
+        <!-- BEGIN JS -->
+        <script src="{% static 'assets/plugins/jquery/dist/jquery-3.6.1.min.js' %}"></script>
+        <script src="{% static 'assets/plugins/bootstrap/bootstrap5/js/bootstrap.bundle.min.js' %}"></script>
+        <script src="{% static 'assets/plugins/metisMenu/dist/metisMenu.min.js' %}"></script>
+        <script src="{% static 'assets/plugins/paper-ripple/dist/PaperRipple.min.js' %}"></script>
+        <script src="{% static 'assets/plugins/malihu-custom-scrollbar-plugin/jquery.mCustomScrollbar.concat.min.js' %}"></script>
+        <script src="{% static 'assets/plugins/sweetalert2/dist/sweetalert2.min.js' %}"></script>
+        <script src="{% static 'assets/plugins/screenfull/dist/screenfull.min.js' %}"></script>
+        <script src="{% static 'assets/plugins/iCheck/icheck.min.js' %}"></script>
+        <script src="{% static 'assets/plugins/switchery/dist/switchery.js' %}"></script>
+        <script src="{% static 'assets/js/core.js' %}"></script>
+        
+</body>
+</html>

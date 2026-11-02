@@ -3,19 +3,30 @@
 
                 <div class="side-menu-container">
                     <ul class="metismenu" id="side-menu">
-                        {% if request.user.is_superuser or is_info_manager %}
-                        <li class="dropdown {% if request.resolver_match.namespace == 'information' %}menu-open{% endif %}">
-                            <a href="#" class="dropdown-toggle">
-                                <i class="icon-chart"></i>
-                                <span>آمار و اطلاعات فنی</span>
-                            </a>
-                            <ul>
-                                <li>
-                                    <a href="{% url 'information:inf_manager:inf_manager' %}" class="">
-                                        <i class="icon-chart"></i>
-                                        <span>مدیر آمار و اطلاعات</span>
-                                    </a>
-                                </li>
+                       {% if request.user.is_superuser or is_info_manager %}
+                            <li class="dropdown {% if request.resolver_match.namespace == 'information' %}menu-open{% endif %}">
+                                <a href="#" class="dropdown-toggle">
+                                    <i class="icon-chart"></i>
+                                    <span>آمار و اطلاعات فنی</span>
+                                </a>
+                                <ul>
+                                    <!-- این بخش فقط برای مدیر نمایش داده می‌شود -->
+                                    {% if is_only_info_manager %}
+                                    <li>
+                                        <a href="{% url 'information:inf_manager:inf_manager' %}" class="">
+                                            <i class="icon-chart"></i>
+                                            <span>مدیر آمار و اطلاعات</span>
+                                        </a>
+                                        <ul>
+                                            <li>
+                                                <a href="{% url 'inf_manager:shift:shift' %}">
+                                                    <i class="icon-calendar"></i>
+                                                    <span>شیفت</span>
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    {% endif %}
                                 <li>
                                     <a href="{% url 'information:employment_info:employment_info' %}" class="">
                                         <i class="icon-chart"></i>
@@ -27,34 +38,84 @@
                                         <span>جستجو</span>
                                     </a>
                                 </li>
-                                <li>
-                                    <a href="#">
-                                        <i class="icon-chart"></i>
-                                        <span>مجوز پرداخت</span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{% url 'information:setting:setting' %}" class="">
-                                        <i class="icon-chart"></i>
-                                        <span>تنظیمات</span>
-                                    </a>
-                                </li>
+                        <li class="dropdown {% if request.resolver_match.app_name == 'setting' %}active{% endif %}">
+                            <a href="#" class="dropdown-toggle">
+                                <i class="icon-chart"></i>
+                                <span>تنظیمات</span>
+                            </a>
+                            <ul>
+                        <li>
+                            <a href="{% url 'information:setting:network_setting:network_setting' %}">
+                                <i class="icon-chart"></i>
+                                <span>تنظیمات شبکه</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'information:setting:payment_calculation:payment_calculation' %}">
+                                <i class="icon-chart"></i>
+                                <span>فرمول های محاسباتی</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'information:setting:shift_rate:shift_rate_view' %}">
+                                <i class="icon-chart"></i>
+                                <span>نرخ شیفت ها</span>
+                            </a>
+                        </li>      
+                        <li>
+                            <a href="{% url 'information:setting:holidays:holidays' %}">
+                                <i class="icon-chart"></i>
+                                <span>تعطیلات</span>
+                            </a>
+                        </li>    
+                        <li>
+                            <a href="{% url 'information:setting:financial_Period:create_financial_period' %}">
+                                <i class="icon-chart"></i>
+                                <span>دوره مالی</span>
+                            </a>
+                        </li>            
                             </ul>
                         </li>
+
+                    </ul>
+                        </li>
                         {% endif %}
-                        {% if request.user.is_superuser or is_sound_engineer %}
+                        {% if request.user.is_superuser or is_sound_engineer  %}
                             <li class="dropdown {% if request.resolver_match.namespace == 'sound_recorders' %}menu-open{% endif %}">
                                 <a href="#" class="dropdown-toggle">
                                     <i class="icon-volume-2"></i>
                                     <span>صدابرداران</span>
                                 </a>
                                 <ul>
+                                     {% if is_only_sound_engineer %}
+                                <li>
+                                    <a class="dropdown-toggle"  href="{% url 'sound_recorders:soundrecorders_manager:soundrecorders_manager' %}">
+                                        <i class="icon- icon-volume-2 "></i>
+                                        <span>مدیر صدابرداران</span>
+                                </a>
+                                <ul>
+                                    <li>
+                                        <a href="{% url 'sound_recorders:soundrecorders_manager:shift:shift' %}">
+                                            <i class="icon-calendar"></i>
+                                            <span> شیفت</span>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{% url 'sound_recorders:shift_audit:calculation_setting:calculation_setting' %}">
+                                            <i class="icon-calendar"></i>
+                                            <span>برنامه زنده</span>
+                                        </a>
+
+                                    </li>
+                                        </ul>
+                                    </li>
                                 <li>
                                     <a href="#" class="dropdown-toggle">
                                         <i class="icon- icon-volume-2 "></i>
                                         <span>امور جاری</span>
                                 </a>
                                 <ul>
+                                    {% endif %}
                                     <li>
                                         <a href="{% url 'sound_recorders:current_affairs:create_new:new_job' %}">
                                             <i class="icon-calendar"></i>
@@ -68,12 +129,104 @@
                                         </a>
                                     
                                     </li>
+                                
                                 </ul>    
+                            </li>
+                            <li>
+                                    <a href="#" class="dropdown-toggle">
+                                        <i class="icon- icon-volume-2 "></i>
+                                        <span>حسابرسی شیفت ها</span>
+                                </a>
+                                <ul>
+                                    <li>
+                                        <a href="{% url 'sound_recorders:shift_audit:leaves:leaves' %}">
+                                            <i class="icon-calendar"></i>
+                                            <span>مرخصی ها</span>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{% url 'sound_recorders:shift_audit:calculation_setting:calculation_setting' %}">
+                                            <i class="icon-calendar"></i>
+                                            <span>تنظیمات محاسباتی</span>
+                                        </a>
+                                    
+                                    </li>
+                                    <li>
+                                        <a href="{% url 'sound_recorders:shift_audit:financial_report:financial_report' %}">
+                                            <i class="icon-calendar"></i>
+                                            <span>گزارش مالی ماهانه</span>
+                                        </a>
+                                    
+                                    
+                                    </li>
+                                
+                                </ul>    
+                            </li>
+                             <li>
+                                    <a href="#" class="dropdown-toggle">
+                                        <i class="icon- icon-volume-2 "></i>
+                                        <span>حسابرسی برنامه زنده</span>
+                                </a>
+                                    <ul>
+                                    <li>
+                                        <a href="{% url 'sound_recorders:live_program_audit:main_program_audit:import_excel' %}">
+                                            <i class="icon-calendar"></i>
+                                            <span>ورود اطلاعات پایه</span>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{% url 'sound_recorders:live_program_audit:manual_live_programs:manual' %}">
+                                            <i class="icon-calendar"></i>
+                                            <span>ثبت برنامه زنده</span>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{% url 'sound_recorders:live_program_audit:live_financial_calculation:live_programs_summary' %}">
+                                            <i class="icon-calendar"></i>
+                                        <span>مالی برنامه زنده</span>
+                                </a>    
+                                    </li>    
+                                </ul>    
+                            </li>                               
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    {#                                                        <li>#}
+{#                                    <a href="#" class="dropdown-toggle">#}
+{#                                        <i class="icon- icon-volume-2 "></i>#}
+{#                                        <span>مدیر صدابرداران</span>#}
+{#                                </a>#}
+{#                                <ul>#}
+{#                                    <li>#}
+{#                                        <a href="{% url 'sound_recorders:soundrecorders:soundrecorders_managers' %}">#}
+{#                                            <i class="icon-calendar"></i>#}
+{#                                            <span> شیفت</span>#}
+{#                                        </a>#}
+{#                                    </li>#}
+{#                                    <li>#}
+{#                                        <a href="{% url 'sound_recorders:shift_audit:calculation_setting:calculation_setting' %}">#}
+{#                                            <i class="icon-calendar"></i>#}
+{#                                            <span>برنامه زنده</span>#}
+{#                                        </a>#}
+{##}
+{#                                    </li>#}
+                                </ul>
                             </li>
                         {% endif %}
 
    
                        
                     </ul><!-- /#side-menu -->
-                </div><!-- /.side-menu-container -->
+                </div><!-- /.s
+                
+                ide-menu-container -->
             <!-- /#sidebar -->

@@ -2,9 +2,9 @@
     // Define Modiran class
     function Modiran() {
 
-        var toggleSidebarSwitch = document.querySelector(".toggle-sidebar-switch");
-        var creativeSidebarSwitch = document.querySelector(".creative-sidebar-switch");
-        var fixHeaderSwitch = document.querySelector(".fix-header-switch");
+        // var toggleSidebarSwitch = document.querySelector(".toggle-sidebar-switch");
+        //var creativeSidebarSwitch = document.querySelector(".creative-sidebar-switch");
+       // var fixHeaderSwitch = document.querySelector(".fix-header-switch");
         
         // Initilize metisMenu
         this.initMetisMenu = function(){
@@ -79,15 +79,15 @@
                 $(".metismenu > li > ul").removeClass("in");
                 
                 
-                if(!toggleSidebarSwitch.checked){
-                    $('.toggle-sidebar-switch').trigger('click');
-                }
+                // if(!toggleSidebarSwitch.checked){
+                //     $('.toggle-sidebar-switch').trigger('click');
+                // }
             }else{
                 $("body").removeClass("sidebar-collapse");
                 
-                if(toggleSidebarSwitch.checked){
-                    $('.toggle-sidebar-switch').trigger('click');
-                }
+                // if(toggleSidebarSwitch.checked){
+                //     $('.toggle-sidebar-switch').trigger('click');
+                // }
             }
             
             window.Modiran.updateSettingCodes();
@@ -292,17 +292,17 @@
                 }
                 
                 if (typeof Switchery != "undefined"){
-                    if(fixHeaderSwitch.checked){
-                        headerStatus = " fix-header";
-                    }
+                    // if(fixHeaderSwitch.checked){
+                    //     headerStatus = " fix-header";
+                    // }
 
-                    if(toggleSidebarSwitch.checked){
-                        sidebarStatus = " sidebar-collapse";
-                    }
+                    // if(toggleSidebarSwitch.checked){
+                    //     sidebarStatus = " sidebar-collapse";
+                    // }
                     
-                    if(!creativeSidebarSwitch.checked){
-                        creativeSidebarStatus = " sidebar-extra";
-                    }
+                    // if(!creativeSidebarSwitch.checked){
+                    //     creativeSidebarStatus = " sidebar-extra";
+                    // }
 
                     if($("body").hasClass("dark")){
                         darkModeStatus = " dark";
@@ -338,56 +338,56 @@
             if (typeof Switchery != "undefined"){
                 var size = "small",
                     color = "#999";
-                new Switchery(fixHeaderSwitch,
-                { 
-                    size: size, 
-                    color: color
-                });
-                fixHeaderSwitch.onchange = function() {
-                    // Fix header setting
-                    if(fixHeaderSwitch.checked){
-                        $("body").addClass("fix-header");
-                        $("#main-navbar").addClass("navbar-fixed-top");
-                    }else{
-                        $("body").removeClass("fix-header");
-                        $("#main-navbar").removeClass("navbar-fixed-top");
-                    }
+                // new Switchery(fixHeaderSwitch,
+                // {
+                //     size: size,
+                //     color: color
+                // });
+                // fixHeaderSwitch.onchange = function() {
+                //     // Fix header setting
+                //     if(fixHeaderSwitch.checked){
+                //         $("body").addClass("fix-header");
+                //         $("#main-navbar").addClass("navbar-fixed-top");
+                //     }else{
+                //         $("body").removeClass("fix-header");
+                //         $("#main-navbar").removeClass("navbar-fixed-top");
+                //     }
+                //
+                //     window.Modiran.updateSettingCodes();
+                // };
 
-                    window.Modiran.updateSettingCodes();
-                };
+                // new Switchery(toggleSidebarSwitch,
+                // {
+                //     size: size,
+                //     color: color
+                // });
+                // toggleSidebarSwitch.onchange = function() {
+                //     // Sidebar toggle setting
+                //     if(toggleSidebarSwitch.checked){
+                //         window.Modiran.changeSidebarState("collapse");
+                //     }else{
+                //         window.Modiran.changeSidebarState("expand");
+                //     }
+                // };
 
-                new Switchery(toggleSidebarSwitch,
-                { 
-                    size: size, 
-                    color: color
-                });
-                toggleSidebarSwitch.onchange = function() {
-                    // Sidebar toggle setting
-                    if(toggleSidebarSwitch.checked){
-                        window.Modiran.changeSidebarState("collapse");
-                    }else{
-                        window.Modiran.changeSidebarState("expand");
-                    }
-                };
-
-                new Switchery(creativeSidebarSwitch,
-                { 
-                    size: size, 
-                    color: color
-                });
-                creativeSidebarSwitch.onchange = function() {
-                    // Sidebar creative switch
-                    if(creativeSidebarSwitch.checked){
-                        if($('body').hasClass("sidebar-extra")){
-                            $('body').removeClass("sidebar-extra");
-                        }
-                    }else{
-                        if(!$('body').hasClass("sidebar-extra")){
-                            $('body').addClass("sidebar-extra");
-                        }
-                    }
-                    window.Modiran.updateSettingCodes();
-                };
+                // new Switchery(creativeSidebarSwitch,
+                // {
+                //     size: size,
+                //     color: color
+                // });
+                // creativeSidebarSwitch.onchange = function() {
+                //     // Sidebar creative switch
+                //     if(creativeSidebarSwitch.checked){
+                //         if($('body').hasClass("sidebar-extra")){
+                //             $('body').removeClass("sidebar-extra");
+                //         }
+                //     }else{
+                //         if(!$('body').hasClass("sidebar-extra")){
+                //             $('body').addClass("sidebar-extra");
+                //         }
+                //     }
+                //     window.Modiran.updateSettingCodes();
+                // };
             }
         };
         

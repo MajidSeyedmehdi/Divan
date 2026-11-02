@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="JavaScriptLibraryMappings">
-    <file url="file://$PROJECT_DIR$" libraries="{html2pdf.js, htmx.org, jquery, jquery-3.6.0, jquery-3.7.0, jquery-ui, jquery.dataTables, persian-date, persian-datepicker, xlsx}" />
+    <file url="file://$PROJECT_DIR$" libraries="{bootstrap, bootstrap-icons, font-awesome, html2pdf.js, htmx.org, jquery, jquery-3.6.0, jquery-3.7.0, jquery-ui, jquery.dataTables, persian-date, persian-datepicker, sweetalert2, xlsx}" />
   </component>
 </project>

@@ -9,7 +9,14 @@
 {% block content %}
 <script src="{% static 'admin/js/vendor/jquery/jquery.js' %}"></script>
 <!-- Media مربوط به ویجت‌های فرم (مثل تقویم شمسی) -->
-
+    {% block extra_head %}
+        {% if form %}
+            {{ form.media }}
+        {% endif %}
+        {% if form %}
+            {{ form.media }}
+        {% endif %}
+    {% endblock %}
 </head>
 <style>
     input[type="text"], select, textarea {
@@ -41,51 +48,96 @@
     }
 
     button[type="submit"] {
-        background-color: #007bff;
-        color: white;
+        background-color: #D8B7DD;
+        color: BLACK;
         border: none;
         padding: 8px 16px;
         border-radius: 6px;
         cursor: pointer;
-        font-size: 14px;
+        font-size: 15px;
         width: 100px;
         height: 40px;
     }
     button[type="submit"]:hover {
-        background-color: #0056b3;
+        background-color: #D8B7DD;
     }
-    .small-table{
-        font-size: 12px;
-    }
-    /* رنگ پس‌زمینه سطر اول (سرتیترها) */
-    table thead th {
-        background-color: #e6f2ff   !important;
-        color: white;
-        font-size: 12px;/* رنگ نوشته‌ها */
-    }
-
-    /* رنگ پس‌زمینه ستون اول در تمام ردیف‌ها */
-    table tbody td:first-child {
-        background-color: white;
-        font-size: 12px;
-
-}
-    .dropdown-checkboxes {
-        position: relative;
-        display: inline-block;
-        width: 100%;
-    }
-    .dropdown-checkboxes .dropdown-menu {
-        max-height: 250px;
-        overflow-y: auto;
-        padding: 10px;
-        width: 100%;
-    }
-    .dropdown-toggle-label {
-        font-size: 14px;
-        font-weight: bold;
+/* دکمه اکسل*/
+    button[type="button"] {
+        background-color: #D8B7DD;
+        color: BLACK;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 6px;
         cursor: pointer;
+        font-size: 15px;
+        width: 100px;
+        height: 40px;
     }
+    button[type="button"]:hover {
+        background-color: #C8A2C8;
+    }
+
+/* فاصله بین دکمه‌ها */
+.btn + .btn {
+  margin-right: 10px;  /* فاصله بین دو دکمه (در حالت راست‌به‌چپ) */
+}
+
+/* استایل مخصوص دکمه چاپ */
+#btn-print {
+  background-color: #D8B7DD;   /* بنفش شیک */
+  border-color: #D8B7DD;
+  width: 90px;                /* عرض بیشتر از معمول */
+  font-weight: bold;
+}
+
+/* افکت hover دکمه چاپ */
+#btn-print:hover {
+  background-color: #D8B7DD;
+  border-color: #D8B7DD;
+}
+    /* 🎯 جدول تیتر بالا */
+.header-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 25px;
+}
+
+.header-table th {
+  background-color: #77BEB5 !important;  /* 💎 سبز فیروزه‌ای ملایم */
+  text-align: center !important;   /* متن در وسط جدول */
+  direction: rtl !important;       /* راست‌به‌چپ */
+  unicode-bidi: embed;             /* ترکیب درست متن فارسی */
+  vertical-align: middle !important; /* وسط عمودی */
+  padding: 12px;
+  font-size: 18px;
+  font-weight: bold;
+  font-family: 'Vazir-Black'; /* فونت خاص فقط برای تیتر */
+  color: #003B32;
+}
+
+
+/* 🎯 جدول پایین (اصلی) */
+.shift-table {
+  background-color: #ffffff;  /* رنگ خنثی */
+  font-family: 'Vazir', sans-serif;
+  font-size: 12px;
+}
+
+.shift-table th {
+  background-color: #e6f2ff;
+  color: #000;
+}
+.dropdown-checkboxes .dropdown-menu {
+    max-height: 250px;
+    overflow-y: auto;
+    padding: 10px;
+    width: 100%;
+}
+.dropdown-toggle-label {
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+}
  .scrollable-table table {
     table-layout: fixed;   /* ستون‌ها اندازه ثابت داشته باشن */
     width: 100%;           /* جدول کل عرض رو بگیره */
@@ -105,22 +157,44 @@ td.selected {
   outline: 2px solid #007bff; /* قاب آبی */
 }
 
+/* 🖨 تنظیمات مخصوص چاپ */
 @media print {
-    body * {
-        visibility: hidden;
-    }
 
-    .printable, .printable * {
-        visibility: visible;
-    }
+  /* اجازه چاپ رنگ پس‌زمینه و افکت‌ها */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
 
-    .printable {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
-    }
+  /* جدول تیتر بالا */
+  .header-table th {
+    background-color: #77BEB5 !important;  /* همون رنگ فیروزه‌ای مات روشن */
+    color: #003B32 !important;              /* متن تیره و خوانا */
+    text-align: center !important;
+    font-size: 20px !important;
+    font-weight: bold;
+    padding: 10px;
+  }
+
+  /* جدول پایین (اصلی) */
+  .shift-table th {
+    background-color: #e6f2ff !important;
+    color: #000 !important;
+    font-weight: bold;
+  }
+
+  .shift-table td {
+    background-color: #ffffff !important; /* سفید ساده برای خوانایی بهتر */
+    color: #000 !important;
+  }
+
+  /* پنهان کردن دکمه‌ها در حالت چاپ */
+  button, #btn-print {
+    display: none !important;
+  }
 }
+
 @font-face {
     font-family: 'Vazir-Black';
     src: url("{% static 'fonts/Vazir-Black.woff2' %}") format('woff2'),
@@ -200,7 +274,6 @@ body, input, select, textarea {
     width: 100%;
   }
 }
-
 </style>
 
 <!-- BEGIN BREADCRUMB -->
@@ -214,19 +287,19 @@ body, input, select, textarea {
           <!-- تاریخ -->
           <div class="col-auto d-flex align-items-center">
             <label for="id_p_date" class="form-label mb-0 me-2">تاریخ:</label>
-            {{ header_form.p_date }}
+            {{ form.p_date }}
           </div>
 
           <!-- شبکه -->
           <div class="col-auto d-flex align-items-center">
             <label for="id_network" class="form-label mb-0 me-2">شبکه:</label>
-            {{ header_form.network }}
+            {{ form.network }}
           </div>
 
           <!-- صدابردار -->
           <div class="col-auto d-flex align-items-center">
             <label class="form-label mb-0 me-2" for="id_sound_recorder">صدابردار:</label>
-            {{ header_form.sound_recorder }}
+            {{ form.sound_recorder }}
           </div>
 
           <!-- انتخاب جدول -->
@@ -242,6 +315,8 @@ body, input, select, textarea {
           <!-- دکمه نمایش -->
           <div class="col-auto d-flex align-items-center">
             <button type="submit" name="show_button" class="btn btn-primary">نمایش</button>
+            <button type="button" id="btn-print" class="btn btn-primary">چاپ</button>
+            <button type="button" id="btn-excel" class="btn btn-success">چاپ اکسل</button>
           </div>
 
         </div>
@@ -255,10 +330,25 @@ body, input, select, textarea {
 <form method="post" id="tableForm">
   {% csrf_token %}
 <input type="hidden" name="p_date" id="hidden_p_date" value="{{ form.initial.p_date|date:'Y-m-d' }}">
-<button type="button" id="btn-print" class="btn btn-primary">چاپ</button>
 <div class="scrollable-table printable">
   <div class="scrollable-table">
-    <table class="table table-bordered">
+    <table class="header-table table table-bordered">
+      <thead>
+        <tr>
+          <th class="header-title">
+            {% if sound_recorder %}
+                صدابردار {{ sound_recorder.id_personal.first_name }} {{ sound_recorder.id_personal.last_name }}
+            {% elif network %}
+                شبکه {{ network.network }}
+            {% else %}
+                تیتر
+            {% endif %}
+          </th>
+        </tr>
+      </thead>
+</table>
+
+    <table id="shift-table" class="shift-table table table-bordered">
       <thead>
         <tr>
           <th>تاریخ</th>
@@ -269,30 +359,38 @@ body, input, select, textarea {
         </tr>
       </thead>
       <tbody>
-{% for form in daily_forms %}
-<tr>
-  <td>{{ form.jalali_date }}</td>
-  <td>{{ form.jalali_day_name }}</td>
-  {% for shift_id, shift_label in columns %}
-    {% with day_map=shift_lookup|get_item:form.greg_date %}
-    {% with cell=day_map|get_item:shift_id %}
-      <td contenteditable="true"
-          data-date="{{ form.greg_date }}"
-          data-shift="{{ shift_id }}">
-        <span class="recorder-name">
-          {% if cell %}{{ cell.name }}{% endif %}
-        </span>
-        <input type="hidden" name="alt_sound_recorder_ids[]" value="{% if cell %}{{ cell.sound_recorder }}{% endif %}">
-        <input type="hidden" name="shift_dates[]" value="{{ form.greg_date }}">
-        <input type="hidden" name="shift_numbers[]" value="{{ shift_id }}">
-        <input type="hidden" name="network" value="{{ request.session.network }}">
-      </td>
-    {% endwith %}
-    {% endwith %}
-  {% endfor %}
-</tr>
-{% endfor %}
+        {% for form in daily_forms %}
+          <tr>
+            <td>{{ form.jalali_date }}</td>
+            <td>{{ form.jalali_day_name }}</td>
+            {% for shift_id, shift_label in columns %}
+              {% with day_map=shift_lookup|get_item:form.greg_date %}
+              {% with cell=day_map|get_item:shift_id %}
+                <td contenteditable="true"
+                    data-date="{{ form.greg_date }}"
+                    data-shift="{{ shift_id }}">
+                    <span class="recorder-name">
+                    {% if cell %}
+                      {% if network and not sound_recorder %}
+                        {{ cell.SoundRecorderName }}
+                      {% elif sound_recorder and not network %}
+                        {{ cell.Network }} - {{ cell.Shift_name }}
+                      {% endif %}
+                    {% endif %}
+                  </span>
 
+                  <!-- hidden ها داخل فرم جدول -->
+                  <input type="hidden" name="alt_sound_recorder_ids[]" value="{% if cell %}{{ cell.Id_sound_recorder }}{% endif %}">
+                  <input type="hidden" name="shift_dates[]" value="{{ form.greg_date }}">
+                  <input type="hidden" name="shift_numbers[]" value="{{ shift_id }}">
+                  <input type="hidden" name="network" value="{{ form.network.value }}">
+
+                </td>
+              {% endwith %}
+              {% endwith %}
+            {% endfor %}
+          </tr>
+        {% endfor %}
       </tbody>
     </table>
   </div>
@@ -309,16 +407,6 @@ document.addEventListener("DOMContentLoaded", function() {
     "id_sound_recorder",
     "shift_table_choice"
   ];
-  //وقتی فیلدها رو انتخاب میکنم خودش پر بشه
-  //autoSubmitFields.forEach(function(fieldId) {
-  //  const el = document.getElementById(fieldId);
-  //  if (el) {
-  //    el.addEventListener("change", function() {
-  //      this.form.submit();
-  //    });
-  //  }
-  //});
-
   // --- انتخاب سلول جدول ---
   const cells = document.querySelectorAll("#tableForm td[contenteditable='true']");
   cells.forEach(cell => {
@@ -394,10 +482,50 @@ if (pDateInput && hiddenDateInput) {
 
 });
 </script>
+    <!--اسکریپت پرینت -->
 <script>
 document.getElementById('btn-print').addEventListener('click', function(){
     window.print();   // ✅ یک ضرب چاپ
 });
 </script>
+<!-- اسکریپت اکسل -->
+{#<script src="{% static 'assets/js/xlsx.full.min.js' %}"></script>#}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script>
+document.getElementById('btn-excel').addEventListener('click', function () {
+    const table = document.getElementById('shift-table');
+    if (!table) {
+        alert(" جدول پیدا نشد!");
+        return;
+    }
 
+    // ساخت یک Workbook از جدول HTML
+    const workbook = XLSX.utils.table_to_book(table, { sheet: "گزارش شیفت" });
+
+    // ذخیره فایل xlsx واقعی
+    XLSX.writeFile(workbook, "گزارش_شیفت.xlsx");
+});
+</script>
 {% endblock %}
+@font-face {
+    font-family: 'Vazir-Black';
+    src: url("{% static 'fonts/Vazir-Black.woff2' %}") format('woff2'),
+         url("{% static 'fonts/Vazir-Black.woff' %}") format('woff'),
+
+    font-weight: normal;
+    font-style: normal;
+}
+
+/* اعمال فونت روی همه input های فرم و جدول */
+body, input, select, textarea {
+    font-family: 'Vazir', sans-serif !important;
+    direction: rtl;
+    text-align: right;
+}
+
+/* مخصوص ویجت jQuery UI که django-jalali استفاده می‌کند */
+.ui-datepicker, .ui-datepicker table, .ui-datepicker td, .ui-datepicker th {
+    font-family: 'Vazir', sans-serif !important;
+    direction: rtl !important;
+    text-align: center; /* برای ظاهر مرتب روزها */
+}

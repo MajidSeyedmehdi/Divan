@@ -1,0 +1,221 @@
+{% extends 'main/base.html' %}
+{% load static %}
+{% block content %}
+<style>
+    input[type="text"], select, textarea {
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 6px 10px;
+        width: 200px;
+        font-size: 14px;
+        transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    input[type="text"]:focus, select:focus, textarea:focus {
+        border-color: #66afe9;
+        outline: none;
+        box-shadow: 0 0 5px rgba(102, 175, 233, 0.6);
+    }
+
+    label {
+        margin-left: 8px;
+        font-weight: bold;
+        font-size: 14px;
+        min-width: 80px;
+    }
+
+    li {
+        margin-bottom: 12px;
+    }
+
+    button[type="submit"] {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+    button[type="submit"]:hover {
+        background-color: #0056b3;
+    }
+    
+    /* رنگ پس‌زمینه سطر اول (سرتیترها) */
+    table thead th {
+        background-color: #e3f2fd !important;   
+        color: white;               /* رنگ نوشته‌ها */
+    }
+    
+    /* رنگ پس‌زمینه ستون اول در تمام ردیف‌ها */
+    table tbody td:first-child {
+        background-color: #e3f2fd;  
+        font-weight: bold;
+}
+    .table-wrapper {
+        max-width: 800px;   /* یا هر عدد دلخواه مثل 600px */
+        margin: 0 auto;     /* وسط‌چین کردن */
+    }
+
+    .table th:first-child,
+    .table td:first-child {
+        width: 25%;
+        white-space: nowrap;
+    }
+    .table-rounded {
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    .table th:nth-child(2),
+    .table td:nth-child(2) {
+        width: 75%;
+    }
+
+    .table td.editable {
+        direction: ltr;
+        text-align: left;
+    }
+</style>
+    
+
+                      
+            <!-- BEGIN PAGE CONTENT -->
+            <div class="container-fluid">
+                    <div class="row">                    
+                        <!-- BEGIN BREADCRUMB -->
+                        <div class="col-md-12">
+                            <div class="breadcrumb-box shadow">
+                                <ul class="breadcrumb">
+                                    <li><a href="http://localhost:8000/home/">آمار و اطلاعات فنی</a></li>
+                                    <li class="active">تنظیمات</li>
+                                </ul>
+                        <!-- END BREADCRUMB -->                        
+                        
+                        <div class="col-lg-12">
+                            <div class="portlet box shadow">
+                                <div class="portlet-heading">
+                                    <div class="portlet-title">
+                                        <h3 class="title">                                        
+                                            <i class="icon-frane"></i>
+                                             فرمول های محاسباتی
+                                        </h3>
+                                    </div><!-- /.portlet-title -->
+                                    <div class="buttons-box">
+                                        
+                                        <div class="code-modal hide">
+
+                                        </div>
+                                        
+                                        <a class="btn btn-sm btn-default btn-round btn-collapse" rel="tooltip" title="کوچک کردن" href="#">
+                                            <i class="icon-arrow-up"></i>
+                                        </a>
+                                    </div><!-- /.buttons-box -->
+                                </div><!-- /.portlet-heading -->
+                                <div class="portlet-body">
+                                    <div class="table-responsive">
+                    <!-- نمایش  -->                                   
+                                        <form method="post">               
+                                            {% csrf_token %}
+                                <div class="table-wrapper">                                
+                                    <div class="table-responsive">                              
+                                        <table class="table table-bordered table-striped table-hover table-rounded">      
+                                            <thead>                                   
+                                            <tr>                                       
+                                                <th>رابطه استخدامی</th>                 
+                                                <th style="text-align: center;">فرمول محاسبه نرخ ساعتی</th>        
+                                            </tr>                                    
+                                            </thead>                                  
+                                            <tbody>                                    
+                                            <tr>                                      
+                                                <td>رسمی سازمان</td>                
+                                                <td contenteditable="true" class="editable" data-key="1">{{ formula_rasmi_s }}</td>     
+                                                <input type="hidden" name="formula_1" id="input_1" value="{{ formula_rasmi_s }}">      
+                                            </tr>                                        
+                                            <tr>                                           
+                                                <td>رسمی تامین اجتماعی</td>                      
+                                                <td contenteditable="true" class="editable" data-key="3">{{ formula_rasmi_t }}</td>     
+                                                <input type="hidden" name="formula_3" id="input_3" value="{{ formula_rasmi_t }}">     
+                                            </tr>                                       
+                                            <tr>                                          
+                                                <td> پیمانی</td>                          
+                                                <td contenteditable="true" class="editable" data-key="5">{{ formula_peymani }}</td>  
+                                                <input type="hidden" name="formula_5" id="input_5" value="{{ formula_peymani }}">   
+                                            </tr>                                
+                                            <tr>                                  
+                                                <td>قراردادی تامین اجتماعی</td>     
+                                                <td contenteditable="true" class="editable" data-key="6">{{ formula_gharardadi }}</td>    
+                                                <input type="hidden" name="formula_6" id="input_6" value="{{ formula_gharardadi }}">    
+                                            </tr>                                        
+                                            <tr>                                       
+                                                <td>خرید خدمات</td>                     
+                                                <td contenteditable="true" class="editable" data-key="7">{{ formula_kharid }}</td>        
+                                                <input type="hidden" name="formula_7" id="input_7" value="{{ formula_kharid }}">     
+                                            </tr>                           
+                                            <tr>                              
+                                                <td>َشرکتی</td>                   
+                                                <td contenteditable="true" class="editable" data-key="8">{{ formula_sherkati }}</td>     
+                                                <input type="hidden" name="formula_8" id="input_8" value="{{ formula_sherkati }}">        
+                                            </tr>                                         
+                                            <tr>                                        
+                                                <td>امریه</td>               
+                                                <td contenteditable="true" class="editable" data-key="9">{{ formula_amrie }}</td>   
+                                                <input type="hidden" name="formula_9" id="input_9" value="{{ formula_amrie }}">   
+                                            </tr>                                          
+                                            <tr>                                      
+                                                <td>تبصره 4 ماده 28</td>
+                                                <td contenteditable="true" class="editable" data-key="11">{{ formula_tabsare28 }}</td>   
+                                                <input type="hidden" name="formula_11" id="input_11" value="{{ formula_tabsare28 }}">
+                                            </tr>                  
+                                            <tr>                             
+                                                <td>تبصره 4 ماده 38</td>      
+                                                <td contenteditable="true" class="editable" data-key="12">{{ formula_tabsare38 }}</td>            
+                                                <input type="hidden" name="formula_12" id="input_12" value="{{ formula_tabsare38 }}">    
+                                            </tr>                     
+                                            <tr>                       
+                                                <td>تبصره 4 رد ماده 38</td>     
+                                                <td contenteditable="true" class="editable" data-key="13">{{ formula_rade38 }}</td>      
+                                                <input type="hidden" name="formula_13" id="input_13" value="{{ formula_rade38 }}">   
+                                            </tr>     
+                                            <tr>                       
+                                                <td>تبصره 4</td>     
+                                                <td contenteditable="true" class="editable" data-key="15">{{ formula_tabsare4 }}</td>      
+                                                <input type="hidden" name="formula_15" id="input_15" value="{{ formula_tabsare4 }}">   
+                                            </tr>  
+                                            </tbody>                            
+                                        </table>                       
+                                    </div>                          
+                                </div>
+                                <button type="submit" name="action" value="save_formula">ثبت فرمول</button>          
+                                        <button type="submit" name="action" value="show_salary">نمایش جدول مالی</button>    
+                                    </form>                                           
+                                        <!-- نمایش پایان -->
+                                    </div><!-- /.table-responsive -->
+                                </div><!-- /.portlet-body -->
+                            </div><!-- /.portlet -->
+                        </div><!-- /.col-lg-12 -->
+                  </div><!-- /.row -->
+                
+            <!-- END PAGE CONTENT -->
+
+       
+    <!-----ارسال ورودی به جنگو--->
+    {% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const cells = document.querySelectorAll(".editable");
+    cells.forEach(cell => {
+        cell.addEventListener("input", function() {
+            const key = cell.getAttribute("data-key");
+            const hiddenInput = document.getElementById("input_" + key);
+            if (hiddenInput) {
+                hiddenInput.value = cell.innerText.trim();
+            }
+        });
+    });
+});
+</script>
+</div></div></div>
+{% endblock %}
+{% endblock %}           
+  

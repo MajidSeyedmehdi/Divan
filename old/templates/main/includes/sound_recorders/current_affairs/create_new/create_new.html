@@ -1,0 +1,630 @@
+{% extends 'main/base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+<link rel="stylesheet" href="{% static 'assets/css/style.css' %}">
+{% block content %}
+
+<style>
+    input[type="text"], select, textarea {
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 6px 10px;
+        width: 150px;
+        height: 35px;
+        font-size: 14px;
+        transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    input[type="text"]:focus, select:focus, textarea:focus {
+        border-color: #66afe9;
+        outline: none;
+        font-size: 14px;
+        box-shadow: 0 0 5px rgba(102, 175, 233, 0.6);
+    }
+
+    label {
+        margin-left: 8px;
+        font-weight: bold;
+        font-size: 14px;
+
+    }
+
+    li {
+        margin-bottom: 12px;
+    }
+{#/* دکمه ها*/#}
+{#button[type="submit"] {#}
+{#        background-color: #D8B7DD;#}
+{#        color: BLACK;#}
+{#        border: none;#}
+{#        padding: 8px 16px;#}
+{#        border-radius: 6px;#}
+{#        cursor: pointer;#}
+{#        font-size: 14px;#}
+{#        width: 100px;#}
+{#        height: 40px;#}
+{#}#}
+{#button[type="submit"]:hover {#}
+{#        background-color: #0056b3;#}
+{#}#}
+{##btn_swap {#}
+{#    background-color: #D6C6A5 !important;#}
+{#    color: black !important;#}
+{#    border: none;#}
+{#    padding: 8px 16px;#}
+{#    border-radius: 6px;#}
+{#    cursor: pointer;#}
+{#    font-size: 14px;#}
+{#    width: 100px;#}
+{#    height: 35px;#}
+{#}#}
+{##}
+{##btn_swap:hover {#}
+{#    background-color: #D6C6A5 !important;#}
+{#}#}
+{##btn_initial {#}
+{#    background-color: #A3B59C !important;#}
+{#    color: black !important;#}
+{#    border: none;#}
+{#    padding: 8px 16px;#}
+{#    border-radius: 6px;#}
+{#    cursor: pointer;#}
+{#    font-size: 14px;#}
+{#    width: 100px;#}
+{#    height: 35px;#}
+{#}#}
+{##}
+{##btn_initial:hover {#}
+{#    background-color: #D6C6A5 !important;#}
+{#}#}
+{##btn_finalize {#}
+{#    background-color: #A3B59C !important;#}
+{#    color: black !important;#}
+{#    border: none;#}
+{#    padding: 8px 16px;#}
+{#    border-radius: 6px;#}
+{#    cursor: pointer;#}
+{#    font-size: 14px;#}
+{#    width: 100px;#}
+{#    height: 35px;#}
+{#}#}
+{##}
+{##btn_finalize:hover {#}
+{#    background-color: #D6C6A5 !important;#}
+{#}#}
+
+    .small-table{
+        font-size: 16px;
+    }
+    /* رنگ پس‌زمینه سطر اول (سرتیترها) */
+    table thead th {
+        background-color: #e6f2ff   !important;
+        color: white;
+        font-size: 14px;/* رنگ نوشته‌ها */
+    }
+
+    /* رنگ پس‌زمینه ستون اول در تمام ردیف‌ها */
+    table tbody td:first-child {
+        background-color: white;
+        font-size: 14px;
+
+    }
+    .dropdown-checkboxes {
+        position: relative;
+        display: inline-block;
+        width: 100%;
+    }
+    .dropdown-checkboxes .dropdown-menu {
+        max-height: 250px;
+        overflow-y: auto;
+        padding: 10px;
+        width: 100%;
+    }
+    .dropdown-toggle-label {
+        font-size: 14px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+    .scrollable-table {
+        overflow-x: auto;
+        width: 100%;
+    }
+
+    .scrollable-table table {
+        min-width: 900px; /* یا بیشتر، مثلاً 1200px */
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .scrollable-table th,
+    .scrollable-table td {
+        white-space: nowrap;
+    }
+@media print {
+    body * {
+        visibility: hidden;
+    }
+
+    .printable, .printable * {
+        visibility: visible;
+    }
+
+    .printable {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+    }
+
+@font-face {
+    font-family: 'Vazir-Black';
+    src: url("{% static 'fonts/Vazir-Black.woff2' %}") format('woff2'),
+         url("{% static 'fonts/Vazir-Black.woff' %}") format('woff');
+
+    font-weight: normal;
+    font-style: normal;
+
+
+/* اعمال فونت روی همه input های فرم و جدول */
+body, input, select, textarea {
+    font-family: 'Vazir', sans-serif !important;
+    direction: rtl;
+    text-align: right;
+}
+
+/* مخصوص ویجت jQuery UI که django-jalali استفاده می‌کند */
+.ui-datepicker, .ui-datepicker table, .ui-datepicker td, .ui-datepicker th {
+    font-family: 'Vazir', sans-serif !important;
+    direction: rtl !important;
+    text-align: center;}}}
+
+    /* برای ظاهر مرتب هدر bredcrumb */
+.breadcrumb-box {
+  background: #fff;
+  border-radius: 12px;
+  padding: 15px 20px;
+  position: relative;
+  border: 1px solid #e0e0e0;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+
+
+}
+/* نوار رنگی بالایی */
+.breadcrumb-box::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 10px;
+  width: 100%;
+  background: #00CED1;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+}
+
+/* برچسب‌ها */
+.breadcrumb-box label {
+  font-weight: 600;
+  color: #333;
+}
+
+/* ورودی‌ها و select‌ها */
+.breadcrumb-box input[type="text"],
+.breadcrumb-box select {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-size: 13px;
+  transition: all 0.2s ease;
+  background-color: #fafafa;
+}
+
+.breadcrumb-box input[type="text"]:focus,
+.breadcrumb-box select:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 3px rgba(0, 123, 255, 0.3);
+  outline: none;
+}
+/* باکس راهنمای فرم داخل breadcrumb دوم */
+.help-box {
+    margin-top: 10px;
+}
+
+/* ظاهر عنوان راهنما */
+.help-details {
+    width: 100%;
+}
+
+.help-summary {
+    list-style: none;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 14px;
+    padding: 8px 10px;
+    margin: 0;
+    border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* آیکون مثلث پیش‌فرض را حذف می‌کنیم و خودمان استایل می‌دهیم */
+.help-summary::-webkit-details-marker {
+    display: none;
+}
+
+.help-summary::before {
+    content: "▼";
+    font-size: 11px;
+    margin-left: 6px;
+}
+
+/* وقتی جمع است */
+.help-details[open] .help-summary::before {
+    content: "▲";
+}
+
+/* متن داخل راهنما */
+.help-body {
+    padding: 10px 5px 5px 5px;
+    font-size: 13px;
+    line-height: 1.8;
+}
+table th, table td {
+    -webkit-print-color-adjust: exact !important;
+}
+</style>
+<!-- فرم انتخاب تاریخ و شبکه -->
+<div class="col-md-12">
+  <div class="breadcrumb-box shadow">
+    <div class="breadcrumb-right">
+        <form method="post" class="mb-3">
+          {% csrf_token %}
+          <div class="d-flex flex-wrap align-items-center gap-3">
+            <label for="id_p_date">تاریخ:</label>
+            {{ header_form.p_date }}
+            {{ header_form.media }}
+
+            <label for="id_network">شبکه:</label>
+            {{ header_form.network }}
+
+            <div class="d-flex gap-2">
+              <button type="submit" class="btn btn-info btn-sm" name="action" value="current_month">
+                  <span class="fa fa-eye"></span> نمایش شیفت اولیه</button>
+
+              <button type="submit" class="btn btn-info btn-sm flex-grow-1" name="action" value="final_month">
+                  <span class="fa fa-eye"></span> نمایش شیفت نهایی</button>
+                    <button type="submit" class="btn btn-primary btn-sm flex-grow-1" name="action" value="transfer_previous">
+                انتقال از ماه قبل >>
+              </button>
+            </div>
+
+
+          </div>
+        </form>
+
+        <!-- دکمه‌ها و صدابردار جایگزین -->
+        <div class="d-flex flex-wrap align-items-center gap-3">
+          <div class="col-auto">
+            <label for="id_sound_recorder">صدابردار:</label>
+            {{ header_form.sound_recorder }}
+          </div>
+          <div class="col-auto">
+            <button id="btn_swap" class="btn btn-warning btn-sm">
+               <span class=" fas fa-arrow-right-arrow-left"></span> جابجایی</button>
+            <button id="btn_initial" class="btn btn-success btn-sm" data-action="initial">
+               <span class=" fas fa-check"></span> ثبت اولیه</button>
+            <button id="btn_finalize" class="btn btn-danger btn-sm" data-action="final">
+                <span class=" fas fa-check-double"></span> ثبت نهایی</button>
+{#            <button type="button" class="btn btn-danger btn-sm" name="action" id="btn_monthly_report">#}
+{#                 گزارش لوح ابتدایی#}
+{#            </button>#}
+                <!-- 🔹 دکمه‌های گزارش -->
+        {#    <a href="#" class="btn btn-danger btn-sm" onclick="openReport()">گزارش لوح ابتدایی</a>#}
+
+        {#    #}
+        {#    <button id="btn_report_end" class="btn btn-darkorange btn-sm">#}
+        {#        گزارش لوح پایانی#}
+        {#    </button>#}
+
+    </div>
+  </div>
+</div>
+{#    <!-- 🔹 Modal برای نمایش گزارش -->#}
+{#    <div class="modal fade" id="reportModal" tabindex="-1" aria-labelledby="reportModalLabel" aria-hidden="true">#}
+{#      <div class="modal-dialog modal-xl" style="max-width: 95%;">#}
+{#        <div class="modal-content">#}
+{#          <div class="modal-header bg-secondary text-white">#}
+{#            <h5 class="modal-title" id="reportModalLabel">📊 گزارش</h5>#}
+{#            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>#}
+{#          </div>#}
+{#          <div class="modal-body p-0">#}
+{#            <iframe id="reportFrame" src="" style="width:100%; height:85vh; border:none; overflow: auto; -webkit-overflow-scrolling: touch;" scrolling="yes"></iframe>#}
+{#          </div>#}
+{#        </div>#}
+{#      </div>#}
+{#    </div>#}
+{#</div>#}
+<!-- 🔹 باکس راهنما جمع‌شونده -->
+<!-- 🔹 راهنمای فرم گزارش داخل یک breadcrumb-box جدا -->
+<div class="col-md-12 mt-3">
+  <div class="breadcrumb-box shadow help-box">
+    <details class="help-details" >
+      <summary class="help-summary">
+        💡 راهنمای استفاده از فرم تخصیص شیفت
+      </summary>
+        <div class="help-body">
+        <ul class="mb-0">
+          <li><strong>Ctrl + کلیک:</strong> برای انتخاب سلول ها.</li>
+          <li><strong>دکمه "جابجایی":</strong> برای انتساب صدابردار انتخاب‌شده به سلول‌های انتخابی.</li>
+          <li><strong>دکمه "ثبت اولیه":</strong> داده‌ها را موقت ثبت می‌کند (قابل تغییر است).</li>
+          <li><strong>دکمه "ثبت نهایی":</strong> پس از تکمیل تمام سلول‌ها، ثبت قطعی انجام می‌شود.</li>
+          <li><strong>دکمه "نمایش جدول ماه قبل":</strong> جدول شیفت های ماه قبل هر شبکه را نمایش می دهد(ماهی که در بالای صفحه انتخاب شده است).</li>
+          <li><strong>نکته:</strong> اگر صدابردار بیش از ۱۶ ساعت شیفت متوالی داشته باشد و یا شیفتش با شیفت دیگری هم پوشانی داشته باشد، ثبت انجام نمی‌شود.</li>
+        </ul>
+        </div>
+    </details>
+  </div>
+</div>
+
+<!-- پیام خطا -->
+<div id="error-box" class="alert alert-danger d-none" role="alert"></div>
+<!-- جدول شیفت‌ها -->
+<div class="scrollable-table">
+  <table id="color_table" class="table table-bordered small-table text-center">
+    <thead>
+      <tr>
+        <th>تاریخ</th>
+        <th>روز</th>
+        {% for shift in shifts %}
+          <th>{{ shift.shift_name }}</th>
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for day in daily_forms %}
+        <tr data-date="{{ day.greg_date }}">
+          <td>{{ day.jalali_date }}</td>
+          <td>{{ day.jalali_day_name }}</td>
+          {% for shift in shifts %}
+            {% with date_lookup=shift_lookup|get_item:day.greg_date %}
+              {% if date_lookup %}
+                {% with shift_key=shift.id_shift|stringformat:"s" %}
+                  {% with cell=date_lookup|get_item:shift_key %}
+                    <td class="shift-cell align-middle"
+                        data-shift-id="{{ shift.id_shift }}"
+                        {% if cell %}data-recorder-id="{{ cell.sound_recorder }}"{% endif %}>
+                      {% if cell %}{{ cell.name }}{% endif %}
+                    </td>
+                  {% endwith %}
+                {% endwith %}
+              {% else %}
+                <td class="shift-cell align-middle" data-shift-id="{{ shift.id_shift }}"></td>
+              {% endif %}
+            {% endwith %}
+          {% endfor %}
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<script>
+document.getElementById('btn_monthly_report').addEventListener('click', function() {
+    const date = document.getElementById("id_p_date").value;
+    const network = document.getElementById("id_network").value;
+    const recorder = document.getElementById("id_sound_recorder").value;
+
+    if (!date || !network || !recorder) {
+        alert("لطفاً تاریخ، شبکه و صدابردار را انتخاب کنید!");
+        return;
+    }
+
+    document.getElementById("reportFrame").src = `/sound_recorders/report/viewer/?date=${date}&network=${network}&recorder=${recorder}`;
+
+    const reportModal = new bootstrap.Modal(document.getElementById('reportModal'));
+    reportModal.show();
+});
+
+
+</script>
+{#دکمه های گزارش#}
+{#<script>#}
+{#document.getElementById('btn_report_start').addEventListener('click', function() {#}
+{#  const iframe = document.getElementById('reportFrame');#}
+{#  document.getElementById('reportModalLabel').innerText = "📊 گزارش لوح ابتدایی";#}
+{#  iframe.src = "{% url 'sound_recorders:report:report_viewer' %}";  // همون فایل فعلی#}
+{#  const modal = new bootstrap.Modal(document.getElementById('reportModal'));#}
+{#  modal.show();#}
+
+{##}
+{#document.getElementById('btn_report_end').addEventListener('click', function() {#}
+{#  const iframe = document.getElementById('reportFrame');#}
+{#  document.getElementById('reportModalLabel').innerText = "📊 گزارش لوح پایانی";#}
+{#  iframe.src = "{% url 'sound_recorders:report:report_viewer' %}";#}
+{#  const modal = new bootstrap.Modal(document.getElementById('reportModal'));#}
+{#  modal.show();#}
+
+{#</script>#}
+
+<!-- جاوااسکریپت انتخاب سلول و ثبت -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  let selectedCells = [];
+  const recorderSelect = document.getElementById("id_sound_recorder");
+  const networkSelect = document.getElementById("id_network");
+
+    // انتخاب سلول‌ها با Ctrl
+  document.querySelectorAll('.shift-cell').forEach(td => {
+    td.addEventListener('click', function(e) {
+      if (!e.ctrlKey) return;
+      this.classList.toggle('selected-cell');
+      if (this.classList.contains('selected-cell')) selectedCells.push(this);
+      else selectedCells = selectedCells.filter(c => c !== this);
+    });
+  });
+
+  function resetSelection() {
+    selectedCells.forEach(td => td.classList.remove('selected-cell'));
+    selectedCells = [];
+  }
+    // جابجایی صدابردار
+  document.getElementById('btn_swap').addEventListener('click', function() {
+    if (!recorderSelect.value) return alert('صدابردار را انتخاب کنید!');
+    if (selectedCells.length === 0) return alert('هیچ سلولی انتخاب نشده است.');
+    const name = recorderSelect.options[recorderSelect.selectedIndex].text;
+    const recorderId = parseInt(recorderSelect.value);
+    selectedCells.forEach(td => {
+      td.textContent = name;
+      td.dataset.recorderId = recorderId;
+      td.style.backgroundColor = '';
+    });
+    resetSelection();
+  });
+    // ثبت اولیه و نهایی
+  ['btn_initial', 'btn_finalize'].forEach(id => {
+  document.getElementById(id).addEventListener('click', function () {
+    const action = this.dataset.action; // 'initial' یا 'final'
+    const network_id = parseInt(networkSelect.value);
+    const assignments = [];
+
+    // 🟦 بررسی اینکه آیا سلول خالی وجود دارد
+    let hasEmpty = false;
+    document.querySelectorAll('.shift-cell').forEach(td => {
+      const recorder_id = td.dataset.recorderId;
+      if (!recorder_id) hasEmpty = true;
+    });
+
+    // 🟥 اگر دکمه ثبت نهایی بود و سلول خالی داریم → جلوشو بگیر
+    if (action === "final" && hasEmpty) {
+      const box = document.getElementById("error-box");
+      box.textContent = "❌ لطفاً قبل از ثبت نهایی، تمام سلول‌ها را تکمیل کنید.";
+      box.classList.remove("d-none");
+      return;
+    }
+    // ساخت آرایهٔ ارسالی
+    document.querySelectorAll('.shift-cell').forEach(td => {
+      const date = td.closest('tr').dataset.date;
+      const shift_id = parseInt(td.getAttribute("data-shift-id"));
+      const recorder_id = parseInt(td.dataset.recorderId);
+
+      if (recorder_id) assignments.push({ date, shift_id, sound_recorder_id: recorder_id });
+
+    });
+
+    if (assignments.length === 0) return alert('هیچ داده‌ای برای ثبت یافت نشد');
+
+    fetch("{% url 'sound_recorders:current_affairs:create_new:save_shift_assignments_bulk' %}", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}" },
+      body: JSON.stringify({ network_id, assignments, action })
+
+    })
+.then(async res => {
+      const data = await res.json();
+      const box = document.getElementById("error-box");
+
+      if (data.status === 'success') {
+        document.querySelectorAll('.shift-cell').forEach(td => td.style.backgroundColor = '#e9f7ef');
+        alert(action === 'initial' ? 'ثبت اولیه انجام شد' : 'ثبت نهایی انجام شد');
+        box.classList.add("d-none");
+      } else {
+        box.textContent = data.message || 'خطایی رخ داده است.';
+        box.classList.remove("d-none");
+      }
+    })
+    .catch(err => {
+      const box = document.getElementById("error-box");
+      box.textContent = '❌ خطا در ارتباط با سرور: ' + err.message;
+      box.classList.remove("d-none");
+    });
+  });
+});
+});
+</script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const table = document.getElementById("color_table");
+
+    // --- رنگ هدر: (هرچی هست حفظ یا تغییرش می‌دیم) ---
+    const headerCells = table.querySelectorAll("thead th");
+    headerCells.forEach(th => {
+        const bg = window.getComputedStyle(th).backgroundColor || "#e8e8e8";
+        const color = window.getComputedStyle(th).color || "#000";
+
+        th.style.setProperty("background-color", bg, "important");
+        th.style.setProperty("color", color, "important");
+    });
+
+    // --- رنگ روزهای خاص ---
+    const dayColorMap = {
+        "پنجشنبه": "#EACFDA",
+        "جمعه": "#EACFDA",
+
+    };
+
+    const rows = table.querySelectorAll("tbody tr");
+    rows.forEach(row => {
+
+        const dayCell = row.querySelector("td:nth-child(2)");
+        if (!dayCell) return;
+
+        const rawDay = dayCell.innerText.trim().replace(/\s|‌/g, "");
+
+        const defaultColor = dayColorMap[rawDay];
+
+        // اگر رنگ پیش‌فرض داشته باشد → کل ردیف رنگ می‌گیرد
+        if (defaultColor) {
+            row.querySelectorAll("td").forEach(td => {
+                td.style.setProperty("background-color", defaultColor, "important");
+            });
+        }
+
+        // --- امکان تغییر رنگ با کلیک ---
+        dayCell.style.cursor = "pointer";
+        dayCell.title = "برای تغییر رنگ این روز کلیک کنید";
+
+        dayCell.addEventListener("click", function () {
+            const picker = document.createElement("input");
+            picker.type = "color";
+            picker.style.opacity = "0";
+            picker.style.position = "absolute";
+            document.body.appendChild(picker);
+
+            picker.addEventListener("input", () => {
+                const newColor = picker.value;
+
+                row.querySelectorAll("td").forEach(td => {
+                    td.style.setProperty("background-color", newColor, "important");
+                });
+            });
+
+            picker.addEventListener("change", () => picker.remove());
+            picker.click();
+        });
+
+    });
+
+    // --- تضمین چاپ: قبل از print همه رنگ‌ها inline می‌شن ---
+    window.addEventListener("beforeprint", function () {
+        const allCells = table.querySelectorAll("th, td");
+        allCells.forEach(cell => {
+            const styles = window.getComputedStyle(cell);
+            cell.style.setProperty("background-color",
+                styles.backgroundColor,
+                "important"
+            );
+            cell.style.setProperty("color",
+                styles.color,
+                "important"
+            );
+        });
+    });
+
+});
+</script>
+{% endblock %}

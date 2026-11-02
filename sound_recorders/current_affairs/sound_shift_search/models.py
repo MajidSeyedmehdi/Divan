@@ -32,12 +32,13 @@ class SelectNetwork(models.Model):
 
 class SelectSoundRecorder(models.Model):
     id_sound_recorder = models.IntegerField(primary_key=True, db_column='Id_sound_recorder')
-    id_personal = models.ForeignKey(Personally,db_column='Id_personal',on_delete=models.CASCADE)
+    id_personal = models.ForeignKey(Personally,db_column='Id_personal',on_delete=models.CASCADE,related_name='shift_search_personal')
 
 
     class Meta:
         managed = False
         db_table = 'Tbl_Sound_Recorders'
+
     def __str__(self):
         return f"{self.id_personal.first_name}  {self.id_personal.last_name}"
 

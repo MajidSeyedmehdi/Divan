@@ -307,6 +307,14 @@
                                                     حقوق حکم
                                                 </label>
                                                 <label class="dropdown-item">
+                                                    <input type="checkbox" name="fields" value="total_financial" {% if "total_financial" in selected_fields %}checked{% endif %}>
+                                                    جمع حقوق
+                                                </label>
+                                                <label class="dropdown-item">
+                                                    <input type="checkbox" name="fields" value="Baravord" {% if "Baravord" in selected_fields %}checked{% endif %}>
+                                                    برآورد
+                                                </label>
+                                                <label class="dropdown-item">
                                                     <input type="checkbox" name="fields" value="Marital_status" {% if "Marital_status" in selected_fields %}checked{% endif %}>
                                                     وضعیت تأهل
                                                 </label>
@@ -411,7 +419,8 @@
                                                 {% elif col == "Levels" %}رده شغلی{% elif col == "Hire_status" %}نوع استخدام
                                                 {% elif col == "Job_relation" %}رابطه شغلی{% elif col == "Job_title" %}عنوان شغلی
                                                 {% elif col == "Job_unit" %}واحد خدمتی{% elif col == "Insurance_type" %}نوع بیمه
-                                                {% elif col == "Salary_base" %}حقوق حکم{% elif col == "Sheba_number" %}شماره شبا ملی
+                                                {% elif col == "Salary_base" %}حقوق حکم{% elif col == "" %}جمع حقوق
+                                                {% elif col == "Salary_base" %}{% elif col == "Sheba_number" %}شماره شبا ملی
                                                 {% elif col == "Account_Melli" %} شماره حساب ملی{% elif col == "Account_Jamjam" %}شماره حساب جام جم
                                                 {% elif col == "Birth_number" %}شماره شناسنامه{% elif col == "Isargari" %}ایثارگری
                                                 {% elif col == "Address" %}آدرس

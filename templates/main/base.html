@@ -25,6 +25,7 @@
         <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
         <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
         <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
         <!-- END CSS -->
         
@@ -50,6 +51,7 @@
 
         {% include "main/includes/footer/footer.html" %}
         <!-- BEGIN JS -->
+
         <script src="{% static 'assets/plugins/jquery/dist/jquery-3.6.1.min.js' %}"></script>
         <script src="{% static 'assets/plugins/bootstrap/bootstrap5/js/bootstrap.bundle.min.js' %}"></script>
         <script src="{% static 'assets/plugins/metisMenu/dist/metisMenu.min.js' %}"></script>
@@ -60,6 +62,25 @@
         <script src="{% static 'assets/plugins/iCheck/icheck.min.js' %}"></script>
         <script src="{% static 'assets/plugins/switchery/dist/switchery.js' %}"></script>
         <script src="{% static 'assets/js/core.js' %}"></script>
-        
+       <script> 
+           document.querySelector('#toggle-sidebar').addEventListener('click', function() {
+           const collapsed = document.body.classList.contains('sidebar-collapse');
+           localStorage.setItem('sidebar-collapsed', collapsed);
+           });
+           
+           window.addEventListener("load", function () {
+             if (localStorage.getItem('sidebar-collapsed') === 'false') {
+                document.body.classList.add('sidebar-collapse');
+             }else if(localStorage.getItem('sidebar-collapsed') === 'true'){
+                    document.body.classList.remove('sidebar-collapse');
+               }
+
+           });
+
+       </script>
+<script src="{% static 'assets/js/core.js' %}"></script>
+
+{% block extra_js %}
+{% endblock %}
 </body>
 </html>

@@ -211,7 +211,7 @@ class PermisionsForm(forms.ModelForm):
     class Meta:
         model = Permisions
         fields = [
-            'permision_studio', 'permision_fanni_pakhsh', 'permision_reportaj','permision_15_khordad', 'permision_fanni_poshtibani', 'permision_sound_recorders'
+            'permision_studio', 'permision_fanni_pakhsh', 'permision_reportaj','permision_15_khordad', 'permision_fanni_poshtibani', 'permision_sound_recorders' , 'permision_assistant_sound_recorder'
         ]
         widgets = {
             'permision_studio': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
@@ -220,11 +220,12 @@ class PermisionsForm(forms.ModelForm):
             'permision_15_khordad': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'permision_fanni_poshtibani': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'permision_sound_recorders': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'permision_assistant_sound_recorder' : forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
 
     def save_sp(self, user, update=False, id_personal=None, id_permision=None):
         id_permision = id_permision if id_permision not in [None, '', '0'] else None
-        print(self.cleaned_data)
+        # print(self.cleaned_data)
         with connection.cursor() as cursor:
             params = [
                 id_permision,
@@ -235,6 +236,7 @@ class PermisionsForm(forms.ModelForm):
                 int(bool(self.cleaned_data.get('permision_15_khordad'))),
                 int(bool(self.cleaned_data.get('permision_fanni_poshtibani'))),
                 int(bool(self.cleaned_data.get('permision_sound_recorders'))),
+                int(bool(self.cleaned_data.get('permision_assistant_sound_recorder'))),
                 user.username,  # @permision_user_name
 
             ]
@@ -242,7 +244,7 @@ class PermisionsForm(forms.ModelForm):
             cursor.execute("""
                 EXEC Sp_UpdatePermisionsInformation
                     @id_permision=%s, @id_personal=%s, @permision_studio=%s, @permision_fanni_pakhsh=%s, @permision_reportaj=%s,
-                    @permision_15_khordad=%s, @permision_fanni_poshtibani=%s, @permision_sound_recorders=%s,  @permision_user_name=%s
+                    @permision_15_khordad=%s, @permision_fanni_poshtibani=%s, @permision_sound_recorders=%s, @permision_assistant_sound_recorder=%s ,  @permision_user_name=%s
             """, params)
             result = cursor.fetchone()
 
@@ -267,7 +269,7 @@ class FinancialForm(forms.ModelForm):
             'id_financial',
             'salary_base', 'id_insurance_type', 'insurance_number', 'housing_right', 'children_right',
             'wife_right','kharobar', 'sanavat', 'eydi', 'f_shoghl','f_amoozesh',
-            'f_mohandesi', 'f_abohava', 'f_mahroomiat', 'f_isargari', 'f_51','f_sakhti_kar' ,
+            'f_mohandesi', 'f_abohava', 'f_mahroomiat', 'f_isargari', 'f_51','f_sakhti_kar' ,'f_special' ,
             # 'f_marzi' ,'f_enteghal' , 'f_jazb_mahroom'
             'management_right' , 'f_resaneh'
         ]
@@ -303,6 +305,7 @@ class FinancialForm(forms.ModelForm):
                 self.cleaned_data.get('f_isargari', 0),
                 self.cleaned_data.get('f_51', 0),
                 self.cleaned_data.get('f_sakhti_kar', 0),
+                self.cleaned_data.get('f_special' , 0),
                 # self.cleaned_data.get('f_marzi', 0),
                 # self.cleaned_data.get('f_enteghal', 0),
                 # self.cleaned_data.get('f_jazb_mahroom', 0),
@@ -319,7 +322,7 @@ class FinancialForm(forms.ModelForm):
                 EXEC Sp_UpdateFinancialInformation
                     @id_financial=%s,@id_personal=%s, @salary_base=%s, @id_insurance_type=%s, @insurance_number=%s, @housing_right=%s, @children_right=%s,
                     @wife_right=%s,@kharobar=%s, @sanavat=%s, @eydi=%s, @f_shoghl=%s, @f_amoozesh=%s, @f_mohandesi=%s, @f_abohava=%s, @f_mahroomiat=%s, @f_isargari=%s, 
-                    @f_51=%s, @f_sakhti_kar=%s, @management_right=%s, @f_resaneh=%s, @financial_user_name=%s,
+                    @f_51=%s, @f_sakhti_kar=%s, @f_special=%s, @management_right=%s, @f_resaneh=%s, @financial_user_name=%s,
                     @id_bank=%s,@account_number=%s,@sheba_number=%s,@accounting_user_name=%s
             """, params)
             result = cursor.fetchone()

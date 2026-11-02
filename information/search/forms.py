@@ -27,6 +27,8 @@ class SearchForm(forms.Form):
     job_relation = forms.ChoiceField(label='نوع همکاری', required=False)
     job_unit = forms.ChoiceField(label=' واحد خدمتی', required=False)
     salary_base = forms.BooleanField(label='حقوق پایه', required=False)
+    total_financial = forms.BooleanField(label='جمع حقوق', required=False)
+    baravord = forms.BooleanField(label='برآورد', required=False)
     insurance_type = forms.BooleanField(label='نوع بیمه', required=False)
     bank = forms.BooleanField(label='بانک', required=False)
     account_number = forms.BooleanField(label='شماره حساب', required=False)

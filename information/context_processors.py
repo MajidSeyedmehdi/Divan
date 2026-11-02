@@ -9,14 +9,25 @@ def roles_context(request):
             request.user.groups.filter(name="مدیر آمار و اطلاعات فنی").exists() or
             request.user.groups.filter(name="کارشناس آمار و اطلاعات فنی").exists()
     )
+    is_only_info_manager = (
+            request.user.is_superuser or
+            request.user.groups.filter(name="مدیر آمار و اطلاعات فنی").exists()
+    )
+    is_only_sound_engineer = (
+            request.user.is_superuser or
+            request.user.groups.filter(name="مدیر صدابرداران").exists()
+    )
     is_sound_engineer = (
             request.user.is_superuser or
-            request.user.groups.filter(name="صدابرداران").exists()
+            request.user.groups.filter(name="مدیر صدابرداران").exists() or
+            request.user.groups.filter(name="کارشناس صدابرداران").exists()
     )
 
     return {
         'is_info_manager': is_info_manager,
+        'is_only_info_manager': is_only_info_manager,
         'is_sound_engineer': is_sound_engineer,
+        'is_only_sound_engineer': is_only_sound_engineer,
     }
 def common_context(request):
     if request.user.username and request.user.password:
@@ -44,4 +55,5 @@ def common_context(request):
         'role': role,
         'persian_date': persian_date,
         'persian_day': persian_day,
-    } 
+    }
+

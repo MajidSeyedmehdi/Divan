@@ -3,7 +3,11 @@
 import os
 import sys
 
-
+# import threading
+#
+# # اضافه کردن همپوشانی برای پشتیبانی از isAlive در پایتون 3.13+
+# if not hasattr(threading.Thread, 'isAlive'):
+#     threading.Thread.isAlive = threading.Thread.is_alive
 def main():
     """Run administrative tasks."""
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'testpro.settings')

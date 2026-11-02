@@ -1,0 +1,47 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>گزارش لوح ابتدایی</title>
+  
+  <style>
+    body { margin: 0; overflow: hidden; background: #f8f9fa; }
+  </style>
+    
+    {{ viewerJavaScript|safe }}
+    
+    <script>
+const params = {
+    start_date: "2024-01-01",
+    end_date: "2024-01-05",
+    id_network: 2,
+    id_sound_recorder: 7
+};
+
+fetch("/api/report/shift", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(params)
+})
+.then(r => r.json())
+.then(data => {
+    var report = new Stimulsoft.Report.StiReport();
+    report.loadFile("/static/reports/Report.mrt");
+
+    report.dictionary.variables.getByName("start_date").value = data.variables.start_date;
+    report.dictionary.variables.getByName("end_date").value = data.variables.end_date;
+    report.dictionary.variables.getByName("id_network").value = data.variables.id_network;
+    report.dictionary.variables.getByName("id_sound_recorder").value = data.variables.id_sound_recorder;
+
+    var viewer = new Stimulsoft.Viewer.StiViewer(null, "StiViewer", false);
+    viewer.report = report;
+    viewer.renderHtml("viewer");
+});
+    </script>
+</head>
+<body>
+  {{ viewerHtml|safe }}
+</body>
+</html>

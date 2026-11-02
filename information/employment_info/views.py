@@ -86,6 +86,7 @@ def employment_info_view(request):
                 'permision_15_khordad': permisions.permision_15_khordad,
                 'permision_fanni_poshtibani': permisions.permision_fanni_poshtibani,
                 'permision_sound_recorders': permisions.permision_sound_recorders,
+                'permision_assistant_sound_recorder' : permisions.permision_assistant_sound_recorder
             })
         financial = Financial.objects.filter(id_personal=person).first()
         if financial:
@@ -108,6 +109,7 @@ def employment_info_view(request):
                 'f_isargari': financial.f_isargari,
                 'f_51': financial.f_51,
                 'f_sakhti_kar': financial.f_sakhti_kar,
+                'f_special' : financial.f_special,
                 # 'f_marzi': financial.f_marzi,
                 # 'f_enteghal': financial.f_enteghal,
                 # 'f_jazb_mahroom': financial.f_jazb_mahroom,
@@ -118,11 +120,14 @@ def employment_info_view(request):
             financial_fields = [
                 'salary_base',
                 'f_shoghl', 'f_mohandesi','f_amoozesh' , 'f_abohava', 'f_mahroomiat', 'f_isargari', 'f_51',
-                'f_sakhti_kar', 'management_right', 'f_resaneh'
+                'f_sakhti_kar', 'f_special' , 'management_right', 'f_resaneh'
             ]
             total_financial = sum(getattr(financial, field, 0) or 0 for field in financial_fields)
             prefilled['total_financial'] = total_financial
-            baravord = total_financial - (getattr(financial, 'f_mohandesi', 0) or 0)
+            baravord = total_financial - (
+                    (getattr(financial, 'f_mohandesi', 0) or 0) +
+                    (getattr(financial, 'f_special', 0) or 0)
+            )
             prefilled['baravord'] = baravord
 
             # Load bank account information
@@ -336,7 +341,7 @@ def employment_info_view(request):
                 context['tab'] = 'official'
             else:
                 if not official_form.is_valid():
-                    messages.error(request, official_form.errors)
+                    # messages.error(request, official_form.errors)
                     messages.error(request, 'خطا در اعتبارسنجی فرم اداری.')
                 context['tab'] = 'official'
         elif 'save_permisions' in request.POST:
@@ -372,7 +377,7 @@ def employment_info_view(request):
                 context['tab'] = 'permisions'
             else:
                 if not permisions_form.is_valid():
-                    messages.error(request, permisions_form.errors)
+                    # messages.error(request, permisions_form.errors)
                     messages.error(request, 'خطا در اعتبارسنجی فرم مجوزها.')
                 context['tab'] = 'permisions'
 
@@ -400,7 +405,7 @@ def employment_info_view(request):
                 context['tab'] = 'financial'
             else:
                 if not financial_form.is_valid():
-                    messages.error(request, financial_form.errors)
+                    # messages.error(request, financial_form.errors)
                     messages.error(request, 'خطا در اعتبارسنجی فرم مالی.')
                 context['tab'] = 'financial'
 

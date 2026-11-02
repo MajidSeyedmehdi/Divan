@@ -36,36 +36,6 @@
         margin-bottom: 12px;
     }
 
-{#    button[type="submit"] {#}
-{#        background-color: #D8B7DD;#}
-{#        color: BLACK;#}
-{#        border: none;#}
-{#        padding: 8px 16px;#}
-{#        border-radius: 6px;#}
-{#        cursor: pointer;#}
-{#        font-size: 14px;#}
-{#        width: 100px;#}
-{#        height: 40px;#}
-{#    }#}
-{#    button[type="submit"]:hover {#}
-{#        background-color: #D8B7DD;#}
-{#    }#}
-{#/* دکمه اکسل*/#}
-{#    button[type="button"] {#}
-{#        background-color: #D8B7DD;#}
-{#        color: BLACK;#}
-{#        border: none;#}
-{#        padding: 8px 16px;#}
-{#        border-radius: 6px;#}
-{#        cursor: pointer;#}
-{#        font-size: 14px;#}
-{#        width: 100px;#}
-{#        height: 40px;#}
-{#    }#}
-{#    button[type="button"]:hover {#}
-{#        background-color: #C8A2C8;#}
-{#    }#}
-
 /* فاصله بین دکمه‌ها */
 .btn + .btn {
   margin-right: 10px;  /* فاصله بین دو دکمه (در حالت راست‌به‌چپ) */
@@ -136,19 +106,7 @@ thead tr:nth-child(2) th {
     font-weight: bold;
     cursor: pointer;
 }
-{# .scrollable-table table {#}
-{#    table-layout: fixed;   /* ستون‌ها اندازه ثابت داشته باشن */#}
-{#    width: 100%;           /* جدول کل عرض رو بگیره */#}
-{#    border-collapse: collapse;#}
 
-{##}
-{#.scrollable-table th,#}
-{#.scrollable-table td {#}
-{#    width: 90px !important;          /* مثلا هر ستون 100px */#}
-{#    text-align: right;    /* محتوا وسط‌چین بشه */#}
-{#    white-space: nowrap;   /* متن نشکنه به خط بعد */#}
-{#    overflow: hidden;      /* متن اضافه مخفی بشه */#}
-{#    text-overflow: ellipsis; /* ... بذاره اگه متن طولانی بود */#}
 
 td.selected {
   background-color: #cce5ff; /* رنگ پس‌زمینه انتخابی */
@@ -447,25 +405,28 @@ table th, table td {
               <label for="shift_table_choice" class="form-label mb-0 me-3 fw-bold">جدول شیفت:</label>
               <select name="shift_table_choice" id="shift_table_choice" class="form-select" style="min-width:150px;">
                   <option value="">انتخاب کنید</option>
-                  <option value="1" {% if request.session.shift_table_choice == '1' %}selected{% endif %}>لوح ابتدایی</option>
-                  <option value="2" {% if request.session.shift_table_choice == '2' %}selected{% endif %}>لوح برآورد</option>
+                  <option value="1" {% if request.session.shift_table_choice == '1' %}selected{% endif %}>شیفت اولیه</option>
+                  <option value="2" {% if request.session.shift_table_choice == '2' %}selected{% endif %}>شیفت نهایی</option>
               </select>
           </div>
 
           <!-- دکمه‌ها -->
           <div class="col-auto d-flex align-items-center gap-2">
-              <button type="submit" name="show_button" class="btn btn-info">
-                  <span class="fa fa-eye"></span> نمایش</button>
+              <button type="submit" formaction="{% url 'sound_recorders:current_affairs:sound_shift_search:sound_shift_search' %}" class="btn btn-primary">
+                    گزارش ماهانه
+                </button>
               <button type="button" id="btn-print-hardcopy" class="btn btn-warning btn-lg">
                   <span class="fa fa-print"></span>
                   چاپ
-                  
+
               </button>
               <button type="button" id="btn-excel" class="btn btn-success btn">
                   <span class="fas fa-file-excel"></span>
                   ذخیره اکسل
               </button>
-{#              <button type="button" id="btn-pdf" class="btn btn-danger">ذخیره PDF</button>#}
+              <button type="submit" formaction="{% url 'sound_recorders:current_affairs:sound_shift_search:search_shift_weekly' %}" class="btn btn-info">
+                گزارش هفتگی
+              </button>
           </div>
 
         </div>
@@ -485,7 +446,7 @@ table th, table td {
         <ul class="mb-0">
           <li><strong>دکمه "نمایش" : </strong>قبل از نمایش شیفت ها دقت کنید فقط شبکه یا صدابردار را انتخاب کنید و حتما جدول شیفت انتخاب شود.</li>
           <li><strong>دکمه "چاپ" : </strong> برای چاپ و ذخیره فایل pdf. در هنگام چاپ برای نمایش رنگ ها حتما گزینه 'Print backgrounds' فعال باشد.</li>
-          <li><strong>نکته : </strong> اگر صدابردار بیش از ۱۶ ساعت شیفت متوالی داشته باشد یا شیفتش با شیفت دیگری هم‌پوشانی داشته باشد، ثبت انجام نمی‌شود.</li>
+        
         </ul>
       </div>
     </details>
@@ -508,12 +469,8 @@ table th, table td {
     <thead>
         <tr class="header-table">
             <th class="header-title" colspan="{{ shifts|length|add:2 }}">
-                {% if sound_recorder %}
-                    صدابردار {{ sound_recorder.id_personal.first_name }} {{ sound_recorder.id_personal.last_name }}
-                {% elif network %}
-                    شبکه {{ network.network }}
-                {% else %}
-                    اطلاعاتی جهت نمایش وجود ندارد
+                {% if network %}
+                    شبکه {{ network_obj.network }}
                 {% endif %}
             </th>
         </tr>
@@ -523,7 +480,7 @@ table th, table td {
             <th>تاریخ</th>
             <th>روز</th>
             {% for shift in shifts %}
-                <th>{{ shift.shift_name }}</th>
+                <th>{{ shift.shift_time }}</th>
             {% endfor %}
         </tr>
     </thead>

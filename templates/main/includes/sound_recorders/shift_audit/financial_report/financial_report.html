@@ -1,6 +1,6 @@
 {% extends 'main/base.html' %}
 {% load static %}
-<!--{#&lt;!&ndash; style="border: 1px solid #333; box-shadow: 0 4px 10px rgba(0,0,0,0.4);" &ndash;&gt;#}-->
+
 {% block content %}
 
 <style>
@@ -60,7 +60,15 @@
         padding: 15px;
         background-color: #fff;
         box-shadow: 0 0 3px rgba(0, 0, 0, 0.12);
-        overflow: hidden;
+        overflow-y: hidden;
+        overflow-x: auto;
+        width: 100%;
+        scrollbar-width:auto;
+    }
+    .table-wrapper table{
+        width: max-content;
+        min-width: 100%;
+        white-space: nowrap;
     }
 
     .financial-table {
@@ -85,6 +93,7 @@
         font-family: 'Vazir-Black';
         src: url("{% static 'fonts/Vazir-Black.woff2' %}") format('woff2'),
              url("{% static 'fonts/Vazir-Black.woff' %}") format('woff');
+             url("{% static 'fonts/Vazir-Bold.woff' %}") format('woff');
         font-weight: normal;
         font-style: normal;
     }
@@ -170,8 +179,11 @@
     }
 
     .history-header {
-        background-color: #DCA1A1;
-        color: white;
+        background-color: #F0DADA;
+        color: black;
+        font-size: 12px;
+        font-weight: bold;
+        font-family: 'Vazir-Black', serif;
     }
 
     #modal-table th, #modal-table td {
@@ -187,7 +199,7 @@
     }
 
     .modal-table thead > tr > th {
-        background-color: #8cbed6 !important;
+        background-color: #e6f2ff !important;
         color: #000000 !important;
         font-weight: 700;
         font-size: 13px;
@@ -215,6 +227,9 @@
         color: white;
     }
 
+    /* ==========================================
+       استایل‌های اسکرول مدال جزئیات شیفت
+    ========================================== */
     .custom-modal-scroll {
         max-height: 60vh;
         overflow: auto;
@@ -302,202 +317,177 @@
         margin: 10mm;
     }
 }
+    /* استایل نوار تب‌ها */
+    .nav-tabs .nav-link {
+        font-family: 'Vazir-Black', sans-serif;
+        font-size: 14px;
+        color: #495057;
+        border-radius: 8px 8px 0 0;
+    }
 
+    .nav-tabs .nav-link.active {
+        background-color: #00CED1;
+        color: #fff;
+        border-color: #00CED1 #00CED1 #fff;
+    }
+    /* استایل بوردر مشکی پررنگ برای تمام جدول‌های مالی */
+.financial-table,
+.financial-table th,
+.financial-table td {
+    border: 1.5px solid #000000 !important;
+}
+
+.financial-table {
+    width: 100%;
+    margin-bottom: 0;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-family: 'Vazir-Black', serif;
+}
+
+/* گرد کردن گوشه‌های جدول */
+.financial-table thead tr:first-child th:first-child { border-top-right-radius: 10px; }
+.financial-table thead tr:first-child th:last-child { border-top-left-radius: 10px; }
+.financial-table tbody tr:last-child td:first-child { border-bottom-right-radius: 10px; }
+.financial-table tbody tr:last-child td:last-child { border-bottom-left-radius: 10px; }
+/* دکمه بازگشت */
+.back-btn {
+        background-color: #6c8ebf;
+        border-color: #6c8ebf;
+        color: white;
+    }
+
+    .back-btn:hover {
+        background-color: #5879a8;
+        border-color: #5879a8;
+        color: white;
+    }
 </style>
+
 <div class="container-fluid">
-  <div class="col-md-12">
-    <div class="breadcrumb-box shadow">
-      <form method="post" class="mb-0">
-        {% csrf_token %}
-        {{ header_form.media }}
-        <div class="breadcrumb-right">
-          <div class="d-flex flex-wrap align-items-center gap-4">
-            <div class="d-flex align-items-center gap-2">
-              <label class="form-label mb-0">تاریخ شروع</label>
-              {{ header_form.start_date }}
-            </div>
-            <div class="d-flex align-items-center gap-2">
-              <label class="form-label mb-0">تاریخ پایان</label>
-              {{ header_form.end_date }}
-            </div>
-            <div>
-              <button type="submit" class="btn btn-primary d-flex align-items-center gap-2 px-3" name="action" value="show">
-                <i class="fa fa-search"></i> نمایش
-              </button>
-            </div>
-          </div>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <div class="tab-wrapper">
-    <div class="printable mt-3 table-wrapper">
-      <table id="financial-table" class="table table-bordered text-center financial-table">
-        <thead>
-          <tr>
-            <th>تاریخ شروع</th>
-            <th>تاریخ پایان</th>
-            <th>نیروهای موظف</th>
-            <th>مرخصی</th>
-            <th>ساعت موظف</th>
-            <th>برآورد کل</th>
-            <th>امریه</th>
-            <th>اضافه کار</th>
-            <th>نیروهای کمکی</th>
-            <th>وضعیت</th>
-            <th>واحد رسیدگی کننده</th>
-            <th>شبکه</th>
-            <th>روکش</th>
-            <th>توضیحات</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for row in financial_rows %}
-          <tr>
-            <td>{{ row.Start_date_j }}</td>
-            <td>{{ row.End_date_j }}</td>
-            <td>{{ row.Required_personnel }}</td>
-            <td>{{ row.Leaves|default_if_none:"0" }}</td>
-            <td>{{ row.Required_hours }}</td>
-            <td>{{ row.Total_pay }}</td>
-            <td>{{ row.Amrie }}</td>
-            <td>{{ row.Overtime_pay }}</td>
-            <td>{{ row.Supportive_personel }}</td>
-            <td>{{ row.Full_Workflow_Status }}</td>
-            <td>{{ row.Current_Manager }}</td>
-            <td>
-              <span class="network-summary"
-                    data-url="{% url 'sound_recorders:soundrecorders_managers:get_network_coating' %}"
-                    data-start="{{ row.Start_date_j }}"
-                    data-end="{{ row.End_date_j }}"
-                    onclick="openDataModal('networkModal', null, this)"
-                    style="cursor: pointer; color: #0d6efd;">
-                روکش شبکه ها
-              </span>
-            </td>
-            <td>
-              <span class="network-summary"
-                    data-url="{% url 'sound_recorders:soundrecorders_managers:get_final_coating' %}"
-                    data-start="{{ row.Start_date_j }}"
-                    data-end="{{ row.End_date_j }}"
-                    onclick="openDataModal('coatingModal', null, this)"
-                    style="cursor: pointer; color: #0d6efd;">
-                روکش نهایی
-              </span>
-            </td>
-            <td>
-              <span class="network-summary"
-                    data-url="{% url 'information:inf_manager:get_workflow_history' %}"
-                    onclick="openDataModal('descriptionModal', '{{ row.Id_final_payroll_calc|default_if_none:"" }}', this)"
-                    style="cursor: pointer; color: #0d6efd;">
-                توضیحات
-              </span>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </div>
-</div>
-
-<div class="modal fade" id="networkModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div class="card-header history-header py-2 rounded mb-3">
-                    <h5 class="mb-0 text-center">روکش شبکه ها</h5>
+{% if messages %}
+                <div class="row mb-3">
+                    <div class="col-lg-12">
+                        {% for message in messages %}
+                            <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags == 'warning' %}warning{% elif message.tags == 'success' %}success{% else %}info{% endif %} alert-dismissible fade show" role="alert">
+                                <i class="icon-{% if message.tags == 'error' %}close{% elif message.tags == 'warning' %}warning{% elif message.tags == 'success' %}check{% else %}info{% endif %}"></i>
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    </div>
                 </div>
-                <table class="table modal-table text-center">
-                    <thead>
-                        <tr>
-                            <th>ردیف</th>
-                            <th>نام شبکه</th>
-                            <th>براورد</th>
-                            <th>جزئیات</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn close-modal-btn" data-bs-dismiss="modal">بستن</button>
-                 <button type="button" id="btn-print-hardcopy" class="btn btn-warning btn-lg">
-                      <span class="fa fa-print"></span>
-                      چاپ
-                  </button>
-                  <button type="button" id="btn-excel" class="btn btn-success btn">
-                      <span class="fas fa-file-excel"></span>
-                      ذخیره اکسل
-                  </button>
-            </div>
-        </div>
-    </div>
-</div>
+                {% endif %}
+    <!-- نوار تب‌ها -->
+<!--    بازگشت-->
+    <ul class="nav nav-tabs" id="myTab" role="tablist">
 
-<div class="modal fade" data-url="{% url 'soundrecorders:get_network_detail' %}" id="networkDetailModal" tabindex="-1" aria-hidden="true" style="z-index: 1060;">
-    <div class="modal-dialog modal-xl modal-dialog-scrollable">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div class="card-header history-header py-2 rounded mb-3">
-                    <h5 class="mb-0 text-center">جزئیات شبکه</h5>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link {% if active_tab == 'history' %}active{% endif %}"
+                    id="history-tab"
+                    data-bs-toggle="tab"
+                    data-bs-target="#history-pane"
+                    type="button"
+                    role="tab"
+                    aria-controls="history-pane"
+                    aria-selected="false">
+                تاریخچه
+            </button>
+        </li>
+    </ul>
+
+    <!-- محتوای تب‌ها -->
+    <div class="tab-content" id="myTabContent">
+
+
+        <!-- ================= تب تاریخچه ================= -->
+        <div class="tab-pane fade {% if active_tab == 'history' %}show active{% endif %}"
+             id="history-pane"
+             role="tabpanel"
+             aria-labelledby="history-tab">
+            <div class="tab-wrapper">
+                <div class="printable table-wrapper">
+                    <table class="table table-bordered text-center financial-table">
+                        <thead>
+                            <tr>
+                                <th>تاریخ شروع</th>
+                                <th>تاریخ پایان</th>
+                                <th>مرخصی</th>
+                                <th>ساعت موظف</th>
+                                <th>برآورد کل</th>
+                                <th>وضعیت</th>
+                                <th>واحد رسیدگی کننده</th>
+                                <th>روکش شبکه ها</th>
+                                <th>روکش نهایی</th>
+                                <th>جزئیات شیفت</th>
+                                <th>توضیحات</th>
+                            </tr>
+                        </thead>
+           <tbody>
+                {% for row in history_rows %}
+                <tr>
+                    <td>{{ row.Start_date_j }}</td>
+                    <td>{{ row.End_date_calc_j }}</td>
+                    <td>{{ row.Leaves|default_if_none:"0" }}</td>
+                    <td>{{ row.Required_hours }}</td>
+                    <td>{{ row.Total_pay }}</td>
+                    <td>{{ row.Full_Workflow_Status }}</td>
+                    <td>{{ row.Current_Manager }}</td>
+
+                    <td>
+                        <a href="{% url 'information:inf_manager:shift:get_network_coating' %}?start_date={{ row.Start_date_j }}&end_date={{ row.End_date_j }}"
+                           class="network-summary">
+                            روکش شبکه ها
+                        </a>
+                    </td>
+
+                    <td>
+                        <a href="{% url 'information:inf_manager:shift:get_final_coating' %}?start_date={{ row.Start_date_j }}&end_date={{ row.End_date_j }}"
+                           class="network-summary">
+                            روکش نهایی
+                        </a>
+                    </td>
+
+                    <td>
+                        <a href="{% url 'information:inf_manager:shift:get_shift_details' %}?start_date={{ row.Start_date_j }}&end_date={{ row.End_date_j }}"
+                           class="network-summary">
+                            جزئیات شیفت
+                        </a>
+                    </td>
+
+                    <td>
+                        <span class="network-summary"
+                              data-url="{% url 'information:inf_manager:shift:get_workflow_history' %}"
+                              onclick="openDataModal(
+                                  'descriptionModal',
+                                  '{{ row.Id_final_payroll_calc }}',
+                                  this
+                              )">
+                            توضیحات
+                        </span>
+                    </td>
+                </tr>
+
+                {% empty %}
+                <tr>
+                    <td colspan="11" class="text-muted">
+                        موردی جهت نمایش در تاریخچه موجود نیست.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+                    </table>
                 </div>
-                <table class="table modal-table text-center align-middle" id="networkDetailTable">
-                    <thead id="networkDetailTableHead"></thead>
-                    <tbody id="networkDetailTableBody"></tbody>
-                </table>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn close-modal-btn" data-bs-dismiss="modal">بستن</button>
-                <button type="button" id="btn-print-hardcopy" class="btn btn-warning btn-lg btn-print-modal">چاپ</button>
-                <button type="button" id="btn-excel" class="btn btn-success btn-excel-modal">ذخیره اکسل</button>
             </div>
         </div>
+
     </div>
 </div>
 
-<div class="modal fade" id="coatingModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div class="card-header history-header py-2 rounded mb-3">
-                    <h5 class="mb-0 text-center">روکش نهایی</h5>
-                </div>
-                <table class="table modal-table text-center">
-                    <thead>
-                        <tr>
-                            <th>ردیف</th>
-                            <th>کد ملی</th>
-                            <th>نام</th>
-                            <th>نام خانوادگی</th>
-                            <th>عنوان شغلی</th>
-                            <th>رده</th>
-                            <th>برآورد</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn close-modal-btn" data-bs-dismiss="modal">بستن</button>
-                <button type="button" id="btn-print-hardcopy" class="btn btn-warning btn-lg btn-print-modal">چاپ</button>
-                <button type="button" id="btn-excel" class="btn btn-success btn-excel-modal">ذخیره اکسل</button>
-            </div>
-        </div>
-    </div>
-</div>
+<!-- ========================= MODALS (مشترک بین دو تب) ========================= -->
+<!-- مدال  توضیحات -->
 
-<div class="modal fade" id="descriptionModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="descriptionModal" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
@@ -525,80 +515,119 @@
         </div>
     </div>
 </div>
+
 {% endblock %}
 
 {% block extra_js %}
 <script>
 function openDataModal(modalId, payrollId, element) {
     try {
+        // فقط descriptionModal اجازه باز شدن دارد
+        if (modalId !== 'descriptionModal') {
+            return;
+        }
+
         var modalElement = document.getElementById(modalId);
         if (!modalElement) return;
 
         var tbody = modalElement.querySelector('tbody');
         var myModal = bootstrap.Modal.getOrCreateInstance(modalElement);
+
+        // باز کردن فقط مدال توضیحات
         myModal.show();
 
         var thead = modalElement.querySelector('thead tr');
         var colCount = thead ? thead.children.length : 4;
 
         if (tbody) {
-            tbody.innerHTML = `<tr><td colspan="${colCount}" class="text-center py-4">در حال دریافت اطلاعات...</td></tr>`;
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="${colCount}" class="text-center py-4">
+                        در حال دریافت اطلاعات...
+                    </td>
+                </tr>`;
         }
 
         var baseUrl = element ? element.getAttribute('data-url') : null;
+
         if (!baseUrl) {
             if (tbody) {
-                tbody.innerHTML = `<tr><td colspan="${colCount}" class="text-danger text-center fw-bold py-4">آدرس URL ست نشده است.</td></tr>`;
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="${colCount}"
+                            class="text-danger text-center fw-bold py-4">
+                            آدرس URL ست نشده است.
+                        </td>
+                    </tr>`;
             }
             return;
         }
 
-        var requestUrl = '';
+        if (!payrollId ||
+            payrollId === 'None' ||
+            String(payrollId).trim() === '' ||
+            payrollId === 'undefined') {
 
-        if (modalId === 'coatingModal' || modalId === 'networkModal') {
-            var startDate = element.getAttribute('data-start');
-            var endDate = element.getAttribute('data-end');
-
-            if (!startDate || !endDate) {
-                if (tbody) {
-                    tbody.innerHTML = `<tr><td colspan="${colCount}" class="text-danger text-center fw-bold py-4">تاریخ شروع یا پایان معتبر نیست.</td></tr>`;
-                }
-                return;
+            if (tbody) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="${colCount}"
+                            class="text-danger text-center fw-bold py-4">
+                            شناسه رکورد معتبر نیست.
+                        </td>
+                    </tr>`;
             }
-
-            modalElement.setAttribute('data-start', startDate);
-            modalElement.setAttribute('data-end', endDate);
-
-            requestUrl = `${baseUrl}?start_date=${encodeURIComponent(startDate)}&end_date=${encodeURIComponent(endDate)}`;
-        } else {
-            if (!payrollId || payrollId === 'None' || String(payrollId).trim() === '' || payrollId === 'undefined') {
-                if (tbody) {
-                    tbody.innerHTML = `<tr><td colspan="${colCount}" class="text-danger text-center fw-bold py-4">شناسه رکورد معتبر نیست.</td></tr>`;
-                }
-                return;
-            }
-            requestUrl = `${baseUrl}?id=${encodeURIComponent(payrollId)}`;
+            return;
         }
+
+        var requestUrl =
+            `${baseUrl}?id=${encodeURIComponent(payrollId)}`;
 
         fetch(requestUrl)
             .then(response => {
-                if (!response.ok) throw new Error(`خطای سرور: ${response.status}`);
+                if (!response.ok) {
+                    throw new Error(`خطای سرور: ${response.status}`);
+                }
+
                 return response.json();
             })
             .then(res => {
                 if (!tbody) return;
+
                 tbody.innerHTML = '';
 
-                if (res.status === 'success' && res.data && res.data.length > 0) {
-                    renderTableDataSafely(modalId, tbody, res.data, modalElement);
+                if (
+                    res.status === 'success' &&
+                    res.data &&
+                    res.data.length > 0
+                ) {
+                    renderTableDataSafely(
+                        modalId,
+                        tbody,
+                        res.data,
+                        modalElement
+                    );
                 } else {
-                    tbody.innerHTML = `<tr><td colspan="${colCount}" class="text-muted text-center py-4">هیچ اطلاعاتی یافت نشد.</td></tr>`;
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="${colCount}"
+                                class="text-muted text-center py-4">
+                                هیچ اطلاعاتی یافت نشد.
+                            </td>
+                        </tr>`;
                 }
             })
             .catch(error => {
                 console.error(error);
+
                 if (tbody) {
-                    tbody.innerHTML = `<tr><td colspan="${colCount}" class="text-danger text-center fw-bold py-4">خطا: ${error.message}</td></tr>`;
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="${colCount}"
+                                class="text-danger text-center fw-bold py-4">
+                                خطا: ${error.message}
+                            </td>
+                        </tr>`;
                 }
             });
 
@@ -606,75 +635,24 @@ function openDataModal(modalId, payrollId, element) {
         console.error('Modal Error:', error);
     }
 }
-
 function renderTableDataSafely(modalId, tbody, data, modalElement) {
     try {
         var htmlContent = '';
 
         if (modalId === 'descriptionModal') {
+
             data.forEach((item, index) => {
+
                 htmlContent += `
                     <tr>
                         <td>${index + 1}</td>
                         <td>${item.action_date || '-'}</td>
                         <td>${item.manager || '-'}</td>
-                        <td><span class="badge bg-info text-dark">${item.workflow_action || '-'}</span></td>`;
-            });
-        }
-        if (modalId === 'networkModal') {
-            if (!Array.isArray(data) || data.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="text-muted text-center py-3">هیچ داده‌ای یافت نشد.</td></tr>`;
-                return;
-            }
-
-            var startDate = modalElement ? modalElement.getAttribute('data-start') || '' : '';
-            var endDate = modalElement ? modalElement.getAttribute('data-end') || '' : '';
-
-            data.forEach((item, index) => {
-                var networkName = item.network || item.Network || '-';
-                var networkId = item.id_network || item.Id_network || '';
-                var baravordVal = item.network_baravord !== undefined ? item.network_baravord : (item.Network_baraovard || 0);
-
-                var formattedBaravord = !isNaN(baravordVal)
-                    ? Number(baravordVal).toLocaleString('fa-IR') + ' ریال'
-                    : '۰ ریال';
-
-                htmlContent += `
-                    <tr>
-                        <td>${index + 1}</td>
-                        <td>${networkName}</td>
-                        <td class="fw-bold">${formattedBaravord}</td>
                         <td>
-                            <button type="button" class="btn btn-sm btn-info text-white px-3 fw-bold"
-                                    onclick="openNetworkDetailModal('${networkId}', '${networkName}', '${startDate}', '${endDate}')">
-                                جزئیات
-                            </button>
+                            <span class="badge bg-info text-dark">
+                                ${item.workflow_action || '-'}
+                            </span>
                         </td>
-                    </tr>`;
-            });
-        }
-        else if (modalId === 'coatingModal') {
-            data.forEach((item, index) => {
-                var nationalCode = item.national_code || item.National_code || '-';
-                var firstName = item.first_name || item.First_name || '-';
-                var lastName = item.last_name || item.Last_name || '-';
-                var currentJob = item.current_job || item.Current_job || '-';
-                var levels = item.levels || item.Levels || '-';
-
-                var rawBaraovard = item.final_baraovard !== undefined && item.final_baraovard !== null ? item.final_baraovard : item.Final_baraovard;
-                var baraovard = (rawBaraovard !== undefined && rawBaraovard !== null && !isNaN(rawBaraovard))
-                    ? Number(rawBaraovard).toLocaleString('fa-IR') + ' ریال'
-                    : '-';
-
-                htmlContent += `
-                    <tr>
-                        <td>${index + 1}</td>
-                        <td>${nationalCode}</td>
-                        <td>${firstName}</td>
-                        <td>${lastName}</td>
-                        <td>${currentJob}</td>
-                        <td>${levels}</td>
-                        <td class="fw-bold">${baraovard}</td>
                     </tr>`;
             });
         }
@@ -682,118 +660,20 @@ function renderTableDataSafely(modalId, tbody, data, modalElement) {
         tbody.innerHTML = htmlContent;
 
     } catch (error) {
+
         console.error('Render Error:', error);
-        var colCount = modalElement ? modalElement.querySelectorAll('thead th').length : 4;
-        tbody.innerHTML = `<tr><td colspan="${colCount}" class="text-danger text-center">خطا در رندر اطلاعات: ${error.message}</td></tr>`;
+
+        var colCount =
+            modalElement.querySelectorAll('thead th').length || 4;
+
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="${colCount}"
+                    class="text-danger text-center">
+                    خطا در رندر اطلاعات.
+                </td>
+            </tr>`;
     }
-}
-
-function openNetworkDetailModal(networkId, networkName, startDate, endDate) {
-    var modalElement = document.getElementById('networkDetailModal');
-    if (!modalElement) {
-        alert('مدال جزئیات شبکه در HTML یافت نشد.');
-        return;
-    }
-
-    var thead = document.getElementById('networkDetailTableHead');
-    var tbody = document.getElementById('networkDetailTableBody');
-    var titleElement = document.getElementById('networkDetailTitle');
-
-    if (titleElement) {
-        titleElement.innerText = `جزئیات شبکه: ${networkName}`;
-    }
-
-    if (thead) thead.innerHTML = '';
-    if (tbody) {
-        tbody.innerHTML = `<tr><td colspan="10" class="text-center py-4">در حال دریافت جزئیات...</td></tr>`;
-    }
-
-    var detailModal = bootstrap.Modal.getOrCreateInstance(modalElement);
-    detailModal.show();
-
-    var baseUrl = modalElement.getAttribute('data-url');
-    var requestUrl = `${baseUrl}?network_id=${encodeURIComponent(networkId)}&start_date=${encodeURIComponent(startDate)}&end_date=${encodeURIComponent(endDate)}`;
-
-    fetch(requestUrl)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`خطای سرور: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(res => {
-            if (!tbody || !thead) return;
-            tbody.innerHTML = '';
-            thead.innerHTML = '';
-
-            if (res.status === 'success' && res.data && res.data.length > 0) {
-                var shiftColumns = res.shift_columns || [];
-
-                var headerHtml = `
-                    <tr>
-                        <th>ردیف</th>
-                        <th>نام و نام خانوادگی</th>
-                        <th>عنوان شغلی</th>
-                        <th>رده</th>`;
-
-                shiftColumns.forEach(function(shiftName) {
-                    headerHtml += `
-                        <th class="bg-light">مبلغ ${shiftName}</th>
-                        <th class="bg-light">تعداد </th>`;
-                });
-
-                headerHtml += `
-                        <th>جمع برآورد</th>
-                    </tr>`;
-                thead.innerHTML = headerHtml;
-
-                var bodyHtml = '';
-                res.data.forEach((item, index) => {
-                    bodyHtml += `
-                        <tr>
-                            <td>${(index + 1).toLocaleString('fa-IR')}</td>
-                            <td>${item.soundrecorder_name || '-'}</td>
-                            <td>${item.current_job || '-'}</td>
-                            <td>${item.levels || '-'}</td>`;
-
-                    shiftColumns.forEach(function(shiftName) {
-                        var shiftData = item.shifts ? item.shifts[shiftName] : null;
-
-                        if (shiftData && (shiftData.count > 0 || shiftData.rate > 0)) {
-                            var formattedCount = Number(shiftData.count || 0).toLocaleString('fa-IR');
-                            var formattedRate = Number(shiftData.rate || 0).toLocaleString('fa-IR');
-
-                            bodyHtml += `
-                                <td class="text-center text-success">${formattedRate}</td>
-                                <td class="text-center fw-bold">${formattedCount}</td>`;
-                        } else {
-                            bodyHtml += `
-                                <td class="text-muted text-center">-</td>
-                                <td class="text-muted text-center">-</td>`;
-                        }
-                    });
-
-                    var totalBaraovard = !isNaN(item.total_baraovard)
-                        ? Number(item.total_baraovard).toLocaleString('fa-IR') + ' ریال'
-                        : '۰ ریال';
-
-                    bodyHtml += `
-                            <td class="fw-bold text-primary text-center">${totalBaraovard}</td>
-                        </tr>`;
-                });
-
-                tbody.innerHTML = bodyHtml;
-
-            } else {
-                thead.innerHTML = `<tr><th>اطلاعات</th></tr>`;
-                tbody.innerHTML = `<tr><td class="text-muted text-center py-4">هیچ جزئیاتی یافت نشد.</td></tr>`;
-            }
-        })
-        .catch(error => {
-            if (tbody) {
-                tbody.innerHTML = `<tr><td colspan="10" class="text-danger text-center py-4">خطا در دریافت اطلاعات: ${error.message}</td></tr>`;
-            }
-        });
 }
 /* ===============================
    🖨️ چاپ - نسخه اشکال‌زدایی (Debug)
@@ -893,4 +773,24 @@ document.addEventListener("click", function (e) {
 </script>
 <!-- اضافه کردن کتابخانه خروجی اکسل -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script>
+function confirmReject(formId) {
+    Swal.fire({
+        title: 'آیا از رد گزارش مالی مطمئن هستید؟',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#0b8457',
+        cancelButtonColor: '#FF0000',
+        confirmButtonText: 'بله، رد شود',
+        cancelButtonText: 'خیر، انصراف',
+        reverseButtons: true            /* برای درست قرار گرفتن دکمه‌ها در زبان فارسی */
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // اگر کاربر دکمه بله را بزند، فرم ارسال می‌شود
+            document.getElementById(formId).submit();
+        }
+    });
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 {% endblock %}

@@ -1,0 +1,817 @@
+{% extends 'main/base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+<link rel="stylesheet" href="{% static 'assets/css/style.css' %}">
+{% block content %}
+<script src="{% static 'admin/js/vendor/jquery/jquery.js' %}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+    input[type="text"], select, textarea {
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 6px 10px;
+        width: 150px;
+        height: 35px;
+        font-size: 12px;
+        transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    input[type="text"]:focus, select:focus, textarea:focus {
+        border-color: #66afe9;
+        outline: none;
+        font-size: 12px;
+        box-shadow: 0 0 5px rgba(102, 175, 233, 0.6);
+    }
+
+    label {
+        margin-left: 8px;
+        font-weight: bold;
+        font-size: 12px;
+
+    }
+
+    li {
+        margin-bottom: 12px;
+    }
+
+{#    button[type="submit"] {#}
+{#        background-color: #D8B7DD;#}
+{#        color: BLACK;#}
+{#        border: none;#}
+{#        padding: 8px 16px;#}
+{#        border-radius: 6px;#}
+{#        cursor: pointer;#}
+{#        font-size: 14px;#}
+{#        width: 100px;#}
+{#        height: 40px;#}
+{#    }#}
+{#    button[type="submit"]:hover {#}
+{#        background-color: #D8B7DD;#}
+{#    }#}
+{#/* دکمه اکسل*/#}
+{#    button[type="button"] {#}
+{#        background-color: #D8B7DD;#}
+{#        color: BLACK;#}
+{#        border: none;#}
+{#        padding: 8px 16px;#}
+{#        border-radius: 6px;#}
+{#        cursor: pointer;#}
+{#        font-size: 14px;#}
+{#        width: 100px;#}
+{#        height: 40px;#}
+{#    }#}
+{#    button[type="button"]:hover {#}
+{#        background-color: #C8A2C8;#}
+{#    }#}
+
+/* فاصله بین دکمه‌ها */
+.btn + .btn {
+  margin-right: 10px;  /* فاصله بین دو دکمه (در حالت راست‌به‌چپ) */
+}
+
+/* استایل مخصوص دکمه چاپ */
+#btn-print {
+  background-color: #D8B7DD;   /* بنفش شیک */
+  border-color: #D8B7DD;
+  width: 90px;                /* عرض بیشتر از معمول */
+  font-weight: bold;
+}
+
+/* افکت hover دکمه چاپ */
+#btn-print:hover {
+  background-color: #D8B7DD;
+  border-color: #D8B7DD;
+}
+    /* 🎯 جدول تیتر بالا */
+.header-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 25px;
+}
+
+.header-table th {
+  background-color: #77BEB5 !important;  /* 💎 سبز فیروزه‌ای ملایم */
+  text-align: center !important;   /* متن در وسط جدول */
+  direction: rtl !important;       /* راست‌به‌چپ */
+  unicode-bidi: embed;             /* ترکیب درست متن فارسی */
+  vertical-align: middle !important; /* وسط عمودی */
+  padding: 12px;
+  font-size: 18px;
+  font-weight: bold;
+  font-family: 'Vazir-Black'; /* فونت خاص فقط برای تیتر */
+  color: #003B32;
+}
+
+/*  فقط ردیف دوم thead */
+thead tr:nth-child(2) th {
+    background-color: #FFE7C9 !important;
+    color: #003B32 !important;
+    font-weight: bold;
+    text-align: center;
+    padding: 10px;
+}
+
+/* 🎯 جدول پایین (اصلی) */
+.shift-table {
+  background-color: #ffffff;  /* رنگ خنثی */
+  font-family: 'Vazir', sans-serif;
+  font-size: 12px;
+}
+
+.shift-table th {
+  background-color: #e6f2ff;
+  color: #000;
+}
+
+.dropdown-checkboxes .dropdown-menu {
+    max-height: 250px;
+    overflow-y: auto;
+    padding: 10px;
+    width: 100%;
+}
+.dropdown-toggle-label {
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+}
+{# .scrollable-table table {#}
+{#    table-layout: fixed;   /* ستون‌ها اندازه ثابت داشته باشن */#}
+{#    width: 100%;           /* جدول کل عرض رو بگیره */#}
+{#    border-collapse: collapse;#}
+
+{##}
+{#.scrollable-table th,#}
+{#.scrollable-table td {#}
+{#    width: 90px !important;          /* مثلا هر ستون 100px */#}
+{#    text-align: right;    /* محتوا وسط‌چین بشه */#}
+{#    white-space: nowrap;   /* متن نشکنه به خط بعد */#}
+{#    overflow: hidden;      /* متن اضافه مخفی بشه */#}
+{#    text-overflow: ellipsis; /* ... بذاره اگه متن طولانی بود */#}
+
+td.selected {
+  background-color: #cce5ff; /* رنگ پس‌زمینه انتخابی */
+  outline: 2px solid #007bff; /* قاب آبی */
+}
+
+/* 🖨 تنظیمات مخصوص چاپ */
+@media print {
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+    }
+
+    /* فقط جدول چاپ شود */
+    body * {
+        visibility: hidden !important;
+    }
+
+    #printable, #printtable * {
+        visibility: visible !important;
+    }
+
+    #printtable {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+    }
+
+    /* جلوگیری از نصف شدن */
+    table, tr, td, th {
+        page-break-inside: avoid !important;
+    }
+
+    /* تکرار هدر در همه صفحات */
+    thead {
+        display: table-header-group !important;
+    }
+
+    /* خطوط جدول */
+    table {
+        border-collapse: collapse !important;
+    }
+
+    table th, table td {
+        border: 1px solid #000 !important;
+        padding: 6px;
+    }
+}
+
+@font-face {
+    font-family: 'Vazir-Black';
+    src: url("{% static 'fonts/Vazir-Black.woff2' %}") format('woff2'),
+         url("{% static 'fonts/Vazir-Black.woff' %}") format('woff'),
+
+    font-weight: normal;
+    font-style: normal;
+}
+
+/* اعمال فونت روی همه input های فرم و جدول */
+body, input, select, textarea {
+    font-family: 'Vazir', sans-serif !important;
+    direction: rtl;
+    text-align: right;
+}
+
+/* مخصوص ویجت jQuery UI که django-jalali استفاده می‌کند */
+.ui-datepicker, .ui-datepicker table, .ui-datepicker td, .ui-datepicker th {
+    font-family: 'Vazir', sans-serif !important;
+    direction: rtl !important;
+    text-align: center; /* برای ظاهر مرتب روزها */
+}
+.breadcrumb-box {
+  background: #fff;
+  border-radius: 12px;
+  padding: 15px 20px;
+  position: relative;
+  border: 1px solid #e0e0e0;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+
+
+}
+/* نوار رنگی بالایی */
+.breadcrumb-box::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 10px;
+  width: 100%;
+  background: #00CED1;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+}
+
+/* برچسب‌ها */
+.breadcrumb-box label {
+  font-weight: 600;
+  color: #333;
+}
+
+/* ورودی‌ها و select‌ها */
+.breadcrumb-box input[type="text"],
+.breadcrumb-box select {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-size: 13px;
+  transition: all 0.2s ease;
+  background-color: #fafafa;
+}
+
+.breadcrumb-box input[type="text"]:focus,
+.breadcrumb-box select:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 3px rgba(0, 123, 255, 0.3);
+  outline: none;
+}
+
+
+/* باکس راهنمای فرم داخل breadcrumb دوم */
+.help-box {
+    margin-top: 10px;
+}
+
+/* ظاهر عنوان راهنما */
+.help-details {
+    width: 100%;
+}
+
+.help-summary {
+    list-style: none;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 14px;
+    padding: 8px 10px;
+    margin: 0;
+    border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* آیکون مثلث پیش‌فرض را حذف می‌کنیم و خودمان استایل می‌دهیم */
+.help-summary::-webkit-details-marker {
+    display: none;
+}
+
+.help-summary::before {
+    content: "▼";
+    font-size: 11px;
+    margin-left: 6px;
+}
+
+/* وقتی جمع است */
+.help-details[open] .help-summary::before {
+    content: "▲";
+}
+
+/* متن داخل راهنما */
+.help-body {
+    padding: 10px 5px 5px 5px;
+    font-size: 13px;
+    line-height: 1.8;
+}
+table th, table td {
+    -webkit-print-color-adjust: exact !important;
+}
+@media print {
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+  /* چاپ فقط printable */
+  body * {
+    visibility: hidden !important;
+  }
+  .printable, .printable * {
+    visibility: visible !important;
+  }
+
+  .printable {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100% !important;
+  }
+
+  /* جلوگیری از جدا شدن دو جدول */
+  .printable table {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* جلوگیری کامل از page-break */
+  .printable tr,
+  .printable td,
+  .printable th {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* حذف margin اضافی بین جدول ها */
+  .printable table {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* صفحه افقی */
+  @page {
+    size: A4 landscape;
+    margin: 10mm;
+  }
+}
+
+
+/* باکس راهنمای فرم داخل breadcrumb دوم */
+.help-box {
+    margin-top: 10px;
+}
+
+/* ظاهر عنوان راهنما */
+.help-details {
+    width: 100%;
+}
+
+.help-summary {
+    list-style: none;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 14px;
+    padding: 8px 10px;
+    margin: 0;
+    border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* آیکون مثلث پیش‌فرض را حذف می‌کنیم و خودمان استایل می‌دهیم */
+.help-summary::-webkit-details-marker {
+    display: none;
+}
+
+.help-summary::before {
+    content: "▼";
+    font-size: 11px;
+    margin-left: 6px;
+}
+
+/* وقتی جمع است */
+.help-details[open] .help-summary::before {
+    content: "▲";
+}
+
+/* متن داخل راهنما */
+.help-body {
+    padding: 10px 5px 5px 5px;
+    font-size: 13px;
+    line-height: 1.8;
+}
+table th, table td {
+    -webkit-print-color-adjust: exact !important;
+}
+</style>
+
+<!-- فرم انتخاب تاریخ و شبکه -->
+<div class="col-md-12">
+  <div class="breadcrumb-box shadow">
+    <div class="breadcrumb-right">
+      <form method="post" class="mb-3">
+        {% csrf_token %}
+        <div class="d-flex flex-wrap align-items-center gap-3">
+
+          <label for="id_p_date">تاریخ:</label>
+          {{ header_form.p_date }}
+          {{ header_form.media }}
+
+          <!-- شبکه -->
+          <div class="col-auto d-flex align-items-center">
+              <label for="id_network" class="form-label mb-0 me-2">شبکه:</label>
+              {{ header_form.network }}
+          </div>
+
+          <!-- صدابردار -->
+          <div class="col-auto d-flex align-items-center">
+              <label class="form-label mb-0 me-2" for="id_sound_recorder">صدابردار:</label>
+              {{ header_form.sound_recorder }}
+          </div>
+
+          <!-- انتخاب جدول -->
+          <div class="col-auto d-flex align-items-center">
+              <label for="shift_table_choice" class="form-label mb-0 me-3 fw-bold">جدول شیفت:</label>
+              <select name="shift_table_choice" id="shift_table_choice" class="form-select" style="min-width:150px;">
+                  <option value="">انتخاب کنید</option>
+                  <option value="1" {% if request.session.shift_table_choice == '1' %}selected{% endif %}>لوح ابتدایی</option>
+                  <option value="2" {% if request.session.shift_table_choice == '2' %}selected{% endif %}>لوح برآورد</option>
+              </select>
+          </div>
+
+          <!-- دکمه‌ها -->
+          <div class="col-auto d-flex align-items-center gap-2">
+              <button type="submit" name="show_button" class="btn btn-info">
+                  <span class="fa fa-eye"></span> نمایش</button>
+              <button type="button" id="btn-print-hardcopy" class="btn btn-warning btn-lg">
+                  <span class="fa fa-print"></span>
+                  چاپ
+                  
+              </button>
+              <button type="button" id="btn-excel" class="btn btn-success btn">
+                  <span class="fas fa-file-excel"></span>
+                  ذخیره اکسل
+              </button>
+{#              <button type="button" id="btn-pdf" class="btn btn-danger">ذخیره PDF</button>#}
+          </div>
+
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- 🔹 راهنمای فرم گزارش داخل یک breadcrumb-box جدا -->
+<div class="col-md-12 mt-3">
+  <div class="breadcrumb-box shadow help-box">
+    <details class="help-details" >
+      <summary class="help-summary">
+        💡 راهنمای استفاده از فرم گزارش
+      </summary>
+      <div class="help-body">
+        <ul class="mb-0">
+          <li><strong>دکمه "نمایش" : </strong>قبل از نمایش شیفت ها دقت کنید فقط شبکه یا صدابردار را انتخاب کنید و حتما جدول شیفت انتخاب شود.</li>
+          <li><strong>دکمه "چاپ" : </strong> برای چاپ و ذخیره فایل pdf. در هنگام چاپ برای نمایش رنگ ها حتما گزینه 'Print backgrounds' فعال باشد.</li>
+          <li><strong>نکته:</strong> اگر صدابردار بیش از ۱۶ ساعت شیفت متوالی داشته باشد یا شیفتش با شیفت دیگری هم‌پوشانی داشته باشد، ثبت انجام نمی‌شود.</li>
+        </ul>
+      </div>
+    </details>
+  </div>
+</div>
+
+<!-- جدول شیفت‌ها -->
+<div class="printable">
+<table id="shift-table" class="table table-bordered text-center">
+    <!--  تیتر کلی جدول (سطر بالایی) -->
+    <thead>
+        <tr class="header-table">
+        <th colspan="{{ shift_columns|length|add:'2' }}" class="header-title shift-title">
+          {% if sound_recorder %}
+            صدابردار {{ sound_recorder.id_personal.first_name }} {{ sound_recorder.id_personal.last_name }}
+          {% else %}
+            اطلاعاتی جهت نمایش وجود ندارد
+          {% endif %}
+        </th>
+      </tr>
+      <!-- ردیف ستون‌ها -->
+
+      <tr>
+        <th>تاریخ</th>
+        <th>روز</th>
+        <th>شیفت اول (14-6)</th>
+        <th>شیفت دوم (22-14)</th>
+        <th>شیفت سوم (6-22)</th>
+      </tr>
+    </thead>
+<!--  بدنه جدول -->
+    <tbody>
+        {% for day in daily_forms %}
+        <tr>
+            <td>{{ day.jalali_date }}</td>
+            <td>{{ day.jalali_day_name }}</td>
+            {% for shift_num in shift_columns %}
+            {% with cells=shift_lookup|get_item:day.greg_date|get_item:shift_num %}
+            <td class="shift-cell">
+                {% if cells %}
+                    {% for c in cells %}
+                        <div style="height:50%; padding:2px;">{{ c }}</div>
+                    {% endfor %}
+                {% endif %}
+            </td>
+            {% endwith %}
+            {% endfor %}
+        </tr>
+
+        {% if forloop.counter|divisibleby:25 %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="{{ shift_columns|length|add:'2' }}" style="border-top:2px solid #000;"></td>
+                </tr>
+            </tfoot>
+            <tbody>
+        {% endif %}
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  let selectedCells = [];
+
+  // 🔹 1. auto submit
+  const autoSubmitFields = [
+    "id_p_date",
+    "id_network",
+    "id_sound_recorder",
+    "shift_table_choice"
+  ];
+
+  // --- انتخاب سلول جدول ---
+  const cells = document.querySelectorAll("#tableForm td[contenteditable='true']");
+  cells.forEach(cell => {
+    cell.addEventListener("click", function(e) {
+      if (e.ctrlKey) {
+        // حالت انتخاب چندگانه
+        if (this.classList.contains("selected")) {
+          this.classList.remove("selected");
+          selectedCells = selectedCells.filter(c => c !== this);
+        } else {
+          this.classList.add("selected");
+          selectedCells.push(this);
+        }
+      } else {
+        // حالت انتخاب تکی
+        cells.forEach(c => c.classList.remove("selected"));
+        this.classList.add("selected");
+        selectedCells = [this];
+      }
+    });
+  });
+
+  // --- انتخاب صدابردار از dropdown بالایی ---
+  const altDropdown = document.getElementById("id_sound_recorder");
+  if (altDropdown) {
+    let lastValue = null;
+
+    altDropdown.addEventListener("mousedown", function(e) {
+      lastValue = this.value;
+    });
+
+    altDropdown.addEventListener("mouseup", function(e) {
+      if (this.value === lastValue) {
+        this.dispatchEvent(new Event("forcechange", { bubbles: true }));
+      }
+    });
+
+    function handleSelection() {
+      const selectedOption = this.options[this.selectedIndex];
+      const selectedText = selectedOption.text;
+      const selectedId = selectedOption.value;
+
+      if (selectedCells.length > 0 && selectedId) {
+        selectedCells.forEach(cell => {
+          // نمایش متن در سلول
+          let span = cell.querySelector(".recorder-name");
+          if (!span) {
+            span = document.createElement("span");
+            span.classList.add("recorder-name");
+            cell.insertBefore(span, cell.firstChild);
+          }
+          span.innerText = selectedText;
+
+          // hidden ها
+          let hiddenId = cell.querySelector("input[name='alt_sound_recorder_ids[]']");
+          hiddenId.value = selectedId;
+        });
+      }
+    }
+
+    altDropdown.addEventListener("change", handleSelection);
+    altDropdown.addEventListener("forcechange", handleSelection);
+  }
+  // 🟢 هماهنگی hidden_p_date با تاریخ انتخابی از تقویم بالایی
+const pDateInput = document.getElementById("id_p_date");
+const hiddenDateInput = document.getElementById("hidden_p_date");
+
+if (pDateInput && hiddenDateInput) {
+  pDateInput.addEventListener("change", function() {
+    hiddenDateInput.value = this.value;  // هر وقت تاریخ عوض شد hidden هم آپدیت بشه
+  });
+}
+
+});
+</script>
+
+<script>
+document.getElementById("btn-print-hardcopy").addEventListener("click", print_report);
+
+function print_report() {
+
+    const printable = document.querySelector(".printable");
+    if (!printable) {
+        alert("بخش قابل چاپ پیدا نشد!");
+        return;
+    }
+
+    const printContent = printable.innerHTML;
+
+    const printWindow = window.open("", "_blank", "width=1400,height=900");
+
+    printWindow.document.write(`
+        <html dir="rtl" lang="fa">
+        <head>
+            <title>چاپ گزارش شیفت</title>
+
+            <style>
+                body {
+                    font-family: Vazir, sans-serif;
+                    direction: rtl;
+                    text-align: center;
+                }
+
+                @page {
+                    size: A4 landscape;
+                    margin: 10mm;
+                }
+
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    font-size: 14px;
+                    margin: 0 !important;
+                }
+
+                table, th, td {
+                    border: 1px solid #000;
+                    padding: 4px;
+                }
+
+                th {
+                    background-color: #e6f2ff;
+                }
+
+                /* جلوگیری از شکسته شدن بین جدول‌ها */
+                table, tr, td, th {
+                    page-break-inside: avoid !important;
+                }
+            </style>
+        </head>
+
+        <body>
+            ${printContent}
+        </body>
+        </html>
+    `);
+
+    printWindow.document.close();
+
+    setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+    }, 400);
+}
+</script>
+
+<script>
+document.getElementById('btn-excel').addEventListener('click', function () {
+    const table = document.getElementById('shift-table');
+    if (!table) { alert(" جدول پیدا نشد!"); return; }
+    const workbook = XLSX.utils.table_to_book(table, { sheet: "گزارش شیفت" });
+    XLSX.writeFile(workbook, "گزارش_شیفت.xlsx");
+});
+</script>
+
+
+{#<script>#}
+{#document.getElementById('btn-pdf').addEventListener('click', function() {#}
+{#    const element = document.querySelector('.printable'); // فقط جدول و تیتر#}
+{#    if (!element) { alert("محتوا برای PDF پیدا نشد!"); return; }#}
+{##}
+{#    const opt = {#}
+{#        margin:       0.5,#}
+{#        filename:     'گزارش_شیفت.pdf',#}
+{#        image:        { type: 'jpeg', quality: 0.98 },#}
+{#        html2canvas:  { scale: 2, useCORS: true },#}
+{#        jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' } // ← افقی#}
+{#    };#}
+{#    html2pdf().set(opt).from(element).save();#}
+
+{#</script>    #}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const table = document.getElementById("shift-table");
+
+    // --- رنگ هدر: (هرچی هست حفظ یا تغییرش می‌دیم) ---
+    const headerCells = table.querySelectorAll("thead th");
+    headerCells.forEach(th => {
+        const bg = window.getComputedStyle(th).backgroundColor || "#e8e8e8";
+        const color = window.getComputedStyle(th).color || "#000";
+
+        th.style.setProperty("background-color", bg, "important");
+        th.style.setProperty("color", color, "important");
+    });
+
+    // --- رنگ روزهای خاص ---
+    const dayColorMap = {
+        "پنجشنبه": "#EACFDA",
+        "جمعه": "#EACFDA",
+
+    };
+
+    const rows = table.querySelectorAll("tbody tr");
+    rows.forEach(row => {
+
+        const dayCell = row.querySelector("td:nth-child(2)");
+        if (!dayCell) return;
+
+        const rawDay = dayCell.innerText.trim().replace(/\s|‌/g, "");
+
+        const defaultColor = dayColorMap[rawDay];
+
+        // اگر رنگ پیش‌فرض داشته باشد → کل ردیف رنگ می‌گیرد
+        if (defaultColor) {
+            row.querySelectorAll("td").forEach(td => {
+                td.style.setProperty("background-color", defaultColor, "important");
+            });
+        }
+
+        // --- امکان تغییر رنگ با کلیک ---
+        dayCell.style.cursor = "pointer";
+        dayCell.title = "برای تغییر رنگ این روز کلیک کنید";
+
+        dayCell.addEventListener("click", function () {
+            const picker = document.createElement("input");
+            picker.type = "color";
+            picker.style.opacity = "0";
+            picker.style.position = "absolute";
+            document.body.appendChild(picker);
+
+            picker.addEventListener("input", () => {
+                const newColor = picker.value;
+
+                row.querySelectorAll("td").forEach(td => {
+                    td.style.setProperty("background-color", newColor, "important");
+                });
+            });
+
+            picker.addEventListener("change", () => picker.remove());
+            picker.click();
+        });
+
+    });
+
+    // --- تضمین چاپ: قبل از print همه رنگ‌ها inline می‌شن ---
+    window.addEventListener("beforeprint", function () {
+        const allCells = table.querySelectorAll("th, td");
+        allCells.forEach(cell => {
+            const styles = window.getComputedStyle(cell);
+            cell.style.setProperty("background-color",
+                styles.backgroundColor,
+                "important"
+            );
+            cell.style.setProperty("color",
+                styles.color,
+                "important"
+            );
+        });
+    });
+
+});
+</script>
+{% endblock %}

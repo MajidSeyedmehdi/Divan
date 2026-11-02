@@ -1,0 +1,688 @@
+{% extends 'main/base.html' %}
+{% load static %}
+{% load shift_tags %}
+
+<link rel="stylesheet" href="{% static 'assets/css/style.css' %}">
+{% block content %}
+<script src="{% static 'admin/js/vendor/jquery/jquery.js' %}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<style>
+    body {
+        background-color: #f8f9fa;
+        font-family: 'Vazir', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    .card-header {
+        font-weight: 600;
+    }
+    .table th {
+        background-color: #f1f5f9;
+        border-bottom: 2px solid #dee2e6;
+        font-weight: 600;
+    }
+    .form-select:disabled {
+        background-color: #e9ecef;
+        cursor: not-allowed;
+    }
+    .input-group {
+        max-width: 250px;
+    }
+    .success-message {
+        animation: fadeOut 3s forwards;
+    }
+    @keyframes fadeOut {
+        0% { opacity: 1; }
+        70% { opacity: 1; }
+        100% { opacity: 0; display: none; }
+    }
+    
+    .rate-edit-input {
+        -webkit-appearance: none;
+        -moz-appearance: textfield;
+        appearance: none;
+    }
+    
+    .rate-edit-input::-webkit-outer-spin-button,
+    .rate-edit-input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+</style>
+
+
+<div class="container-fluid">
+                    <div class="row">                    
+                        <!-- BEGIN BREADCRUMB -->
+                        <div class="col-md-12">
+                            <div class="breadcrumb-box shadow">
+                                <ul class="breadcrumb">
+                                    <li><a href="http://localhost:8000/home/">آمار و اطلاعات فنی</a></li>
+                                    <li class="active">تنظیمات</li>
+                                </ul>
+                            
+                        <!-- END BREADCRUMB -->                        
+                      <!-- بسته شدن row اول -->
+                        <div class="col-lg-12">
+                            <div class="portlet box shadow">
+                                <div class="portlet-heading">
+                               
+                                    <div class="buttons-box">
+                                        
+                                        <div class="code-modal hide">
+
+                                        </div>
+                                        
+                                        <a class="btn btn-sm btn-default btn-round btn-collapse" rel="tooltip" title="کوچک کردن" href="#">
+                                            <i class="icon-arrow-up"></i>
+                                        </a>
+                                    </div><!-- /.buttons-box -->
+                              <div class="portlet-body">
+  
+
+            {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                <div class="alert {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'success' %}alert-success{% elif message.tags == 'warning' %}alert-warning{% elif message.tags == 'info' %}alert-info{% else %}alert-info{% endif %} alert-dismissible fade show" role="alert">
+                    <div class="d-flex align-items-center">
+                        {% if message.tags == 'error' %}
+                            <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
+                        {% elif message.tags == 'success' %}
+                            <i class="bi bi-check-circle-fill me-2 fs-5"></i>
+                        {% elif message.tags == 'warning' %}
+                            <i class="bi bi-exclamation-circle-fill me-2 fs-5"></i>
+                        {% elif message.tags == 'info' %}
+                            <i class="bi bi-info-circle-fill me-2 fs-5"></i>
+                        {% endif %}
+                        
+                        <div>
+                            <strong>
+                                {% if message.tags == 'error' %}
+                                    خطا!
+                                {% elif message.tags == 'success' %}
+                                    موفقیت!
+                                {% elif message.tags == 'warning' %}
+                                    هشدار!
+                                {% elif message.tags == 'info' %}
+                                    اطلاعات!
+                                {% endif %}
+                            </strong>
+                            {{ message }}
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        <!-- هدر -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="mb-0">
+                <i class="bi bi-cash-coin text-primary me-2"></i>
+                مدیریت نرخ شیفت
+            </h4>
+        </div>
+
+        <!-- فیلترها -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white py-2">
+                <h6 class="mb-0">
+                    <i class="bi bi-funnel me-2"></i>فیلترها
+                </h6>
+            </div>
+            <div class="card-body p-3">
+                <form method="get" id="filterForm">
+                    <div class="row g-3">
+                        <!-- شغل -->
+                        <div class="col-md-3">
+                            <label class="form-label mb-1">شغل</label>
+                            {{ form.job }}
+                        </div>
+                        
+                        <!-- رده شغلی -->
+                        <div class="col-md-3">
+                            <label class="form-label mb-1">رده شغلی</label>
+                            {{ form.level }}
+                        </div>
+                        
+                        <!-- نوع شیفت -->
+                        <div class="col-md-3">
+                            <label class="form-label mb-1">نوع شیفت</label>
+                            {{ form.shift_type }}
+                        </div>
+                        
+                        <!-- شماره شیفت -->
+                        <div class="col-md-3">
+                    <label class="form-label mb-1">شماره شیفت</label>
+                    <select name="shift_name" id="id_shift_name" class="form-select">
+                        <option value="">همه</option>
+                        {% if shift_names %}
+                            {% for name in shift_names %}
+                                <option value="{{ name }}" {% if selected_params.shift_name == name %}selected{% endif %}>{{ name }}</option>
+                            {% endfor %}
+                        {% endif %}
+                    </select>
+                </div>
+                    </div>
+                    
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    {% if selected_params.job or selected_params.level or selected_params.shift_type or selected_params.shift_name %}
+                                    <a href="{% url 'information:setting:shift_rate:shift_rate_view' %}" class="btn btn-outline-secondary btn-sm">
+                                        <i class="bi bi-x-circle me-1"></i>پاک کردن فیلترها
+                                    </a>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <button type="submit" class="btn btn-primary btn-sm">
+                                        <i class="bi bi-search me-1"></i>اعمال فیلتر
+                                    </button>
+                                    <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#addModal">
+                                        <i class="bi bi-plus-circle me-1"></i>افزودن نرخ جدید
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+                              
+                               </div><!-- /.portlet-body -->
+                            </div><!-- /.portlet -->
+                        </div><!-- /.col-lg-12 -->
+                  </div><!-- /.row -->
+        <!-- آمار -->
+        <div class="row mb-3">
+            <div class="col-md-12">
+                <div class="alert alert-info py-2">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="bi bi-info-circle me-2"></i>
+                            <span class="me-3">تعداد کل: <strong>{{ shift_rates|length }}</strong></span>
+                            {% if selected_params.job or selected_params.level or selected_params.shift_type or selected_params.shift_name %}
+                            <span class="me-3">فیلتر شده</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- جدول نرخ‌ها -->
+        <div class="card shadow-sm">
+            <div class="card-body p-0">
+                {% if shift_rates %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th width="40">ردیف</th>
+                                <th>شغل</th>
+                                <th>رده شغلی</th>
+                                <th>نوع شیفت</th>
+                                <th width="100" class="text-center">شماره شیفت</th>
+                                <th width="250" class="text-center">نرخ (ریال)</th>
+                                <th width="100" class="text-center">ویرایش</th>
+                                <th width="80" class="text-center">حذف</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for rate in shift_rates %}
+                            <tr>
+                                <td class="text-muted">{{ forloop.counter }}</td>
+                                <td>{{ rate.id_current_job.current_job }}</td>
+                                <td>{{ rate.id_levels.levels }}</td>
+                                <td>
+                                    {% if rate.id_shift_type %}
+                                        {{ shift_type_map|get_item:rate.id_shift_type|default:rate.id_shift_type }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    {% if rate.shift_name %}  <!-- از shift_name استفاده کن -->
+                                        {{ rate.shift_name }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                                                <td>
+                                    <form method="post" action="{% url 'information:setting:shift_rate:update_rate' %}" class="update-form" id="update-form-{{ rate.id_shift_rate }}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="rate_id" value="{{ rate.id_shift_rate }}">
+                                        <!-- پارامترهای فیلتر برای برگشت -->
+                                        {% if selected_params.job %}
+                                            <input type="hidden" name="job" value="{{ selected_params.job }}">
+                                        {% endif %}
+                                        {% if selected_params.level %}
+                                            <input type="hidden" name="level" value="{{ selected_params.level }}">
+                                        {% endif %}
+                                        {% if selected_params.shift_type %}
+                                            <input type="hidden" name="shift_type" value="{{ selected_params.shift_type }}">
+                                        {% endif %}
+                                        {% if selected_params.shift_name %}
+                                            <input type="hidden" name="shift_name" value="{{ selected_params.shift_name }}">
+                                        {% endif %}
+                                        
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div style="width: 160px;">
+                                                <input type="text" 
+                                                       name="shift_rate" 
+                                                       id="addShiftRate"
+                                                       value="{{ rate.shift_rate }}" 
+                                                       class="form-control form-control-sm text-end rate-edit-input"
+                                                       dir="ltr"
+                                                       style="font-family: monospace;"
+                                                       required>
+                                            </div>
+{#                                        <button type="submit" class="btn btn-success btn-sm" title="ذخیره">#}
+{#                                            <i class="bi bi-check"></i>#}
+{#                                        </button>#}
+                                        </div>
+                                    
+                                    </form>
+                                </td>
+                                <td class="text-center">
+                                    <button type="submit" form="update-form-{{ rate.id_shift_rate }}" class="btn btn-success btn-sm" title="ویرایش">
+                                        <i class="bi bi-check"></i>
+                                    </button>
+                                </td>
+                                
+                                <td class="text-center">
+                                    <form method="post" action="{% url 'information:setting:shift_rate:delete_rate' %}" class="d-inline delete-form">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="rate_id" value="{{ rate.id_shift_rate }}">
+                                        <!-- پارامترهای فیلتر برای برگشت -->
+                                        {% if selected_params.job %}
+                                            <input type="hidden" name="job" value="{{ selected_params.job }}">
+                                        {% endif %}
+                                        {% if selected_params.level %}
+                                            <input type="hidden" name="level" value="{{ selected_params.level }}">
+                                        {% endif %}
+                                        {% if selected_params.shift_type %}
+                                            <input type="hidden" name="shift_type" value="{{ selected_params.shift_type }}">
+                                        {% endif %}
+                                        {% if selected_params.shift_name %}
+                                            <input type="hidden" name="shift_name" value="{{ selected_params.shift_name }}">
+                                        {% endif %}
+                                        
+                                        <button type="button" class="btn btn-danger btn-sm delete-btn">
+                                            <i class="bi bi-x"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-inbox display-4 text-muted mb-3"></i>
+                    <h5 class="text-muted">موردی یافت نشد</h5>
+                    {% if selected_params.job or selected_params.level or selected_params.shift_type or selected_params.shift_name %}
+                    <p class="text-muted mt-2">با فیلترهای فعلی نتیجه‌ای یافت نشد</p>
+                    <a href="{% url 'information:setting:shift_rate:shift_rate_view' %}" class="btn btn-outline-primary btn-sm mt-2">
+                        نمایش همه موارد
+                    </a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+<!-- مودال افزودن نرخ جدید -->
+<div class="modal fade" id="addModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-plus-circle me-2"></i>افزودن نرخ جدید
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'information:setting:shift_rate:add_rate' %}" id="addForm">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div id="addFormMessages"></div> <!-- اضافه شده -->
+                    
+                    <div class="row g-3">
+                        <!-- شغل -->
+                        <div class="col-md-12">
+                            <label class="form-label">شغل <span class="text-danger">*</span></label>
+                            <select name="job_id" id="addJobId" class="form-select form-select-sm" required>
+                                <option value="">انتخاب کنید</option>
+                                {% for value, text in form.job.field.choices %}
+                                    {% if value %}
+                                        <option value="{{ value }}">{{ text }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <!-- رده شغلی -->
+                        <div class="col-md-12">
+                            <label class="form-label">رده شغلی <span class="text-danger">*</span></label>
+                            <select name="level_id" id="addLevelId" class="form-select form-select-sm" required disabled>
+                                <option value="">ابتدا شغل را انتخاب کنید</option>
+                            </select>
+                        </div>
+                        
+                        <!-- نوع شیفت -->
+                        <div class="col-md-12">
+                            <label class="form-label">نوع شیفت <span class="text-danger">*</span></label>
+                            <select name="shift_type_id" id="addShiftTypeId" class="form-select form-select-sm" required>
+                                <option value="">انتخاب کنید</option>
+                                {% for value, text in form.shift_type.field.choices %}
+                                    {% if value %}
+                                        <option value="{{ value }}">{{ text }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <!-- شماره شیفت -->
+                        <div class="col-md-6">
+                            <label class="form-label">شماره شیفت <span class="text-danger">*</span></label>
+                            <select name="shift_name" id="addShiftName" class="form-select form-select-sm" required disabled>
+                                <option value="">ابتدا نوع شیفت را انتخاب کنید</option>
+                            </select>
+                        </div>
+                        
+                        <!-- نرخ -->
+                        <div class="col-md-6">
+                            <label class="form-label">نرخ (ریال) <span class="text-danger">*</span></label>
+                            <input type="text" 
+                                   name="shift_rate" 
+                                   id="addShiftRate"
+                                   class="form-control form-control-sm"
+                                   placeholder="مثال: 1000000"
+                                   required>
+                                  
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">انصراف</button>
+                    <button type="submit" class="btn btn-success btn-sm" id="submitAddBtn">
+                        <i class="bi bi-save me-1"></i>ذخیره
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        
+     $(document).ready(function() {
+    console.log("Document ready - Shift Rate page loaded");
+    
+    // ==================== فرم فیلتر اصلی ====================
+    
+    $('#id_job').change(function() {
+        const jobId = $(this).val();
+        const $levelSelect = $('#id_level');
+        
+        if (jobId) {
+            $levelSelect.prop('disabled', true).html('<option value="">در حال بارگذاری...</option>');
+            
+            $.ajax({
+                url: '{% url "information:setting:shift_rate:get_levels" %}',
+                data: {job_id: jobId},
+                success: function(data) {
+                    $levelSelect.empty().append('<option value="">همه</option>');
+                    if (data.levels && data.levels.length > 0) {
+                        $.each(data.levels, function(i, level) {
+                            $levelSelect.append(
+                                `<option value="${level.id}">${level.name}</option>`
+                            );
+                        });
+                    }
+                    $levelSelect.prop('disabled', false);
+                }
+            });
+        } else {
+            $levelSelect.empty().append('<option value="">همه</option>').prop('disabled', true);
+        }
+    });
+    
+    $('#id_shift_type').change(function() {
+        const shiftTypeId = $(this).val();
+        const $shiftNameSelect = $('#id_shift_name');
+        
+        if (shiftTypeId) {
+            $shiftNameSelect.prop('disabled', true).html('<option value="">در حال بارگذاری...</option>');
+            
+            $.ajax({
+                url: '{% url "information:setting:shift_rate:get_shift_names" %}',
+                data: {shift_type_id: shiftTypeId},
+                success: function(data) {
+                    $shiftNameSelect.empty().append('<option value="">همه</option>');
+                    if (data.names && data.names.length > 0) {
+                        $.each(data.names, function(i, name) {
+                            $shiftNameSelect.append(
+                                                `<option value="${name}">${name}</option>`  // فقط نام
+                            );
+                        });
+                    }
+                    $shiftNameSelect.prop('disabled', false);
+            },
+            error: function(xhr, status, error) {
+                console.error("Error:", error);
+                $shiftNameSelect.empty().append('<option value="">خطا در دریافت</option>');
+            }
+        });
+    } else {
+        $shiftNameSelect.empty().append('<option value="">همه</option>').prop('disabled', true);
+    }
+});
+    
+    // ==================== مودال افزودن ====================
+    
+    // وقتی مودال نمایش داده شد
+    $('#addModal').on('show.bs.modal', function() {
+        console.log("Add modal opened");
+        // ریست کردن فرم
+        $('#addForm')[0].reset();
+        $('#addLevelId').html('<option value="">ابتدا شغل را انتخاب کنید</option>').prop('disabled', true);
+        $('#addShiftName').html('<option value="">ابتدا نوع شیفت را انتخاب کنید</option>').prop('disabled', true);
+        $('#addFormMessages').empty();
+        $('#submitAddBtn').prop('disabled', false).html('<i class="bi bi-save me-1"></i>ذخیره');
+    });
+    
+    // AJAX برای رده‌ها در مودال
+    $('#addJobId').change(function() {
+        const jobId = $(this).val();
+        const $levelSelect = $('#addLevelId');
+        
+        console.log("Job changed in modal:", jobId);
+        
+        if (jobId) {
+            $levelSelect.prop('disabled', true).html('<option value="">در حال بارگذاری...</option>');
+            
+            $.ajax({
+                url: '{% url "information:setting:shift_rate:get_levels" %}',
+                data: {job_id: jobId},
+                success: function(data) {
+                    console.log("Levels data received:", data);
+                    $levelSelect.empty().append('<option value="">انتخاب کنید</option>');
+                    if (data.levels && data.levels.length > 0) {
+                        $.each(data.levels, function(i, level) {
+                            $levelSelect.append(
+                                `<option value="${level.id}">${level.name}</option>`
+                            );
+                        });
+                    }
+                    $levelSelect.prop('disabled', false);
+                },
+                error: function() {
+                    console.error("Error loading levels");
+                    $levelSelect.empty().append('<option value="">خطا در دریافت</option>');
+                }
+            });
+        } else {
+            $levelSelect.empty().append('<option value="">ابتدا شغل را انتخاب کنید</option>')
+                       .prop('disabled', true);
+        }
+    });
+    
+// AJAX برای نام شیفت‌ها در مودال
+    $('#addShiftTypeId').change(function() {
+        const shiftTypeId = $(this).val();
+        const $shiftNameSelect = $('#addShiftName');
+        
+        console.log("Shift type changed in modal:", shiftTypeId);
+        
+        if (shiftTypeId) {
+            $shiftNameSelect.prop('disabled', true).html('<option value="">در حال بارگذاری...</option>');
+            
+            $.ajax({
+                url: '{% url "information:setting:shift_rate:get_shift_names" %}',
+                data: {shift_type_id: shiftTypeId},
+                success: function(data) {
+                    console.log("Shift data received:", data);
+                    
+                    $shiftNameSelect.empty().append('<option value="">انتخاب کنید</option>');
+                    
+                    // بررسی کن ببین data.shifts داری یا data.names
+                    if (data.shifts && data.shifts.length > 0) {
+                        $.each(data.shifts, function(i, item) {
+                            $shiftNameSelect.append(
+                                `<option value="${item.shift_name}">${item.shift_number} - ${item.shift_name}</option>`
+                            );
+                        });
+                    } else if (data.names && data.names.length > 0) {
+                        $.each(data.names, function(i, item) {
+                            // اگه data.names داری و item شیء هست
+                            if (typeof item === 'object') {
+                                $shiftNameSelect.append(
+                                    `<option value="${item.shift_name}">${item.shift_number} - ${item.shift_name}</option>`
+                                );
+                            } else {
+                                // اگه item رشته هست (فقط نام)
+                                $shiftNameSelect.append(
+                                    `<option value="${item}">${item}</option>`
+                                );
+                            }
+                        });
+                    }
+                    
+                    $shiftNameSelect.prop('disabled', false);
+                },
+                error: function(xhr, status, error) {
+                    console.error("Error loading shift names:", error);
+                    $shiftNameSelect.empty().append('<option value="">خطا در دریافت</option>');
+                }
+            });
+        } else {
+            $shiftNameSelect.empty().append('<option value="">ابتدا نوع شیفت را انتخاب کنید</option>')
+                           .prop('disabled', true);
+        }
+    });
+    
+    // اعتبارسنجی فرم مودال
+    $('#addForm').on('submit', function(e) {
+        console.log("========== FORM SUBMIT DEBUG ==========");
+        
+        const jobId = $('#addJobId').val();
+        const levelId = $('#addLevelId').val();
+        const shiftTypeId = $('#addShiftTypeId').val();
+        const shiftName = $('#addShiftName').val();  // این shiftName هست
+        const shiftRate = $('#addShiftRate').val();
+        
+        console.log("job_id:", jobId);
+        console.log("level_id:", levelId);
+        console.log("shift_type_id:", shiftTypeId);
+        console.log("shift_name:", shiftName);
+        console.log("shift_rate:", shiftRate);
+        
+        let isValid = true;
+        let errorMessage = '';
+        
+        if (!jobId) {
+            errorMessage = 'لطفا شغل را انتخاب کنید';
+            isValid = false;
+        } else if (!levelId || $('#addLevelId').prop('disabled')) {
+            errorMessage = 'لطفا رده شغلی را انتخاب کنید';
+            isValid = false;
+        } else if (!shiftTypeId) {
+            errorMessage = 'لطفا نوع شیفت را انتخاب کنید';
+            isValid = false;
+        } else if (!shiftName || $('#addShiftName').prop('disabled')) {
+            errorMessage = 'لطفا نام شیفت را انتخاب کنید';  // پیام اصلاح شد
+            isValid = false;
+        } else if (!shiftRate) {
+            errorMessage = 'لطفا نرخ را وارد کنید';
+            isValid = false;
+        }
+        
+        if (!isValid) {
+            $('#addFormMessages').html(`
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    ${errorMessage}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `);
+            e.preventDefault();
+            return false;
+        }
+        
+        $('#submitAddBtn').prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>در حال ذخیره...');
+        return true;
+    });
+        
+    // ==================== عملیات حذف ====================
+    
+    $('.delete-btn').click(function() {
+        const form = $(this).closest('.delete-form');
+        const rateId = form.find('input[name="rate_id"]').val();
+        
+        if (confirm('آیا از حذف این نرخ اطمینان دارید؟\nاین عمل غیرقابل بازگشت است.')) {
+            form.submit();
+        }
+    });
+    
+    // ==================== عملیات ویرایش ====================
+    
+    $('.update-form').submit(function(e) {
+        const input = $(this).find('input[name="shift_rate"]');
+        const value = input.val().trim();
+        
+        if (!value) {
+            alert('لطفا نرخ را وارد کنید');
+            e.preventDefault();
+            return false;
+        }
+        
+        return true;
+    });
+    
+    // ==================== تست سریع ====================
+    
+    // تست: چک کردن وجود همه المان‌ها
+    console.log("Testing element existence:");
+    console.log("- #addForm exists:", $('#addForm').length > 0);
+    console.log("- #addJobId exists:", $('#addJobId').length > 0);
+    console.log("- #addLevelId exists:", $('#addLevelId').length > 0);
+    console.log("- #addShiftTypeId exists:", $('#addShiftTypeId').length > 0);
+    console.log("- #addShiftNumber exists:", $('#addShiftNumber').length > 0);
+    console.log("- #addShiftRate exists:", $('#addShiftRate').length > 0);
+    console.log("- #submitAddBtn exists:", $('#submitAddBtn').length > 0);
+});   
+     
+    // تابع کمکی get_item برای تمپلیت
+     function getItem(dict, key) {
+    return dict && dict[key] ? dict[key] : '';
+}
+</script>
+</div></div></div>
+{% endblock %}

@@ -404,15 +404,16 @@ table th, table td {
               <label for="shift_table_choice" class="form-label mb-0 me-3 fw-bold">جدول شیفت:</label>
               <select name="shift_table_choice" id="shift_table_choice" class="form-select" style="min-width:150px;">
                   <option value="">انتخاب کنید</option>
-                  <option value="1" {% if request.session.shift_table_choice == '1' %}selected{% endif %}>لوح ابتدایی</option>
-                  <option value="2" {% if request.session.shift_table_choice == '2' %}selected{% endif %}>لوح برآورد</option>
+                  <option value="1" {% if request.session.shift_table_choice == '1' %}selected{% endif %}>شیفت اولیه</option>
+                  <option value="2" {% if request.session.shift_table_choice == '2' %}selected{% endif %}>شیفت نهایی</option>
               </select>
           </div>
 
           <!-- دکمه‌ها -->
           <div class="col-auto d-flex align-items-center gap-2">
-              <button type="submit" name="show_button" class="btn btn-info">
-                  <span class="fa fa-eye"></span> نمایش</button>
+              <button type="submit" formaction="{% url 'sound_recorders:current_affairs:sound_shift_search:sound_shift_search' %}" class="btn btn-primary">
+                    گزارش ماهانه
+                </button>
               <button type="button" id="btn-print-hardcopy" class="btn btn-warning btn-lg">
                   <span class="fa fa-print"></span>
                   چاپ
@@ -422,7 +423,9 @@ table th, table td {
                   <span class="fas fa-file-excel"></span>
                   ذخیره اکسل
               </button>
-{#              <button type="button" id="btn-pdf" class="btn btn-danger">ذخیره PDF</button>#}
+              <button type="submit" formaction="{% url 'sound_recorders:current_affairs:sound_shift_search:search_shift_weekly' %}" class="btn btn-info">
+                گزارش هفتگی
+              </button>
           </div>
 
         </div>
@@ -442,14 +445,12 @@ table th, table td {
         <ul class="mb-0">
           <li><strong>دکمه "نمایش" : </strong>قبل از نمایش شیفت ها دقت کنید فقط شبکه یا صدابردار را انتخاب کنید و حتما جدول شیفت انتخاب شود.</li>
           <li><strong>دکمه "چاپ" : </strong> برای چاپ و ذخیره فایل pdf. در هنگام چاپ برای نمایش رنگ ها حتما گزینه 'Print backgrounds' فعال باشد.</li>
-          <li><strong>نکته : </strong> اگر صدابردار بیش از ۱۶ ساعت شیفت متوالی داشته باشد یا شیفتش با شیفت دیگری هم‌پوشانی داشته باشد، ثبت انجام نمی‌شود.</li>
+          
         </ul>
       </div>
     </details>
   </div>
 </div>
-
-
 
 <!-- پیام خطا -->
 {% if error_message %}
@@ -460,306 +461,88 @@ table th, table td {
 <!-- جدول شیفت‌ها -->
 <div class="printable">
 
-<table id="shift-table" class="table table-bordered text-center">
+{% for net_name, lookup in net_lookup.items %}
 
-    <!--  تیتر کلی جدول (سطر بالایی) -->
+<table class="table table-bordered text-center mt-4 shift-table">
+
     <thead>
-{#        <tr class="header-table">#}
-{#            <th class="header-title" colspan="{{ shifts|length|add:2 }}">#}
-{#                {% if sound_recorder %}#}
-{#                    صدابردار {{ sound_recorder.id_personal.first_name }} {{ sound_recorder.id_personal.last_name }}#}
-{#                {% elif network %}#}
-{#                    شبکه {{ network.network }}#}
-{#                {% else %}#}
-{#                    اطلاعاتی جهت نمایش وجود ندارد#}
-{#                {% endif %}#}
-{#            </th>#}
-{#        </tr>#}
+        <tr class="header-table">
+            <th colspan="{{ shifts_by_network|get_item:net_name|length|add:2 }}">
+                شبکه {{ net_name }}
+            </th>
+        </tr>
 
-        <!--  تیتر ستون‌ها -->
-{#        <tr>#}
-{#            <th>تاریخ</th>#}
-{#            <th>روز</th>#}
-{#            {% for shift in shifts %}#}
-{#                <th>{{ shift.shift_name }}</th>#}
-{#            {% endfor %}#}
-{#        </tr>#}
-{#    </thead>#}
-{##}
-{#    <!--  بدنه جدول -->#}
-    <tbody>
-        <div class="printable">
-
-            {% for net_name, lookup in net_lookup.items %}
-            
-                <table class="table table-bordered text-center mt-4">
-            
-                    <thead>
-                        <!-- نام شبکه در سطر اول -->
-                        <tr>
-                            <th colspan="{{ shifts_by_network|get_item:net_name|length|add:2 }}">
-                                شبکه {{ net_name }}
-                            </th>
-                        </tr>
-            
-                        <!-- هدر ستون‌ها -->
-                        <tr>
-                            <th>تاریخ</th>
-                            <th>روز</th>
-            
-                            {% for sh in shifts_by_network|get_item:net_name %}
-                                <th>{{ sh.shift_name }}</th>
-                            {% endfor %}
-                        </tr>
-                    </thead>
-            
-                    <tbody>
-                        {% for day in daily_forms %}
-                            <tr>
-                                <td>{{ day.jalali_date }}</td>
-                                <td>{{ day.jalali_day_name }}</td>
-            
-                                {% for sh in shifts_by_network|get_item:net_name %}
-                                    {% with cell=net_lookup|get_item:net_name|get_item:day.greg_date|get_item:sh.id_shift %}
-                                        <td>
-                                            {% if cell %}
-                                                {{ cell|clean_rec_name }}
-                                            {% else %}
-                                                -
-                                            {% endif %}
-                                        </td>
-                                    {% endwith %}
-                                {% endfor %}
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-            
-                </table>
-            
+        <tr>
+            <th>تاریخ</th>
+            <th>روز</th>
+            {% for sh in shifts_by_network|get_item:net_name %}
+                <th>{{ sh.shift_time }}</th>
             {% endfor %}
-            
-            </div>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for day in daily_forms %}
+        <tr>
+            <td>{{ day.jalali_date }}</td>
+            <td class="day-cell">{{ day.jalali_day_name }}</td>
+            {% for sh in shifts_by_network|get_item:net_name %}
+                {% with cell=net_lookup|get_item:net_name|get_item:day.greg_date|get_item:sh.id_shift %}
+                <td>
+                    {% if cell %}
+                        {{ cell|clean_rec_name }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+                {% endwith %}
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </tbody>
+
 </table>
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-  let selectedCells = [];
 
-  // 🔹 1. auto submit
-  const autoSubmitFields = [
-    "id_p_date",
-    "id_network",
-    "id_sound_recorder",
-    "shift_table_choice"
-  ];
+{% endfor %}
 
-  // --- انتخاب سلول جدول ---
-  const cells = document.querySelectorAll("#tableForm td[contenteditable='true']");
-  cells.forEach(cell => {
-    cell.addEventListener("click", function(e) {
-      if (e.ctrlKey) {
-        // حالت انتخاب چندگانه
-        if (this.classList.contains("selected")) {
-          this.classList.remove("selected");
-          selectedCells = selectedCells.filter(c => c !== this);
-        } else {
-          this.classList.add("selected");
-          selectedCells.push(this);
-        }
-      } else {
-        // حالت انتخاب تکی
-        cells.forEach(c => c.classList.remove("selected"));
-        this.classList.add("selected");
-        selectedCells = [this];
-      }
-    });
-  });
+</div>
 
-  // --- انتخاب صدابردار از dropdown بالایی ---
-  const altDropdown = document.getElementById("id_sound_recorder");
-  if (altDropdown) {
-    let lastValue = null;
-
-    altDropdown.addEventListener("mousedown", function(e) {
-      lastValue = this.value;
-    });
-
-    altDropdown.addEventListener("mouseup", function(e) {
-      if (this.value === lastValue) {
-        this.dispatchEvent(new Event("forcechange", { bubbles: true }));
-      }
-    });
-
-    function handleSelection() {
-      const selectedOption = this.options[this.selectedIndex];
-      const selectedText = selectedOption.text;
-      const selectedId = selectedOption.value;
-
-      if (selectedCells.length > 0 && selectedId) {
-        selectedCells.forEach(cell => {
-          // نمایش متن در سلول
-          let span = cell.querySelector(".recorder-name");
-          if (!span) {
-            span = document.createElement("span");
-            span.classList.add("recorder-name");
-            cell.insertBefore(span, cell.firstChild);
-          }
-          span.innerText = selectedText;
-
-          // hidden ها
-          let hiddenId = cell.querySelector("input[name='alt_sound_recorder_ids[]']");
-          hiddenId.value = selectedId;
-        });
-      }
-    }
-
-    altDropdown.addEventListener("change", handleSelection);
-    altDropdown.addEventListener("forcechange", handleSelection);
-  }
-  // 🟢 هماهنگی hidden_p_date با تاریخ انتخابی از تقویم بالایی
-const pDateInput = document.getElementById("id_p_date");
-const hiddenDateInput = document.getElementById("hidden_p_date");
-
-if (pDateInput && hiddenDateInput) {
-  pDateInput.addEventListener("change", function() {
-    hiddenDateInput.value = this.value;  // هر وقت تاریخ عوض شد hidden هم آپدیت بشه
-  });
-}
-
-});
-</script>
-
-<script>
-document.getElementById("btn-print-hardcopy").addEventListener("click", print_report);
-
-function print_report() {
-
-    const printable = document.querySelector(".printable");
-    if (!printable) {
-        alert("بخش قابل چاپ پیدا نشد!");
-        return;
-    }
-
-    const printContent = printable.innerHTML;
-
-    const printWindow = window.open("", "_blank", "width=1400,height=900");
-
-    printWindow.document.write(`
-        <html dir="rtl" lang="fa">
-        <head>
-            <title>چاپ گزارش شیفت</title>
-
-            <style>
-                body {
-                    font-family: Vazir, sans-serif;
-                    direction: rtl;
-                    text-align: center;
-                }
-
-                @page {
-                    size: A4 landscape;
-                    margin: 10mm;
-                }
-
-                table {
-                    width: 100%;
-                    border-collapse: collapse;
-                    font-size: 14px;
-                    margin: 0 !important;
-                }
-
-                table, th, td {
-                    border: 1px solid #000;
-                    padding: 4px;
-                }
-
-                th {
-                    background-color: #e6f2ff;
-                }
-
-                /* جلوگیری از شکسته شدن بین جدول‌ها */
-                table, tr, td, th {
-                    page-break-inside: avoid !important;
-                }
-            </style>
-        </head>
-
-        <body>
-            ${printContent}
-        </body>
-        </html>
-    `);
-
-    printWindow.document.close();
-
-    setTimeout(() => {
-        printWindow.print();
-        printWindow.close();
-    }, 400);
-}
-</script>
-
-<script>
-document.getElementById('btn-excel').addEventListener('click', function () {
-    const table = document.getElementById('shift-table');
-    if (!table) { alert(" جدول پیدا نشد!"); return; }
-    const workbook = XLSX.utils.table_to_book(table, { sheet: "گزارش شیفت" });
-    XLSX.writeFile(workbook, "گزارش_شیفت.xlsx");
-});
-</script>
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
 
-    const table = document.getElementById("shift-table");
-
-    // --- رنگ هدر: (هرچی هست حفظ یا تغییرش می‌دیم) ---
-    const headerCells = table.querySelectorAll("thead th");
-    headerCells.forEach(th => {
-        const bg = window.getComputedStyle(th).backgroundColor || "#e8e8e8";
-        const color = window.getComputedStyle(th).color || "#000";
-
-        th.style.setProperty("background-color", bg, "important");
-        th.style.setProperty("color", color, "important");
-    });
-
-    // --- رنگ روزهای خاص ---
+    /* ===============================
+       🎨 رنگ‌گذاری روزهای خاص
+    =============================== */
     const dayColorMap = {
         "پنجشنبه": "#EACFDA",
         "جمعه": "#EACFDA",
-
     };
 
-    const rows = table.querySelectorAll("tbody tr");
-    rows.forEach(row => {
+    document.querySelectorAll(".day-cell").forEach(dayCell => {
+        const dayName = dayCell.innerText.trim().replace(/\s|‌/g, "");
+        const color = dayColorMap[dayName];
 
-        const dayCell = row.querySelector("td:nth-child(2)");
-        if (!dayCell) return;
-
-        const rawDay = dayCell.innerText.trim().replace(/\s|‌/g, "");
-
-        const defaultColor = dayColorMap[rawDay];
-
-        // اگر رنگ پیش‌فرض داشته باشد → کل ردیف رنگ می‌گیرد
-        if (defaultColor) {
+        if (color) {
+            const row = dayCell.closest("tr");
             row.querySelectorAll("td").forEach(td => {
-                td.style.setProperty("background-color", defaultColor, "important");
+                td.style.setProperty("background-color", color, "important");
             });
         }
 
-        // --- امکان تغییر رنگ با کلیک ---
+        // 🎨 تغییر دستی رنگ با کلیک
         dayCell.style.cursor = "pointer";
         dayCell.title = "برای تغییر رنگ این روز کلیک کنید";
 
-        dayCell.addEventListener("click", function () {
+        dayCell.addEventListener("click", () => {
             const picker = document.createElement("input");
             picker.type = "color";
-            picker.style.opacity = "0";
-            picker.style.position = "absolute";
+            picker.style.display = "none";
             document.body.appendChild(picker);
 
             picker.addEventListener("input", () => {
                 const newColor = picker.value;
-
+                const row = dayCell.closest("tr");
                 row.querySelectorAll("td").forEach(td => {
                     td.style.setProperty("background-color", newColor, "important");
                 });
@@ -768,25 +551,106 @@ document.addEventListener("DOMContentLoaded", function () {
             picker.addEventListener("change", () => picker.remove());
             picker.click();
         });
-
     });
 
-    // --- تضمین چاپ: قبل از print همه رنگ‌ها inline می‌شن ---
-    window.addEventListener("beforeprint", function () {
-        const allCells = table.querySelectorAll("th, td");
-        allCells.forEach(cell => {
-            const styles = window.getComputedStyle(cell);
-            cell.style.setProperty("background-color",
-                styles.backgroundColor,
-                "important"
-            );
-            cell.style.setProperty("color",
-                styles.color,
-                "important"
-            );
-        });
+});
+</script>
+
+<script>
+/* ===============================
+   🖨 چاپ گزارش
+=============================== */
+document.getElementById("btn-print-hardcopy")?.addEventListener("click", function () {
+
+    const printable = document.querySelector(".printable");
+    if (!printable) {
+        alert("بخش قابل چاپ پیدا نشد!");
+        return;
+    }
+
+    const printWindow = window.open("", "_blank", "width=1400,height=900");
+
+    printWindow.document.write(`
+        <html dir="rtl" lang="fa">
+        <head>
+            <title>چاپ گزارش شیفت</title>
+            <style>
+                body {
+                    font-family: Vazir, sans-serif;
+                    direction: rtl;
+                    text-align: center;
+                }
+                @page {
+                    size: A4 landscape;
+                    margin: 10mm;
+                }
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    font-size: 14px;
+                }
+                table, th, td {
+                    border: 1px solid #000;
+                    padding: 4px;
+                }
+                th {
+                    background-color: #e6f2ff;
+                }
+                table, tr, td, th {
+                    page-break-inside: avoid !important;
+                }
+            </style>
+        </head>
+        <body>
+            ${printable.innerHTML}
+        </body>
+        </html>
+    `);
+
+    printWindow.document.close();
+    setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+    }, 400);
+});
+</script>
+
+<script>
+/* ===============================
+   📊 خروجی اکسل
+=============================== */
+document.getElementById("btn-excel")?.addEventListener("click", function () {
+    const tables = document.querySelectorAll(".printable table");
+    if (!tables.length) {
+        alert("جدولی برای خروجی اکسل پیدا نشد!");
+        return;
+    }
+
+    const workbook = XLSX.utils.book_new();
+
+    tables.forEach((table, index) => {
+        const sheet = XLSX.utils.table_to_sheet(table);
+        XLSX.utils.book_append_sheet(
+            workbook,
+            sheet,
+            `Sheet_${index + 1}`
+        );
     });
 
+    XLSX.writeFile(workbook, "گزارش_شیفت.xlsx");
+});
+</script>
+
+<script>
+/* ===============================
+   🧾 تثبیت رنگ‌ها قبل از چاپ
+=============================== */
+window.addEventListener("beforeprint", function () {
+    document.querySelectorAll("th, td").forEach(cell => {
+        const styles = window.getComputedStyle(cell);
+        cell.style.setProperty("background-color", styles.backgroundColor, "important");
+        cell.style.setProperty("color", styles.color, "important");
+    });
 });
 </script>
 {% endblock %}

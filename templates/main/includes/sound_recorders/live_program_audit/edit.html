@@ -1,0 +1,881 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'assets/css/style.css' %}">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<style>
+    input[type="text"], select, textarea {
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 6px 10px;
+        width: 150px;
+        height: 35px;
+        font-size: 12px;
+        transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    input[type="text"]:focus, select:focus, textarea:focus {
+        border-color: #66afe9;
+        outline: none;
+        font-size: 12px;
+        box-shadow: 0 0 5px rgba(102, 175, 233, 0.6);
+    }
+
+    label {
+        margin-left: 8px;
+        font-weight: bold;
+        font-size: 12px;
+    }
+
+    li {
+        margin-bottom: 12px;
+    }
+
+    /* استایل جدول بدون اسکرول افقی */
+.fit-table {
+    width: 100% !important;
+    table-layout: auto;
+    font-size: 11px !important;
+}
+
+.fit-table th,
+.fit-table td {
+    padding: 4px 2px !important;
+    vertical-align: middle;
+    text-align: center;
+    word-wrap: break-word;
+}
+
+.fit-table th {
+    font-size: 11px !important;
+    white-space: normal !important;
+    line-height: 1.2;
+}
+
+.fit-table .badge {
+    font-size: 10px;
+    padding: 2px 4px;
+}
+    table thead th {
+        background-color: #e6f2ff !important;
+        color: white;
+        font-size: 14px;
+    }
+
+    .dropdown-checkboxes {
+        position: relative;
+        display: inline-block;
+        width: 100%;
+    }
+    .dropdown-checkboxes .dropdown-menu {
+        max-height: 250px;
+        overflow-y: auto;
+        padding: 10px;
+        width: 100%;
+    }
+    .dropdown-toggle-label {
+        font-size: 14px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .table-wrapper {
+        border: 2px solid #e0e0e0;
+        border-radius: 12px;
+        padding: 15px;
+        background-color: #fff;
+        box-shadow: 0 0 3px rgba(0, 0, 0, 0.12);
+        overflow-y: hidden;
+        overflow-x: auto;
+        width: 100%;
+    }
+    .table-wrapper table{
+        width: max-content;
+        min-width: 100%;
+        white-space: nowrap;
+    }
+
+    .edit_live-table {
+        width: 100%;
+        margin-bottom: 0;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-family: 'Vazir-Black', serif;
+    }
+
+    #edit_live-table th,
+    #edit_live-table td {
+        border: 1.5px solid #000000 !important;
+    }
+
+    #edit_live-table thead tr:first-child th:first-child { border-top-right-radius: 10px; }
+    #edit_live-table thead tr:first-child th:last-child { border-top-left-radius: 10px; }
+    #edit_live-table tbody tr:last-child td:first-child { border-bottom-right-radius: 10px; }
+    #edit_live-table tbody tr:last-child td:last-child { border-bottom-left-radius: 10px; }
+
+    @font-face {
+        font-family: 'Vazir-Black';
+        font-weight: normal;
+        font-style: normal;
+    }
+
+    body, input, select, textarea {
+        font-family: 'Vazir', sans-serif !important;
+        direction: rtl;
+        text-align: right;
+    }
+
+    .breadcrumb-box {
+        background: #fff;
+        border-radius: 12px;
+        padding: 15px 20px;
+        position: relative;
+        border: 1px solid #e0e0e0;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
+    .breadcrumb-box::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 10px;
+        width: 100%;
+        background: #00CED1;
+        border-top-left-radius: 12px;
+        border-top-right-radius: 12px;
+    }
+
+    .breadcrumb-box label { font-weight: 600; color: #333; }
+
+    .breadcrumb-box input[type="text"],
+    .breadcrumb-box select {
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 5px 10px;
+        font-size: 13px;
+        transition: all 0.2s ease;
+        background-color: #fafafa;
+    }
+
+    .breadcrumb-box input[type="text"]:focus,
+    .breadcrumb-box select:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 3px rgba(0, 123, 255, 0.3);
+        outline: none;
+    }
+
+    .link-button {
+        background: none;
+        border: none;
+        padding: 0;
+        margin: 0;
+        color: #0d6efd;
+        text-decoration: underline;
+        cursor: pointer;
+        font: inherit;
+    }
+    input[type="time"]::-webkit-calendar-picker-indicator {
+        display: none;
+        -webkit-appearance: none;
+    }
+
+/* نمایش صحیح چک‌باکس‌های روزهای پخش در مدال */
+#programModal .form-check-input.day-checkbox {
+    appearance: auto !important;
+    -webkit-appearance: checkbox !important;
+    display: inline-block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: static !important;
+    width: 1rem !important;
+    height: 1rem !important;
+    margin: 0 0 0 0.5rem !important;
+    float: none !important;
+    pointer-events: auto !important;
+    cursor: pointer;
+}
+
+#programModal .form-check {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px;
+    min-height: 28px;
+}
+
+#programModal .form-check-label {
+    display: inline-block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    cursor: pointer;
+
+
+/* کادر اصلی مدال */
+.modal-anar .modal-content {
+    border: 1px solid #800020;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+/* هدر مدال */
+.modal-anar .modal-header {
+    border-bottom: 1px solid #800020;
+    background-color: #f8edf0;
+}
+
+/* عنوان هدر */
+.modal-anar .modal-title {
+    color: #800020;
+    font-weight: bold;
+}
+
+/* خط جداکننده پایین مدال */
+.modal-anar .modal-footer {
+    border-top: 1px solid #800020;
+}
+
+/* کادر فیلدهای ورودی */
+.modal-anar .form-control,
+.modal-anar .form-select {
+    border: 1px solid #800020;
+    border-radius: 6px;
+}
+
+/* رنگ کادر هنگام انتخاب فیلد */
+.modal-anar .form-control:focus,
+.modal-anar .form-select:focus {
+    border-color: #800020;
+    box-shadow: 0 0 0 0.2rem rgba(128, 0, 32, 0.2);
+}
+
+/* خطوط افقی داخل مدال */
+.modal-anar hr {
+    border: 0;
+    border-top: 1px solid #800020;
+    opacity: 1;
+}
+
+/* کادر برچسب‌ها در صورت وجود */
+.modal-anar .form-label {
+    color: #333;
+    font-weight: bold;
+}
+}
+
+/* کادر اصلی مدال */
+#programModal .modal-content {
+    border: 1px solid #800020 !important;
+    border-radius: 12px !important;
+    overflow: hidden;
+}
+
+/* هدر مدال */
+#programModal .modal-header {
+    border-bottom: 1px solid #800020 !important;
+    background-color: #f8edf0 !important;
+}
+
+/* عنوان مدال */
+#programModal .modal-title {
+    color: #800020 !important;
+    font-weight: 700 !important;
+}
+
+/* بخش پایینی مدال */
+#programModal .modal-footer {
+    border-top: 1px solid #800020 !important;
+}
+
+/* کادر فیلدهای ورودی */
+#programModal input:not([type="checkbox"]):not([type="radio"]),
+#programModal textarea,
+#programModal select,
+#programModal .form-control,
+#programModal .form-select {
+    border: 1px solid #800020 !important;
+    border-radius: 6px !important;
+}
+
+/* حالت انتخاب فیلد */
+#programModal input:focus,
+#programModal textarea:focus,
+#programModal select:focus {
+    border-color: #800020 !important;
+    box-shadow: 0 0 0 0.2rem rgba(128, 0, 32, 0.2) !important;
+}
+
+/* خطوط افقی */
+#programModal hr {
+    border: 0 !important;
+    border-top: 1px solid #800020 !important;
+    opacity: 1 !important;
+}
+
+/* حفظ نمایش صحیح چک‌باکس روزهای پخش */
+#programModal .form-check {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px;
+    min-height: 28px;
+}
+
+#programModal .form-check-input.day-checkbox {
+    appearance: auto !important;
+    -webkit-appearance: checkbox !important;
+    display: inline-block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: static !important;
+    width: 1rem !important;
+    height: 1rem !important;
+    margin: 0 0 0 0.5rem !important;
+    float: none !important;
+    pointer-events: auto !important;
+    cursor: pointer;
+}
+
+#programModal .form-check-label {
+    display: inline-block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    cursor: pointer;
+}
+
+</style>
+
+<div class="container-fluid">
+    <!-- ۱. فرم جستجو (فقط شامل فیلترها و دکمه جستجو) -->
+    <form method="post" id="searchForm" class="mb-3">
+        {% csrf_token %}
+        <input type="hidden" name="selected_id" id="selectedId" value="{{ selected_id }}">
+
+        {{ header_form.media }}
+        <div class="col-md-12">
+            <div class="breadcrumb-box shadow">
+                <div class="breadcrumb-right">
+                    <div class="d-flex flex-wrap align-items-center gap-4">
+                        <div class="d-flex align-items-center gap-2">
+                            <label for="id_network" class="form-label mb-0 text-nowrap">شبکه:</label>
+                            <div style="min-width: 200px;">
+                                {{ header_form.network }}
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <label for="id_program_name" class="form-label mb-0 text-nowrap">نام برنامه:</label>
+                            <div style="min-width: 200px;">
+                                {{ header_form.program_name }}
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                        <label for="id_live_status" class="form-label mb-0 text-nowrap"> وضعیت:</label>
+                            <div style="min-width: 200px;">
+                        {{ header_form.status }}
+                    </div>
+                        <div>
+                            <button type="submit" class="btn btn-primary">جستجو</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <!-- جدول نمایش اطلاعات -->
+    <div class="col-md-12 mt-4 mb-5">
+        <div class="mb-3 d-flex gap-2">
+            <a href="{% url 'sound_recorders:live_program_audit:manual_live_programs:manual' %}"
+               class="btn btn-secondary d-flex align-items-center gap-2 px-3">
+                <i class="fa fa-arrow-right"></i>
+                بازگشت
+            </a>
+        </div>
+      <div class="table-wrapper shadow-sm">
+        <div class="w-100">
+          <table class="table table-bordered table-striped align-middle fit-table mb-0" id="edit_live-table">
+              <thead>
+                <tr>
+                  <th>ردیف</th><th>برنامه</th><th>کد براورد</th><th>تعداد مجاز</th><th>تاریخ شروع</th><th>تاریخ اعتبار</th><th>ساعت پخش</th><th>مدت</th><th>شنبه</th><th>یکشنبه</th><th>دوشنبه</th><th>سه شنبه</th><th>چهار شنبه</th><th>پنجشنبه</th><th>جمعه</th>
+                </tr>
+              </thead>
+              <tbody>
+                  {% for row in edit_list %}
+                      <tr class="open-modal-row"
+                            data-id="{{ row.Id_manual_program|default_if_none:'' }}"
+                            data-name="{{ row.Program_name|default_if_none:'' }}"
+                            data-end_date="{{ row.End_date_jalali|default_if_none:'' }}"
+                            data-time="{{ row.Play_time|time:'H:i' }}"
+                            data-duration="{{ row.Time_duration|default_if_none:'' }}"
+                            data-permitted="{{ row.Permitted_count|default_if_none:'' }}"
+                            data-sat="{{ row.Saturday|yesno:'true,false' }}"
+                            data-sun="{{ row.Sunday|yesno:'true,false' }}"
+                            data-mon="{{ row.Monday|yesno:'true,false' }}"
+                            data-tue="{{ row.Tuesday|yesno:'true,false' }}"
+                            data-wed="{{ row.Wednesday|yesno:'true,false' }}"
+                            data-thu="{{ row.Thursday|yesno:'true,false' }}"
+                            data-fri="{{ row.Friday|yesno:'true,false' }}"
+                            style="cursor: pointer;">
+                        <td>{{ forloop.counter }}</td>
+                        <td class="text-start" style="max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ row.Program_name }}</td>
+                        <td> {{ row.Code }} </td>
+                        <td>{{ row.Permitted_count|default:"0" }}</td>
+                        <td>{{ row.Start_date_jalali|default:"-" }}</td>
+                        <td>{{ row.End_date_jalali|default:"-" }}</td>
+                        <td class="dir-ltr">{{ row.Play_time|time:"H:i" }}</td>
+                        <td class="dir-ltr">{{ row.Time_duration }}</td>
+                        <td style="text-align: center;">{% if row.Saturday %}<span style="color: green; font-size: 18px;">✓</span>{% else %}<span style="color: red; font-size: 18px;">✗</span>{% endif %}</td>
+                        <td style="text-align: center;">{% if row.Sunday %}<span style="color: green; font-size: 18px;">✓</span>{% else %}<span style="color: red; font-size: 18px;">✗</span>{% endif %}</td>
+                        <td style="text-align: center;">{% if row.Monday %}<span style="color: green; font-size: 18px;">✓</span>{% else %}<span style="color: red; font-size: 18px;">✗</span>{% endif %}</td>
+                        <td style="text-align: center;">{% if row.Tuesday %}<span style="color: green; font-size: 18px;">✓</span>{% else %}<span style="color: red; font-size: 18px;">✗</span>{% endif %}</td>
+                        <td style="text-align: center;">{% if row.Wednesday %}<span style="color: green; font-size: 18px;">✓</span>{% else %}<span style="color: red; font-size: 18px;">✗</span>{% endif %}</td>
+                        <td style="text-align: center;">{% if row.Thursday %}<span style="color: green; font-size: 18px;">✓</span>{% else %}<span style="color: red; font-size: 18px;">✗</span>{% endif %}</td>
+                        <td style="text-align: center;">{% if row.Friday %}<span style="color: green; font-size: 18px;">✓</span>{% else %}<span style="color: red; font-size: 18px;">✗</span>{% endif %}</td>
+                      </tr>
+                  {% empty %}
+                      <tr><td colspan="15" class="text-muted py-4">هیچ اطلاعاتی در دیتابیس یافت نشد.</td></tr>
+                  {% endfor %}
+              </tbody>
+            </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ۲. مدال ویرایش (دارای فرم مستقل خودش با id="editForm") -->
+    <div class="modal fade modal-anar" id="programModal" tabindex="-1" aria-labelledby="programModalLabel" aria-hidden="true">
+      <form method="post" id="editForm">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="save">
+          <input type="hidden" name="id_manual_program" id="id_manual_program">
+
+          <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+              <div class="modal-header position-relative justify-content-center">
+                    <h5 class="modal-title fw-bold text-dark text-center" id="programModalLabel">ویرایش برنامه</h5>
+                    <button type="button" class="btn-close position-absolute start-0 ms-3" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" dir="rtl">
+                    <div class="row g-3 mb-3">
+                        <div class="col-12">
+                            <div class="d-flex align-items-center gap-2">
+                                <label for="modalProgramNameInput" class="form-label mb-0 text-nowrap">نام برنامه:</label>
+                                <input type="text" id="modalProgramNameInput" name="modalProgramNameInput" class="form-control" style="min-width: 0;">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6 col-12">
+                            <div class="d-flex align-items-center gap-2">
+                                <label for="end_date" class="form-label mb-0 text-nowrap">تاریخ اعتبار:</label>
+                                <div class="flex-grow-1" style="min-width: 0;">
+                                    {{ header_form.end_date }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-12">
+                            <div class="d-flex align-items-center gap-2">
+                                <label for="play_time" class="form-label mb-0 text-nowrap">ساعت پخش:</label>
+                                <input type="time" id="play_time" name="play_time" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6 col-12">
+                            <div class="d-flex align-items-center gap-2">
+                                <label for="time_duration" class="form-label mb-0 text-nowrap">مدت برنامه:</label>
+                                <input type="text" id="time_duration" name="time_duration" class="form-control">
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-12">
+                            <div class="d-flex align-items-center gap-2">
+                                <label for="permitted_count" class="form-label mb-0 text-nowrap">تعداد مجاز:</label>
+                                <input type="text" id="permitted_count" name="permitted_count" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <label class="form-check-label" for="type">تک نرخ</label>
+                            <input type="checkbox" class="form-check-input" id="type" name="type" value="1">
+                        </div>
+                    </div>
+                    <div class="border rounded p-3">
+                        <div class="fw-bold mb-3">روزهای پخش</div>
+                        <div class="row row-cols-4 g-3">
+                            <div class="col">
+                                <div class="form-check">
+                                    <input class="form-check-input day-checkbox" type="checkbox" name="Saturday" value="1" id="Saturday">
+                                    <label class="form-check-label" for="Saturday">شنبه</label>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="form-check">
+                                    <input class="form-check-input day-checkbox" type="checkbox" name="Sunday" value="1" id="Sunday">
+                                    <label class="form-check-label" for="Sunday">یکشنبه</label>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="form-check">
+                                    <input class="form-check-input day-checkbox" type="checkbox" name="Monday" value="1" id="Monday">
+                                    <label class="form-check-label" for="Monday">دوشنبه</label>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="form-check">
+                                    <input class="form-check-input day-checkbox" type="checkbox" name="Tuesday" value="1" id="Tuesday">
+                                    <label class="form-check-label" for="Tuesday">سه‌شنبه</label>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="form-check">
+                                    <input class="form-check-input day-checkbox" type="checkbox" name="Wednesday" value="1" id="Wednesday">
+                                    <label class="form-check-label" for="Wednesday">چهارشنبه</label>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="form-check">
+                                    <input class="form-check-input day-checkbox" type="checkbox" name="Thursday" value="1" id="Thursday">
+                                    <label class="form-check-label" for="Thursday">پنجشنبه</label>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="form-check">
+                                    <input class="form-check-input day-checkbox" type="checkbox" name="Friday" value="1" id="Friday">
+                                    <label class="form-check-label" for="Friday">جمعه</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">بستن</button>
+                <button type="submit" class="btn btn-primary">ذخیره تغییرات</button>
+              </div>
+            </div>
+          </div>
+      </form>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const rows = document.querySelectorAll(".clickable-row");
+        rows.forEach(row => {
+            row.addEventListener("click", function() {
+                const url = this.getAttribute("data-url");
+                if (url) {
+                    window.location.href = url;
+                }
+            });
+        });
+    });
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    // =========================================
+    // عناصر اصلی مدال
+    // =========================================
+    const modalElement = document.getElementById("programModal");
+
+    if (!modalElement) {
+        console.error("خطا: مدال programModal پیدا نشد.");
+        return;
+    }
+
+    if (typeof bootstrap === "undefined") {
+        console.error("خطا: Bootstrap JavaScript بارگذاری نشده است.");
+        return;
+    }
+
+    const modalInstance =
+        bootstrap.Modal.getOrCreateInstance(modalElement);
+
+    // =========================================
+    // فیلدهای مدال
+    // =========================================
+    const idInput = document.getElementById("id_manual_program");
+    const idSpan = document.getElementById("modalProgramId");
+    const nameInput = document.getElementById("modalProgramNameInput");
+    const endDateInput = document.getElementById("end_date");
+    const timeInput = document.getElementById("play_time");
+    const durationInput = document.getElementById("time_duration");
+    const permittedInput = document.getElementById("permitted_count");
+    const typeInput = document.getElementById("type");
+
+    // =========================================
+    // ارتباط روزهای هفته با data-* سطر جدول
+    // =========================================
+    const dayAttributes = {
+        Saturday: "sat",
+        Sunday: "sun",
+        Monday: "mon",
+        Tuesday: "tue",
+        Wednesday: "wed",
+        Thursday: "thu",
+        Friday: "fri"
+    };
+
+    // =========================================
+    // تبدیل مقدار دیتابیس به وضعیت checkbox
+    // =========================================
+    function isChecked(value) {
+        const normalized = String(value ?? "")
+            .trim()
+            .toLowerCase();
+
+        return ["1", "true", "yes", "on"].includes(normalized);
+    }
+
+    // =========================================
+    // پاک کردن اطلاعات قبلی مدال
+    // =========================================
+    function clearModalFields() {
+
+        if (idInput) {
+            idInput.value = "";
+        }
+
+        if (idSpan) {
+            idSpan.textContent = "";
+        }
+
+        if (nameInput) {
+            nameInput.value = "";
+        }
+
+        if (endDateInput) {
+            endDateInput.value = "";
+        }
+
+        if (timeInput) {
+            timeInput.value = "";
+        }
+
+        if (durationInput) {
+            durationInput.value = "";
+        }
+
+        if (permittedInput) {
+            permittedInput.value = "";
+        }
+
+        if (typeInput) {
+            typeInput.checked = false;
+        }
+
+        Object.keys(dayAttributes).forEach(function (day) {
+            const checkbox = document.getElementById(day);
+
+            if (checkbox) {
+                checkbox.checked = false;
+            }
+        });
+    }
+
+    // =========================================
+    // پر کردن اطلاعات مدال از سطر انتخاب‌شده
+    // =========================================
+    function fillModalFromRow(row) {
+
+        // پاک کردن اطلاعات برنامه قبلی
+        clearModalFields();
+
+        // خواندن داده‌های سطر جدول
+        const data = row.dataset;
+
+        console.log("اطلاعات سطر انتخاب‌شده:", data);
+
+        // -----------------------------------------
+        // شناسه برنامه
+        // -----------------------------------------
+        if (idInput) {
+            idInput.value = data.id || "";
+        }
+
+        if (idSpan) {
+            idSpan.textContent = data.id || "";
+        }
+
+        console.log(
+            "شناسه برنامه برای ذخیره:",
+            idInput ? idInput.value : "فیلد شناسه پیدا نشد"
+        );
+
+        // -----------------------------------------
+        // نام برنامه
+        // -----------------------------------------
+        if (nameInput) {
+            nameInput.value = data.name || "";
+        }
+
+        // -----------------------------------------
+        // تاریخ اعتبار
+        // -----------------------------------------
+        if (endDateInput) {
+            endDateInput.value = data.end_date || "";
+
+            // اطلاع به ویجت‌های وابسته از تغییر مقدار
+            endDateInput.dispatchEvent(
+                new Event("change", { bubbles: true })
+            );
+        }
+
+        // -----------------------------------------
+        // ساعت پخش: فرمت HH:mm
+        // -----------------------------------------
+        if (timeInput) {
+            const timeValue = (data.time || "").trim();
+
+            timeInput.value = /^\d{2}:\d{2}$/.test(timeValue)
+                ? timeValue
+                : "";
+        }
+
+        // -----------------------------------------
+        // مدت برنامه
+        // -----------------------------------------
+        if (durationInput) {
+            durationInput.value = data.duration || "";
+        }
+
+        // -----------------------------------------
+        // تعداد مجاز
+        // -----------------------------------------
+        if (permittedInput) {
+            permittedInput.value = data.permitted || "";
+        }
+
+        // -----------------------------------------
+        // نوع پرداخت
+        // فرض: مقدار 1 یعنی فعال
+        // -----------------------------------------
+        if (typeInput) {
+            typeInput.checked = isChecked(data.type);
+        }
+
+        // -----------------------------------------
+        // پر کردن روزهای هفته
+        // -----------------------------------------
+        Object.entries(dayAttributes).forEach(
+            function ([day, attribute]) {
+
+                const checkbox = document.getElementById(day);
+
+                if (!checkbox) {
+                    console.error(
+                        "چک‌باکس روز پیدا نشد:",
+                        day
+                    );
+                    return;
+                }
+
+                checkbox.checked = isChecked(data[attribute]);
+
+                console.log("وضعیت روز:", day, {
+                    valueFromHTML: data[attribute],
+                    checked: checkbox.checked
+                });
+            }
+        );
+
+        // -----------------------------------------
+        // نمایش مدال
+        // -----------------------------------------
+        modalInstance.show();
+    }
+
+    // =========================================
+    // کلیک روی سطرهای جدول
+    // =========================================
+    document.addEventListener("click", function (event) {
+
+        const target = event.target;
+
+        if (!(target instanceof Element)) {
+            return;
+        }
+
+        const row = target.closest(
+            "#edit_live-table tr.open-modal-row"
+        );
+
+        if (!row) {
+            return;
+        }
+
+        fillModalFromRow(row);
+    });
+
+    // =========================================
+    // بررسی ارسال فرم
+    // =========================================
+    const mainForm = document.getElementById("mainForm");
+
+    if (mainForm) {
+        mainForm.addEventListener("submit", function () {
+            console.log("اطلاعات فرم هنگام ذخیره:", {
+                id_manual_program: idInput?.value,
+                program_name: nameInput?.value,
+                end_date: endDateInput?.value,
+                play_time: timeInput?.value,
+                time_duration: durationInput?.value
+            });
+        });
+    } else {
+        console.error("خطا: فرم mainForm پیدا نشد.");
+    }
+
+    console.log("اسکریپت ویرایش برنامه با موفقیت آماده شد.");
+
+});
+</script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const editForm = document.getElementById("editForm");
+
+    if (editForm) {
+        editForm.addEventListener("submit", function (e) {
+            e.preventDefault(); // جلوگیری از رفرش شدن صفحه
+
+            const formData = new FormData(editForm);
+
+            fetch(window.location.href, {
+                method: "POST",
+                body: formData,
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest"
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "success") {
+                    // بستن مدال با بوت‌استرپ
+                    const modalEl = document.getElementById('programModal');
+                    const modal = bootstrap.Modal.getInstance(modalEl);
+                    modal.hide();
+
+                    // نمایش پیام موفقیت (می‌توانید از سیستم پیام‌دهی خودتون استفاده کنید)
+                    alert(data.message);
+
+                    // اختیاری: برای به‌روزرسانی جدول بدون رفرش کامل، می‌توانید فرم جستجو را به صورت خودکار سابمیت کنید
+                    // document.getElementById("searchForm").submit();
+                } else {
+                    alert("خطا: " + data.message);
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                alert("خطایی در ارتباط با سرور رخ داد.");
+            });
+        });
+    }
+});
+</script>
+{% endblock %}

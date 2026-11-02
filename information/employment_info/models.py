@@ -201,6 +201,7 @@ class Financial(models.Model):
     f_isargari = models.BigIntegerField(db_column='F_Isargari', default=0,blank=True,null=True)
     f_51 = models.BigIntegerField(db_column='F_51', default=0,blank=True,null=True)
     f_sakhti_kar = models.BigIntegerField(db_column='F_sakhti_kar', default=0,blank=True,null=True)
+    f_special = models.BigIntegerField(db_column='F_special', default=0,blank=True,null=True)
     # f_marzi = models.BigIntegerField(db_column='F_marzi', default=0,blank=True,null=True)
     # f_enteghal = models.BigIntegerField(db_column='F_enteghal', default=0,blank=True,null=True)
     # f_jazb_mahroom = models.BigIntegerField(db_column='F_jazb_mahroom', default=0,blank=True,null=True)
@@ -254,6 +255,7 @@ class CurrentJob(models.Model):
     active = models.BooleanField(db_column='Active', default=True, null=False)
     del_field = models.BooleanField(db_column='Del', default=False, null=False)
     update_date = models.DateTimeField(db_column='Update_date', default=timezone.now)
+    is_seda = models.BooleanField(db_column='Is_seda', default=False, null=True)
 
     class Meta:
         managed = False
@@ -338,6 +340,8 @@ class Activity_Type(models.Model):
         managed = False
         db_table = 'Tbl_Activity_Type'
 
+
+
 class Levels(models.Model):
     id_levels = models.AutoField(db_column='Id_levels',
                                           primary_key=True )  # Field name made lowercase.
@@ -346,10 +350,22 @@ class Levels(models.Model):
     active = models.BooleanField(db_column='Active', default=True, null=False)
     del_field = models.BooleanField(db_column='Del', default=False, null=False)
     update_date = models.DateTimeField(db_column='Update_date', default=timezone.now)
+    order = models.IntegerField(db_column='Order',null=True,blank=True)
+    level_selected = models.CharField(db_column='Level_selected', max_length=3,null=True,blank=True)
 
     class Meta:
         managed = False
         db_table = 'Tbl_Levels'
+
+class JobLevels(models.Model):
+    id_job_level = models.AutoField(db_column='Id_job_level',primary_key=True)
+    current_job_id = models.ForeignKey(CurrentJob, models.DO_NOTHING ,db_column='Current_job_id')
+    level_id = models.ForeignKey(Levels, models.DO_NOTHING ,db_column='Level_id')
+    active = models.BooleanField(db_column='Active', default=True, null=False)
+    del_field = models.BooleanField(db_column='Del', default=False, null=False)
+    class Meta:
+        managed = False
+        db_table = 'Tbl_Job_Levels'
 
 class Official(models.Model):
 
@@ -410,6 +426,7 @@ class Permisions(models.Model):
     permision_15_khordad = models.BooleanField(db_column='Permision_15_khordad', default=False, null=True)
     permision_fanni_poshtibani = models.BooleanField(db_column='Permision_fanni_poshtibani', default=False, null=True)
     permision_sound_recorders = models.BooleanField(db_column='Permision_sound_recorders', default=False, null=True)
+    permision_assistant_sound_recorder =models.BooleanField(db_column='Permision_assistant_sound_recorder', default=False, null=True)
     active = models.BooleanField(db_column='Active', default=True, null=True)
     del_field = models.BooleanField(db_column='Del', default=False, null=True)
     user_name = models.CharField(db_column='User_name', max_length=50, db_collation='Persian_100_CI_AS')

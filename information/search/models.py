@@ -24,6 +24,8 @@ class SearchHeader(models.Model):
 
 class SearchFinancial(models.Model):
     salary_base = models.CharField(max_length=100, db_column='salary_base')
+    total_financial = models.CharField(max_length=100, db_column='total_financial')
+    baravord = models.CharField(max_length=100, db_column='baravord')
 
     class Meta:
         managed = False

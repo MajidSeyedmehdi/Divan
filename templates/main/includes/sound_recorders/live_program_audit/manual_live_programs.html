@@ -1,0 +1,1682 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+<link rel="stylesheet" href="{% static 'assets/css/style.css' %}">
+
+{% block content %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<style>
+    input[type="text"], select, textarea {
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 6px 10px;
+        width: 150px;
+        height: 35px;
+        font-size: 12px;
+        transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    input[type="text"]:focus, select:focus, textarea:focus {
+        border-color: #66afe9;
+        outline: none;
+        font-size: 12px;
+        box-shadow: 0 0 5px rgba(102, 175, 233, 0.6);
+    }
+
+    label {
+        margin-left: 8px;
+        font-weight: bold;
+        font-size: 12px;
+    }
+
+    li {
+        margin-bottom: 12px;
+    }
+
+    /* استایل جدول بدون اسکرول افقی */
+.fit-table {
+    width: 100% !important;
+    table-layout: auto; /* یا fixed بر حسب نیاز */
+    font-size: 11px !important; /* کوچک‌تر کردن فونت جهت جا شدن */
+}
+
+/* فشرده‌سازی فاصله‌های داخل سلول‌ها */
+.fit-table th,
+.fit-table td {
+    padding: 4px 2px !important; /* حداقل پدینگ افقی */
+    vertical-align: middle;
+    text-align: center;
+    word-wrap: break-word;
+}
+
+/* شکستن خطوط برای متن‌های طولانی */
+.fit-table th {
+    font-size: 11px !important;
+    white-space: normal !important; /* اجازه به شکستن خط در سرتیترها */
+    line-height: 1.2;
+}
+
+/* کاهش اندازه بَج‌ها */
+.fit-table .badge {
+    font-size: 10px;
+    padding: 2px 4px;
+}
+    table thead th {
+        background-color: #e6f2ff !important;
+        color: white;
+        font-size: 14px;
+    }
+
+    .dropdown-checkboxes {
+        position: relative;
+        display: inline-block;
+        width: 100%;
+    }
+    .dropdown-checkboxes .dropdown-menu {
+        max-height: 250px;
+        overflow-y: auto;
+        padding: 10px;
+        width: 100%;
+    }
+    .dropdown-toggle-label {
+        font-size: 14px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .table-wrapper {
+        border: 2px solid #e0e0e0;
+        border-radius: 12px;
+        padding: 15px;
+        background-color: #fff;
+        box-shadow: 0 0 3px rgba(0, 0, 0, 0.12);
+        overflow-y: hidden;
+        overflow-x: auto;
+        width: 100%;
+        scrollbar-width:auto;
+    }
+    .table-wrapper table{
+        width: max-content;
+        min-width: 100%;
+        white-space: nowrap;
+    }
+
+    .financial-table {
+        width: 100%;
+        margin-bottom: 0;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-family: 'Vazir-Black', serif;
+    }
+
+    #financial-table th,
+    #financial-table td {
+        border: 1.5px solid #000000 !important;
+    }
+
+    #financial-table thead tr:first-child th:first-child { border-top-right-radius: 10px; }
+    #financial-table thead tr:first-child th:last-child { border-top-left-radius: 10px; }
+    #financial-table tbody tr:last-child td:first-child { border-bottom-right-radius: 10px; }
+    #financial-table tbody tr:last-child td:last-child { border-bottom-left-radius: 10px; }
+
+    @font-face {
+        font-family: 'Vazir-Black';
+        font-weight: normal;
+        font-style: normal;
+    }
+
+    body, input, select, textarea {
+        font-family: 'Vazir', sans-serif !important;
+        direction: rtl;
+        text-align: right;
+    }
+
+    .ui-datepicker, .ui-datepicker table, .ui-datepicker td, .ui-datepicker th {
+        font-family: 'Vazir', sans-serif !important;
+        direction: rtl !important;
+        text-align: center;
+    }
+
+    .breadcrumb-box {
+        background: #fff;
+        border-radius: 12px;
+        padding: 15px 20px;
+        position: relative;
+        border: 1px solid #e0e0e0;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
+    .breadcrumb-box::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 10px;
+        width: 100%;
+        background: #00CED1;
+        border-top-left-radius: 12px;
+        border-top-right-radius: 12px;
+    }
+
+    .breadcrumb-box label { font-weight: 600; color: #333; }
+
+    .breadcrumb-box input[type="text"],
+    .breadcrumb-box select {
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 5px 10px;
+        font-size: 13px;
+        transition: all 0.2s ease;
+        background-color: #fafafa;
+    }
+
+    .breadcrumb-box input[type="text"]:focus,
+    .breadcrumb-box select:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 3px rgba(0, 123, 255, 0.3);
+        outline: none;
+    }
+
+    input[readonly].date-readonly {
+        border: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        outline: none !important;
+        padding: 0 !important;
+        text-align: center;
+        font-size: 12px;
+        cursor: default;
+        font-family: 'Vazir-Black', serif;
+    }
+
+    #modal-table th, #modal-table td {
+        border: 1.5px solid #000000 !important;
+    }
+
+    .modal-table {
+        width: 100%;
+        margin-bottom: 0;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-family: 'Vazir-Black', serif;
+    }
+
+    .modal-table thead > tr > th {
+        background-color: #e6f2ff !important;
+        color: #000000 !important;
+        font-weight: 700;
+        font-size: 13px;
+        text-align: center;
+        vertical-align: middle;
+        border: 1px solid #6fbab1 !important;
+        padding: 8px 6px;
+    }
+
+    .modal-table tbody td {
+        vertical-align: middle;
+        padding: 6px;
+        border: 1px solid #dee2e6;
+        background-color: #fff;
+    }
+
+    .close-modal-btn {
+        background-color: #009688;
+        color: white;
+        border: none;
+    }
+
+    .close-modal-btn:hover {
+        background-color: #C88787;
+        color: white;
+    }
+    /* استایل بوردر مشکی پررنگ برای تمام جدول‌های مالی */
+.financial-table,
+.financial-table th,
+.financial-table td {
+    border: 1.5px solid #000000 !important;
+}
+
+.financial-table {
+    width: 100%;
+    margin-bottom: 0;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-family: 'Vazir-Black', serif;
+}
+
+/* گرد کردن گوشه‌های جدول */
+.financial-table thead tr:first-child th:first-child { border-top-right-radius: 10px; }
+.financial-table thead tr:first-child th:last-child { border-top-left-radius: 10px; }
+.financial-table tbody tr:last-child td:first-child { border-bottom-right-radius: 10px; }
+.financial-table tbody tr:last-child td:last-child { border-bottom-left-radius: 10px; }
+
+/* استایل کلیک کردن روی سلول */
+.selected-cell {
+    background-color: #d4edda !important;
+    color: #ffffff !important;
+    outline: 2px solid #155724;
+    cursor: pointer;
+}
+.link-button {
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    color: #0d6efd;
+    text-decoration: underline;
+    cursor: pointer;
+    font: inherit;
+}
+
+.link-button:hover {
+    color: #0a58ca;
+}
+    input[type="time"]::-webkit-calendar-picker-indicator {
+        display: none;
+        -webkit-appearance: none;
+    }
+
+</style>
+
+<div class="container-fluid">
+{% if messages %}
+                <div class="row mb-3">
+                    <div class="col-lg-12">
+                        {% for message in messages %}
+                            <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags == 'warning' %}warning{% elif message.tags == 'success' %}success{% else %}info{% endif %} alert-dismissible fade show" role="alert">
+                                <i class="icon-{% if message.tags == 'error' %}close{% elif message.tags == 'warning' %}warning{% elif message.tags == 'success' %}check{% else %}info{% endif %}"></i>
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+<form method="post" id="mainForm" class="mb-3">
+    {% csrf_token %}
+
+    <input type="hidden" name="action" id="formAction" value="">
+    <input type="hidden" name="selected_id" id="selectedId" value="{{ selected_id }}">
+    <input type="hidden" name="confirm_program_id" id="confirm_program_id" value="" />
+    <input type="hidden" name="confirm_recorder_id" id="confirm_recorder_id" value="" />
+    <input type="hidden" name="swap_program_ids" id="swap_program_ids" value="">
+    <input type="hidden" name="swap_recorder_id" id="swap_recorder_id" value="">
+    <input type="hidden" name="shift_date" id="confirm_shift_date" value="">
+    <input type="hidden" name="shift_day" id="confirm_shift_day" value="">
+
+    {{ header_form.media }}
+    <div class="col-md-12">
+        <div class="breadcrumb-box shadow">
+            <div class="breadcrumb-right">
+
+                <div class="d-flex flex-wrap align-items-center gap-4">
+
+                    <!-- تاریخ شروع -->
+                    <div class="d-flex align-items-center gap-2">
+                        <label class="form-label mb-0">
+                            تاریخ شروع
+                        </label>
+
+                        {{ header_form.start_date }}
+                    </div>
+                    <!-- شبکه اصلی -->
+                    <div class="d-flex align-items-center gap-2">
+                        <label for="id_network">شبکه:</label>
+                        {{ header_form.network }}
+                    </div>
+
+                    <!-- روز -->
+                    <div class="d-flex align-items-center gap-2">
+                        <label class="form-label mb-0">
+                            روز
+                        </label>
+
+                        {{ header_form.day }}
+                    </div>
+
+                    <!-- شیفت -->
+                    <div class="d-flex align-items-center gap-2">
+                        <label class="form-label mb-0">
+                            شیفت
+                        </label>
+
+                        {{ header_form.shift_number }}
+                    </div>
+
+                    <div class="d-flex align-items-center gap-2">
+                        <label for="id_sound_recorder">صدابردار:</label>
+                        {{ header_form.sound_recorder }}
+                    </div>
+                    <button type="button"
+                                class="btn btn-primary mt-3"
+                                onclick="openProgramModal()">
+                            برنامه جدید
+                    </button>
+                    <button type="button"
+                                class="btn btn-primary mt-3"
+                                onclick="submitSearch()">
+                            جستجو
+                    </button>
+                    <a href="{% url 'sound_recorders:live_program_audit:manual_live_programs:edit_manual' %}"
+                    class="btn btn-primary mt-3">
+                        ویرایش
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<!-- ========================================================= -->
+<!-- جدول بالا جستجو -->
+<!-- ========================================================= -->
+<div class="col-md-12 mt-4 mb-5">
+  <div class="table-wrapper shadow-sm">
+    <div class="w-100">
+      <table class="table table-bordered table-striped align-middle fit-table mb-0" id="top_shift-table">
+        <thead>
+          <tr>
+            <th>ردیف</th>
+            <th>برنامه</th>
+            <th>کد براورد</th>
+            <th>نوع</th>
+            <th>تعداد مجاز</th>
+            <th>تعداد ساخته شده</th>
+            <th>تاریخ شروع</th>
+            <th>تاریخ اعتبار</th>
+            <th>ساعت پخش</th>
+            <th> مدت</th>
+            <th>تخصیص صدابردار</th>
+            <th>افزایش قسمت ها</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in top_list %}
+          {% if assigned_program_id != item.Id_manual_program|stringformat:"s" %}
+            <tr>
+              <td>{{ forloop.counter }}</td>
+              <td class="text-start"
+                style="max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                {{ item.Program_name }} </td>
+              <td> {{ item.Code }} </td>
+              <td>{{ item.type|default:"-" }}</td>
+              <td>{{ item.Permitted_count|default:"0" }}</td>
+              <td>{{ item.Used_count|default:"0" }}</td>
+              <td>{{ item.Start_date_jalali|default:"-" }}</td>
+              <td>{{ item.End_date_jalali|default:"-" }}</td>
+              <td class="dir-ltr">{{ item.Play_time }}</td>
+              <td class="dir-ltr">{{ item.Time_duration }}</td>
+              <td>
+                    <button type="button"
+                            class="link-button"
+                            onclick="assignSoundRecorder('{{ item.Id_manual_program }}', '{{ item.ShiftSoundRecorderId }}')">
+                        تخصیص صدابردار
+                    </button>
+              </td>
+              <td>
+                  <button type="button"
+                          class="btn btn-sm btn-outline-success btn-extend-modal"
+                          data-program-name="{{ item.Program_name }}"
+                          data-network-id="{{ item.Id_network }}"
+                          data-play-time="{{ item.Play_time }}"
+                          data-time-duration="{{ item.Time_duration }}">
+                    افزایش برنامه
+                  </button>
+              </td>
+            </tr>
+          {% endif %}
+          {% empty %}
+            <tr>
+              <td colspan="23" class="text-muted py-4">
+                هیچ اطلاعاتی در دیتابیس یافت نشد.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+    <!-- ========================================================= -->
+<!-- جدول پایین تخصیص صدابردار -->
+<!-- ========================================================= -->
+<div class="row mb-3 align-items-center">
+    <div class="col-md-6">
+        <label for="shiftRecorderInput" class="form-label fw-bold">صدابردار شیفت </label>
+        <input
+            type="text"
+            id="shiftRecorderInput"
+            class="form-control bg-light"
+            value="{{ shift_recorder_name }}"
+            readonly
+            disabled
+        />
+    </div>
+</div>
+
+<div class="col-md-12 mt-4 mb-5">
+  <div class="table-wrapper shadow-sm">
+    <div class="w-100">
+      <table class="table table-bordered table-striped align-middle fit-table mb-0" id="bottom_shift-table">
+        <thead>
+          <tr>
+            <th>ردیف</th>
+            <th>نام برنامه</th>
+            <th> صدابردار</th>
+            <th>عنوان شغلی</th>
+            <th>رده</th>
+            <th>تاریخ</th>
+            <th>کد براورد</th>
+            <th>حقوق پایه</th>
+            <th> عملیات</th>
+          </tr>
+        </thead>
+        <tbody>
+              {% for item in bottom_list %}
+                <tr data-program-id="{{ item.Id_manual_program }}" data-shift-date="{{ item.Start_date_jalali|default:'' }}">
+                  <td>{{ forloop.counter }}</td>
+                  <td class="text-start" style="max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                    {{ item.Program_name }}
+                  </td>
+                  <!-- اصلاح نام صدابردار -->
+                  <td class="sound-cell"
+                    data-recorder-id="{{ item.Id_sound_recorder|default:'' }}"
+                    data-new-recorder-id="{{ item.Id_sound_recorder|default:'' }}">
+                    {{ item.Sound_recorder_name|default:"تعیین نشده" }}
+                  </td>
+                  <td>{{ item.Job_title|default:"-" }}</td>
+                  <td>{{ item.Shift_number|default:"-" }}</td>
+                  <td>{{ item.Start_date_jalali|default:"-" }}</td>
+                  <td>{{ item.Code }}</td>
+                  <td>{{ item.Base_salary_amount|default:"-" }}</td>
+                  <td>
+                      <button type="button"
+                              class="btn btn-light btn-sm"
+                              onclick="confirmRow(this)">
+                          <i class="fa fa-check text-success"></i>
+                      </button>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+              <td colspan="10" class="text-muted py-4">
+                هیچ اطلاعاتی برای این برنامه پیدا نشد.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<!-- ========================================================= -->
+<!-- Modal ثبت برنامه جدید -->
+<!-- ========================================================= -->
+<div class="modal fade" id="programModal" tabindex="-1" aria-labelledby="programModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="programModalLabel">ثبت برنامه جدید</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="بستن"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-3">
+                    <!-- نام برنامه -->
+                    <div class="col-md-6">
+                        <label class="form-label">نام برنامه</label>
+                        <input type="text" id="program_name" name="program_name" class="form-control" form="mainForm">
+                    </div>
+                    <!-- شبکه -->
+                    <div class="col-md-6">
+                        <label class="form-label">شبکه</label>
+                        <select name="network_name" id="network_name" class="form-control" form="mainForm">
+                            <option value="">انتخاب شبکه</option>
+                            {% for network in networks %}
+                                <option value="{{ network.id_network }}">{{ network.network }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <!-- ساعت پخش -->
+                    <div class="col-md-6">
+                        <label class="form-label">ساعت پخش</label>
+{#                        <input type="time" id="play_time" name="play_time" class="form-control" form="mainForm">#}
+                         <input type="text" id="play_time" name="play_time" class="form-control" 
+                               placeholder="--:--" pattern="^([01]?[0-9]|2[0-3]):[0-5][0-9]$" form="mainForm">
+                    </div>
+                    <!-- مدت برنامه -->
+                    <div class="col-md-6">
+                        <label class="form-label">مدت برنامه</label>
+                        <input type="text" id="time_duration" name="time_duration" class="form-control" form="mainForm">
+                    </div>
+                    <!-- روزهای پخش -->
+                    <div class="col-md-12">
+                        <label class="form-label">روزهای پخش</label>
+                        <div class="border rounded p-3">
+                            <div class="row g-2">
+                                <div class="col-md-3 col-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input day-checkbox"
+                                               type="checkbox" name="Saturday" value="1"
+                                               id="Saturday" form="mainForm" checked>
+                                        <label class="form-check-label" for="Saturday">شنبه</label>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-3 col-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input day-checkbox"
+                                               type="checkbox" name="Sunday" value="1"
+                                               id="Sunday" form="mainForm" checked>
+                                        <label class="form-check-label" for="Sunday">یکشنبه</label>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-3 col-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input day-checkbox"
+                                               type="checkbox" name="Monday" value="1"
+                                               id="Monday" form="mainForm" checked>
+                                        <label class="form-check-label" for="Monday">دوشنبه</label>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-3 col-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input day-checkbox"
+                                               type="checkbox" name="Tuesday" value="1"
+                                               id="Tuesday" form="mainForm" checked>
+                                        <label class="form-check-label" for="Tuesday">سه‌شنبه</label>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-3 col-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input day-checkbox"
+                                               type="checkbox" name="Wednesday" value="1"
+                                               id="Wednesday" form="mainForm" checked>
+                                        <label class="form-check-label" for="Wednesday">چهارشنبه</label>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-3 col-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input day-checkbox"
+                                               type="checkbox" name="Thursday" value="1"
+                                               id="Thursday" form="mainForm" checked>
+                                        <label class="form-check-label" for="Thursday">پنجشنبه</label>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-3 col-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input day-checkbox"
+                                               type="checkbox" name="Friday" value="1"
+                                               id="Friday" form="mainForm" checked>
+                                        <label class="form-check-label" for="Friday">جمعه</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">انصراف</button>
+                <button type="button" onclick="submitSave('save')" class="btn btn-primary"> ذخیره برنامه</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- ========================================================= -->
+<!-- Modal افزایش برنامه -->
+<!-- ========================================================= -->
+<div class="modal fade" id="ExtendModal" tabindex="-1" aria-labelledby="ExtendModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <!-- Header -->
+            <div class="modal-header">
+                <h5 class="modal-title" id="ExtendModalLabel">
+                    افزایش زمان برنامه
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="بستن"></button>
+            </div>
+            <!-- Body -->
+            <div class="modal-body">
+                <div class="row g-3">
+                    <!-- نام برنامه -->
+                    <div class="col-md-6">
+                        <label class="form-label">نام برنامه</label>
+                        <input type="text" id="extend_program_name" class="form-control" readonly>
+                        <input type="hidden" id="extend_program_name_hidden" name="extend_program_name" form="mainForm">
+                    </div>
+                    <!-- شبکه -->
+                    <div class="col-md-6">
+                        <label class="form-label">شبکه</label>
+                        <select id="extend_network_name" class="form-control" disabled>
+                            <option value="">انتخاب شبکه</option>
+                            {% for network in networks %}
+                                <option value="{{ network.id_network }}">
+                                    {{ network.network }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <input type="hidden" id="extend_network_name_hidden" name="extend_network_name" form="mainForm">
+                    </div>
+                    <!-- ساعت پخش -->
+                    <div class="col-md-6">
+                        <label class="form-label">ساعت پخش</label>
+                        <input type="time"
+                               id="extend_play_time"
+                               name="extend_play_time"
+                               class="form-control"
+                               form="mainForm">
+                    </div>
+                    <!-- مدت برنامه -->
+                    <div class="col-md-6">
+                        <label class="form-label">مدت برنامه</label>
+                        <input type="text"
+                               id="extend_time_duration"
+                               name="extend_time_duration"
+                               class="form-control"
+                               min="0"
+                               form="mainForm">
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label">روزهای پخش</label>
+                        <div class="border rounded p-3">
+                            <div class="row g-2">
+                                <div class="col-md-3 col-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input day-checkbox"
+                                               type="checkbox" name="extend_Saturday" value="1"
+                                               id="extend_Saturday" form="mainForm" checked>
+                                        <label class="form-check-label" for="Saturday">شنبه</label>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-3 col-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input day-checkbox"
+                                               type="checkbox" name="extend_Sunday" value="1"
+                                               id="extend_Sunday" form="mainForm" checked>
+                                        <label class="form-check-label" for="Sunday">یکشنبه</label>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-3 col-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input day-checkbox"
+                                               type="checkbox" name="extend_Monday" value="1"
+                                               id="extend_Monday" form="mainForm" checked>
+                                        <label class="form-check-label" for="Monday">دوشنبه</label>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-3 col-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input day-checkbox"
+                                               type="checkbox" name="extend_Tuesday" value="1"
+                                               id="extend_Tuesday" form="mainForm" checked>
+                                        <label class="form-check-label" for="Tuesday">سه‌شنبه</label>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-3 col-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input day-checkbox"
+                                               type="checkbox" name="extend_Wednesday" value="1"
+                                               id="extend_Wednesday" form="mainForm" checked>
+                                        <label class="form-check-label" for="Wednesday">چهارشنبه</label>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-3 col-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input day-checkbox"
+                                               type="checkbox" name="extend_Thursday" value="1"
+                                               id="extend_Thursday" form="mainForm" checked>
+                                        <label class="form-check-label" for="Thursday">پنجشنبه</label>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-3 col-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input day-checkbox"
+                                               type="checkbox" name="extend_Friday" value="1"
+                                               id="extend_Friday" form="mainForm" checked>
+                                        <label class="form-check-label" for="Friday">جمعه</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">انصراف</button>
+                <!-- تغییر value به extend -->
+                <button type="button" onclick="submitSave('extend')" class="btn btn-primary"> افزایش برنامه</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+    // پاک کردن تاریخچه POST جهت جلوگیری از ارسال مجدد فرم هنگام F5 یا Refresh
+    if (window.history.replaceState) {
+        window.history.replaceState(null, null, window.location.href);
+    }
+</script>
+<script>
+$(document).ready(function() {
+    $('#id_network').change(function() {
+        var networkId = $(this).val();
+        var shiftSelect = $('#id_shift_number');
+
+        shiftSelect.empty().append('<option value="">انتخاب شیفت</option>');
+
+        if (networkId) {
+            $.ajax({
+                url: window.location.href, // ارسال به همین صفحه جاری
+                data: {
+                    'action': 'get_shifts',
+                    'network_id': networkId
+                },
+                dataType: 'json',
+                success: function(data) {
+                    $.each(data.shifts, function(index, shift) {
+                        shiftSelect.append(
+                            $('<option></option>').val(shift.id).html(shift.name)
+                        );
+                    });
+                }
+            });
+        }
+    });
+});
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    const checkboxes = document.querySelectorAll('.day-checkbox');
+    const dropdownButton = document.getElementById('daysDropdown');
+
+    function updateDaysText() {
+
+        const selectedCount = Array.from(checkboxes)
+            .filter(checkbox => checkbox.checked).length;
+
+        if (selectedCount === 0) {
+            dropdownButton.textContent = 'هیچ روزی انتخاب نشده';
+        } else {
+            dropdownButton.textContent = 'انتخاب کنید';
+        }
+    }
+
+    checkboxes.forEach(function (checkbox) {
+        checkbox.addEventListener('change', updateDaysText);
+    });
+
+    updateDaysText();
+});
+</script>
+<script>
+function openProgramModal() {
+
+    const modalElement = document.getElementById('programModal');
+
+    const modal = new bootstrap.Modal(modalElement);
+
+    modal.show();
+}
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    const checkboxes = document.querySelectorAll('.day-checkbox');
+    const dropdownButton = document.getElementById('extend_daysDropdown');
+
+    function updateDaysText() {
+
+        const selectedCount = Array.from(checkboxes)
+            .filter(checkbox => checkbox.checked).length;
+
+        if (selectedCount === 0) {
+            dropdownButton.textContent = 'هیچ روزی انتخاب نشده';
+        } else {
+            dropdownButton.textContent = 'انتخاب کنید';
+        }
+    }
+
+    checkboxes.forEach(function (checkbox) {
+        checkbox.addEventListener('change', updateDaysText);
+    });
+
+    updateDaysText();
+});
+</script>
+<script>
+function openExtendModal() {
+
+    const modalElement = document.getElementById('ExtendModal');
+
+    const modal = new bootstrap.Modal(modalElement);
+
+    modal.show();
+}
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    // -----------------------------------------
+    // فیلدهای تاریخ و روز
+    // -----------------------------------------
+    const dateInput = document.querySelector('[name="start_date"]');
+    const dayInput = document.querySelector('[name="day"]');
+
+    if (!dateInput || !dayInput) {
+        console.warn('فیلد start_date یا day پیدا نشد.');
+        return;
+    }
+
+
+    // -----------------------------------------
+    // تبدیل اعداد فارسی و عربی به انگلیسی
+    // -----------------------------------------
+    function toEnglishDigits(value) {
+        return value
+            .replace(/[۰-۹]/g, function (digit) {
+                return '۰۱۲۳۴۵۶۷۸۹'.indexOf(digit);
+            })
+            .replace(/[٠-٩]/g, function (digit) {
+                return '٠١٢٣٤٥٦٧٨٩'.indexOf(digit);
+            });
+    }
+
+
+    // -----------------------------------------
+    // تبدیل تاریخ جلالی به میلادی
+    // -----------------------------------------
+    function jalaliToGregorian(jy, jm, jd) {
+
+        jy = parseInt(jy, 10);
+        jm = parseInt(jm, 10);
+        jd = parseInt(jd, 10);
+
+        let gy;
+
+        if (jy > 979) {
+            gy = 1600;
+            jy -= 979;
+        } else {
+            gy = 621;
+        }
+
+        let days =
+            (365 * jy)
+            + Math.floor(jy / 33) * 8
+            + Math.floor(((jy % 33) + 3) / 4)
+            + 78
+            + jd
+            + (jm < 7
+                ? (jm - 1) * 31
+                : ((jm - 7) * 30) + 186
+            );
+
+        gy += 400 * Math.floor(days / 146097);
+        days %= 146097;
+
+        if (days > 36524) {
+            gy += 100 * Math.floor(--days / 36524);
+            days %= 36524;
+
+            if (days >= 365) {
+                days++;
+            }
+        }
+
+        gy += 4 * Math.floor(days / 1461);
+        days %= 1461;
+
+        if (days > 365) {
+            gy += Math.floor((days - 1) / 365);
+            days = (days - 1) % 365;
+        }
+
+        const gd = days + 1;
+
+        const leap =
+            (gy % 4 === 0 && gy % 100 !== 0)
+            || (gy % 400 === 0);
+
+        const monthDays = [
+            0,
+            31,
+            leap ? 29 : 28,
+            31,
+            30,
+            31,
+            30,
+            31,
+            31,
+            30,
+            31,
+            30,
+            31
+        ];
+
+        let gm = 1;
+        let remainingDays = gd;
+
+        while (remainingDays > monthDays[gm]) {
+            remainingDays -= monthDays[gm];
+            gm++;
+        }
+
+        return {
+            year: gy,
+            month: gm,
+            day: remainingDays
+        };
+    }
+
+
+    // -----------------------------------------
+    // تشخیص روز هفته
+    // -----------------------------------------
+    function updateDay() {
+
+        let value = dateInput.value.trim();
+
+        if (!value) {
+            dayInput.value = '';
+            return;
+        }
+
+        // تبدیل اعداد فارسی به انگلیسی
+        value = toEnglishDigits(value);
+
+        /*
+         * فرمت مورد انتظار:
+         * 1405/06/30
+         *
+         * اگر جداکننده - یا . هم باشد مشکلی ندارد.
+         */
+        const parts = value.split(/[\/\-\.]/);
+
+        if (parts.length !== 3) {
+            return;
+        }
+
+        const jy = parseInt(parts[0], 10);
+        const jm = parseInt(parts[1], 10);
+        const jd = parseInt(parts[2], 10);
+
+        if (
+            isNaN(jy) ||
+            isNaN(jm) ||
+            isNaN(jd) ||
+            jm < 1 ||
+            jm > 12 ||
+            jd < 1 ||
+            jd > 31
+        ) {
+            return;
+        }
+
+        try {
+
+            const gregorian = jalaliToGregorian(jy, jm, jd);
+
+            const date = new Date(
+                gregorian.year,
+                gregorian.month - 1,
+                gregorian.day
+            );
+
+            /*
+             * JavaScript:
+             * 0 = Sunday
+             * 1 = Monday
+             * ...
+             * 6 = Saturday
+             */
+            const days = [
+                'یکشنبه',
+                'دوشنبه',
+                'سه‌شنبه',
+                'چهارشنبه',
+                'پنجشنبه',
+                'جمعه',
+                'شنبه'
+            ];
+
+            dayInput.value = days[date.getDay()];
+
+        } catch (error) {
+            console.error('خطا در محاسبه روز هفته:', error);
+            dayInput.value = '';
+        }
+    }
+
+
+    // -----------------------------------------
+    // وقتی مقدار تاریخ به صورت عادی تغییر کند
+    // -----------------------------------------
+    dateInput.addEventListener('change', updateDay);
+    dateInput.addEventListener('input', updateDay);
+    dateInput.addEventListener('keyup', updateDay);
+
+
+    // -----------------------------------------
+    // بررسی تغییر تاریخ توسط تقویم Jalali
+    // -----------------------------------------
+    let lastDateValue = dateInput.value;
+
+    setInterval(function () {
+
+        if (dateInput.value !== lastDateValue) {
+
+            lastDateValue = dateInput.value;
+
+            updateDay();
+        }
+
+    }, 200);
+
+
+    // -----------------------------------------
+    // نمایش روز اولیه هنگام باز شدن صفحه
+    // -----------------------------------------
+    updateDay();
+
+});
+</script>
+
+
+<script>
+function confirmReject(formId) {
+
+    Swal.fire({
+        title: 'آیا مطمئن هستید؟',
+        text: 'این عملیات قابل بازگشت نیست.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'بله، ادامه بده',
+        cancelButtonText: 'انصراف',
+        reverseButtons: true
+    }).then((result) => {
+
+        if (result.isConfirmed) {
+            document.getElementById(formId).submit();
+        }
+
+    });
+}
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+function confirmReject(formId) {
+    Swal.fire({
+        title: 'آیا از رد گزارش مالی مطمئن هستید؟',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#0b8457',
+        cancelButtonColor: '#FF0000',
+        confirmButtonText: 'بله، رد شود',
+        cancelButtonText: 'خیر، انصراف',
+        reverseButtons: true            /* برای درست قرار گرفتن دکمه‌ها در زبان فارسی */
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // اگر کاربر دکمه بله را بزند، فرم ارسال می‌شود
+            document.getElementById(formId).submit();
+        }
+    });
+}
+</script>
+<script>
+function submitBottomList(programId) {
+
+    document.getElementById('selectedId').value = programId;
+
+    document.getElementById('formAction').value = 'submit_bottom';
+
+    document.getElementById('mainForm').submit();
+}
+</script>
+<script>
+// آرایه‌ای برای نگهداری تمام آی‌دی‌های انتخاب‌شده
+let selectedIds = [];
+
+// اگر قبلاً آی‌دی‌هایی انتخاب شده بوده (مثلاً پس از Reload صفحه)، آنها را بازآوری می‌افزاییم
+let initialSelectedValue = document.getElementById('selectedId').value;
+if (initialSelectedValue) {
+    selectedIds = initialSelectedValue.split(',').filter(id => id.trim() !== '');
+}
+
+</script>
+<script>
+             /* =========================================================
+     برای انداختن نام برنامه در مدال افزایش برنامه
+     ========================================================= */
+$(document).ready(function() {
+    $('.btn-extend-modal').on('click', function() {
+        // ۱. دریافت مقادیر از ویژگی‌های دکمه کلیک‌شده
+        var programName = $(this).attr('data-program-name') || '';
+        var networkId = $(this).attr('data-network-id') || '';
+        var playTime = $(this).attr('data-play-time') || '';
+        var timeDuration = $(this).attr('data-time-duration') || '';
+
+        // ۲. مقداردهی نام برنامه (غیرقابل تغییر)
+        $('#extend_program_name').val(programName);
+        $('#extend_program_name_hidden').val(programName);
+
+        // ۳. مقداردهی شبکه (غیرقابل تغییر)
+        var networkSelect = $('#extend_network_name');
+        if (networkId !== '') {
+            networkSelect.val(networkId);
+        } else {
+            networkSelect.val('');
+        }
+        $('#extend_network_name_hidden').val(networkSelect.val());
+
+        // ۴. مقداردهی ساعت پخش و مدت برنامه (قابل تغییر توسط کاربر)
+        $('#extend_play_time').val(playTime);
+        $('#extend_time_duration').val(timeDuration);
+
+        // ۵. نمایش مدال
+        var extendModal = new bootstrap.Modal(document.getElementById('ExtendModal'));
+        extendModal.show();
+    });
+});
+</script>
+<script>
+    function openProgramModal() {
+    // پاک کردن مقادیر مدال افزایش برنامه برای جلوگیری از تداخل
+    $('#extend_program_name_hidden').val('');
+    $('#extend_network_name_hidden').val('');
+
+    const modalElement = document.getElementById('programModal');
+    const modal = new bootstrap.Modal(modalElement);
+    modal.show();
+}
+</script>
+<script>
+function submitSearch() {
+    // غیرفعال کردن فیلدهای مدال‌ها برای جلوگیری از validation و تداخل
+    $('#programModal input, #programModal select').prop('disabled', true);
+    $('#ExtendModal input, #ExtendModal select').prop('disabled', true);
+
+    $('#formAction').val('search');
+    $('#mainForm').submit();
+}
+
+function openProgramModal() {
+    // فعال‌سازی مجدد فیلدهای مدال ثبت
+    $('#programModal input, #programModal select').prop('disabled', false);
+
+    // پاک کردن مقادیر مدال افزایش
+    $('#extend_program_name_hidden').val('');
+    $('#extend_network_name_hidden').val('');
+
+    var modal = new bootstrap.Modal(document.getElementById('programModal'));
+    modal.show();
+}
+
+function submitSave(type) {
+    if (type === 'save') {
+        // فعال نگه داشتن مدال اصلی و غیرفعال کردن مدال افزایش
+        $('#programModal input, #programModal select').prop('disabled', false);
+        $('#ExtendModal input, #ExtendModal select').prop('disabled', true);
+    } else if (type === 'extend') {
+        $('#programModal input, #programModal select').prop('disabled', true);
+        $('#ExtendModal input, #ExtendModal select').prop('disabled', false);
+    }
+
+    $('#formAction').val('save');
+    $('#mainForm').submit();
+}
+</script>
+<script>
+    // تابع ارسال فرم بر اساس نوع مدال (ذخیره جدید یا افزایش)
+    function submitSave(type) {
+        // ایجاد یا مقداردهی فیلد modal_type
+        if ($('#modal_type').length === 0) {
+            $('#mainForm').append('<input type="hidden" name="modal_type" id="modal_type">');
+        }
+        $('#modal_type').val(type);
+
+        // فعال/غیرفعال‌سازی ورودی‌ها بر اساس نوع ارسال تا فرم شلوغ نشود
+        if (type === 'save') {
+            $('#programModal input, #programModal select').prop('disabled', false);
+            $('#ExtendModal input, #ExtendModal select').prop('disabled', true);
+            $('#formAction').val('save');
+        } else if (type === 'extend') {
+            $('#programModal input, #programModal select').prop('disabled', true);
+            $('#ExtendModal input, #ExtendModal select').prop('disabled', false);
+            $('#formAction').val('extend');
+        }
+
+        // ارسال فرم اصلی
+        $('#mainForm').submit();
+    }
+
+    // باز کردن مدال افزایش و پر کردن مقادیر آن
+    $(document).ready(function () {
+        $('.btn-extend-modal').on('click', function () {
+            // دریافت اطلاعات از دکمه کلیک‌شده
+            const progName = $(this).data('program-name');
+            const netId = $(this).data('network-id');
+            const playTime = $(this).data('play-time');
+            const timeDuration = $(this).data('time-duration');
+
+            // مقداردهی به عناصر داخل مدال افزایش
+            $('#extend_program_name').val(progName);
+            $('#extend_program_name_hidden').val(progName);
+
+            $('#extend_network_name').val(netId);
+            $('#extend_network_name_hidden').val(netId);
+
+            $('#extend_play_time').val(playTime);
+            $('#extend_time_duration').val(timeDuration);
+
+            // نمایش مدال افزایش
+            $('#ExtendModal').modal('show');
+        });
+    });
+</script>
+<script>
+/* =========================================================
+   JavaScript تخصیص و تغییر صدابردار
+   ========================================================= */
+
+function submitSearch() {
+
+    const mainForm = document.getElementById("mainForm");
+
+    if (!mainForm) {
+        alert("فرم اصلی پیدا نشد.");
+        return;
+    }
+
+    document.getElementById("formAction").value = "search";
+
+    mainForm.submit();
+}
+
+
+/* =========================================================
+   2. متغیر سلول انتخاب‌شده
+   ========================================================= */
+
+let selectedCell = null;
+
+
+/* =========================================================
+   3. Dropdown صدابردار
+   ========================================================= */
+
+const recorderSelect =
+    document.getElementById("id_sound_recorder");
+
+
+/* =========================================================
+   4. انتخاب سلول صدابردار در جدول پایین
+   ========================================================= */
+
+document.addEventListener("click", function (e) {
+
+    const td = e.target.closest(".sound-cell");
+
+    // اگر روی سلول صدابردار کلیک نشده
+    if (!td) {
+        return;
+    }
+
+    // حذف انتخاب قبلی
+    if (selectedCell) {
+        selectedCell.classList.remove("selected-cell");
+    }
+
+    // انتخاب سلول جدید
+    selectedCell = td;
+
+    selectedCell.classList.add("selected-cell");
+});
+
+
+/* =========================================================
+   5. انتخاب صدابردار جدید از Dropdown
+   ========================================================= */
+
+if (recorderSelect) {
+
+    recorderSelect.addEventListener("change", function () {
+
+        // اگر چیزی انتخاب نشده
+        if (!this.value) {
+            return;
+        }
+
+        // -----------------------------------------------
+        // باید ابتدا یک سلول از جدول انتخاب شده باشد
+        // -----------------------------------------------
+
+        if (!selectedCell) {
+
+            alert(
+                "ابتدا روی سلول صدابردار یکی از سطرها کلیک کنید."
+            );
+
+            // برگرداندن Dropdown به حالت اولیه
+            this.value = "";
+
+            return;
+        }
+
+
+        // -----------------------------------------------
+        // ID صدابردار جدید
+        // -----------------------------------------------
+
+        const recorderId = this.value;
+
+
+        // -----------------------------------------------
+        // نام صدابردار جدید
+        // -----------------------------------------------
+
+        const recorderName =
+            this.options[this.selectedIndex].text.trim();
+
+
+        // -----------------------------------------------
+        // تغییر نام صدابردار داخل همان سلول
+        // -----------------------------------------------
+
+        selectedCell.textContent = recorderName;
+
+
+        // -----------------------------------------------
+        // ذخیره ID جدید داخل همان سلول
+        // برای استفاده هنگام زدن دکمه تیک
+        // -----------------------------------------------
+
+        selectedCell.dataset.newRecorderId = recorderId;
+
+
+        // -----------------------------------------------
+        // مشخص کردن اینکه این سلول تغییر کرده
+        // -----------------------------------------------
+
+        selectedCell.classList.add("recorder-changed");
+
+
+        // -----------------------------------------------
+        // حذف حالت انتخاب
+        // -----------------------------------------------
+
+        selectedCell.classList.remove("selected-cell");
+
+        selectedCell = null;
+
+
+        // -----------------------------------------------
+        // ریست Dropdown
+        // -----------------------------------------------
+
+        this.value = "";
+    });
+}
+
+
+/* =========================================================
+   6. ذخیره تغییرات یک سطر با دکمه تیک
+   ========================================================= */
+
+function confirmRow(btn) {
+
+    // -----------------------------------------------
+    // پیدا کردن سطر
+    // -----------------------------------------------
+
+    const tr = btn.closest("tr");
+
+    if (!tr) {
+
+        alert("سطر برنامه پیدا نشد.");
+
+        return;
+    }
+
+
+    // -----------------------------------------------
+    // شناسه برنامه
+    // -----------------------------------------------
+
+    const programId =
+        tr.dataset.programId;
+
+    if (!programId) {
+
+        alert("شناسه برنامه پیدا نشد.");
+
+        return;
+    }
+
+
+    // -----------------------------------------------
+    // پیدا کردن سلول صدابردار
+    // -----------------------------------------------
+
+    const soundCell =
+        tr.querySelector(".sound-cell");
+
+    if (!soundCell) {
+
+        alert("سلول صدابردار پیدا نشد.");
+
+        return;
+    }
+
+
+    // -----------------------------------------------
+    // گرفتن ID صدابردار جدید
+    // -----------------------------------------------
+
+    const newRecorderId =
+        soundCell.dataset.newRecorderId;
+
+
+    // -----------------------------------------------
+    // اگر برای این سطر تغییر انجام نشده
+    // -----------------------------------------------
+
+    if (!newRecorderId) {
+
+        alert(
+            "برای این سطر صدابردار جدیدی انتخاب نشده است."
+        );
+
+        return;
+    }
+
+
+    // -----------------------------------------------
+    // Input مخفی شناسه برنامه
+    // -----------------------------------------------
+
+    const programIdInput =
+        document.getElementById("confirm_program_id");
+
+    if (programIdInput) {
+
+        programIdInput.value = programId;
+    }
+
+
+    // -----------------------------------------------
+    // Input مخفی شناسه صدابردار
+    // -----------------------------------------------
+
+    const recorderIdInput =
+        document.getElementById("confirm_recorder_id");
+
+    if (recorderIdInput) {
+
+        recorderIdInput.value = newRecorderId;
+    }
+
+
+    // -----------------------------------------------
+    // تاریخ
+    // -----------------------------------------------
+
+    const dateInput =
+        document.querySelector('[name="start_date"]');
+
+    const confirmDateInput =
+        document.getElementById("confirm_shift_date");
+
+    if (dateInput && confirmDateInput) {
+
+        confirmDateInput.value =
+            dateInput.value;
+    }
+
+
+    // -----------------------------------------------
+    // روز
+    // -----------------------------------------------
+
+    const dayInput =
+        document.querySelector('[name="day"]');
+
+    const confirmDayInput =
+        document.getElementById("confirm_shift_day");
+
+    if (dayInput && confirmDayInput) {
+
+        confirmDayInput.value =
+            dayInput.value;
+    }
+
+
+    // -----------------------------------------------
+    // تعیین Action
+    // -----------------------------------------------
+
+    const formAction =
+        document.getElementById("formAction");
+
+    if (formAction) {
+
+        formAction.value =
+            "confirm_recorder_change";
+    }
+
+
+    // -----------------------------------------------
+    // ارسال فرم اصلی
+    // -----------------------------------------------
+
+    const mainForm =
+        document.getElementById("mainForm");
+
+    if (!mainForm) {
+
+        alert("فرم اصلی پیدا نشد.");
+
+        return;
+    }
+
+    mainForm.submit();
+}
+
+</script>
+    <script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    document.querySelectorAll('.btn-assign-recorder').forEach(function (button) {
+
+        button.addEventListener('click', function () {
+
+            const programId = this.dataset.programId;
+
+            if (!programId) {
+                alert('شناسه برنامه پیدا نشد.');
+                return;
+            }
+
+            // فقط همین برنامه انتخاب شود
+            document.getElementById('selectedId').value = programId;
+
+            // عملیات انتقال به جدول پایین
+            document.getElementById('formAction').value = 'submit_bottom';
+
+            // ارسال فرم
+            document.getElementById('mainForm').submit();
+        });
+
+    });
+
+});
+</script>
+<script>
+function assignSoundRecorder(programId, recorderId) {
+    console.log("Program ID:", programId, "Recorder ID:", recorderId);
+
+    if (!recorderId || recorderId === 'None' || recorderId === 'null' || recorderId === '' || recorderId === '0') {
+        alert('برای این شیفت، صدابرداری در سیستم ثبت نشده است.');
+        return;
+    }
+
+    // مقداردهی اینپوت‌های مخفی
+    $('#confirm_program_id').val(programId);
+    $('#confirm_recorder_id').val(recorderId);
+    $('#formAction').val('assign_sound_recorder');
+
+    // استفاده از native submit جهت دور زدن jQuery/Validation متوقف‌کننده
+    document.getElementById('mainForm').submit();
+}
+
+document.addEventListener('input', function (e) {
+    if (e.target.id === 'play_time' || e.target.id === 'extend_play_time') {
+        let input = e.target;
+        let value = input.value.replace(/\D/g, ''); // فقط اعداد را نگه دار
+        
+        if (value.length >= 3) {
+            value = value.substring(0, 2) + ':' + value.substring(2, 4);
+        }
+        
+        input.value = value;
+    }
+});
+
+// اعتبارسنجی ساده هنگام خروج از فیلد (Blur) برای جلوگیری از ساعت اشتباه
+document.addEventListener('blur', function (e) {
+    if (e.target.id === 'play_time' || e.target.id === 'extend_play_time') {
+        let input = e.target;
+        let val = input.value;
+        
+        // اگر فرمت کامل بود (مثلاً 25:12 یا 12:65) بررسی کن
+        let match = val.match(/^([01]?[0-9]|2[0-3]):([0-5][0-9])$/);
+        if (val && !match) {
+            // اگر ساعت اشتباه بود، فیلد را پاک کن یا اخطار بده
+            alert('لطفاً ساعت را به فرمت صحیح ۲۴ ساعته وارد کنید (مثال: 14:30)');
+            input.value = '';
+            input.focus();
+        }
+    }
+}, true);
+</script>
+{% endblock %}

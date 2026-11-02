@@ -30,8 +30,13 @@ urlpatterns = [
 
     path('information/setting/' , include('information.setting.urls')),
     path('sound_recorders/', include('sound_recorders.urls')),
+    path('information/setting/payment_calculation/', include('information.setting.payment_calculation.urls', namespace='payment_calculation')),
     path('sound_recorders/current_affairs/', include('sound_recorders.current_affairs.urls')),
     path('sound_recorders/current_affairs/create_new/', include('sound_recorders.current_affairs.create_new.urls')),
+    path('information/setting/shift_rate/', include(('information.setting.shift_rate.urls', 'shift_rate'), namespace='shift_rate')),
+    path('information/setting/holidays/', include(('information.setting.holidays.urls', 'holidays'), namespace='holidays')),
+    path('soundrecorders/', include('sound_recorders.urls', namespace='soundrecorders')),
+
 
 
 ]

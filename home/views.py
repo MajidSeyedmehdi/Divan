@@ -2,34 +2,37 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 import jdatetime
 
-
-
-
 @login_required
 def home_view(request):
-    # Get full name from auth user
     if request.user.first_name and request.user.last_name:
         full_name = f"{request.user.first_name} {request.user.last_name}"
-        role = f"{request.user.groups.first().name}"
+        role = f"{request.user.groups.first().name}" if request.user.groups.exists() else 'کاربر'
     else:
         full_name = request.user.username
         role = 'کاربر'
-        # بررسی عضویت در گروه‌ها
+
     is_info_manager = (
             request.user.is_superuser or
             request.user.groups.filter(name="مدیر آمار و اطلاعات فنی").exists() or
             request.user.groups.filter(name="کارشناس آمار و اطلاعات فنی").exists()
     )
+    is_only_info_manager = (
+            request.user.is_superuser or
+            request.user.groups.filter(name="مدیر آمار و اطلاعات فنی").exists()
+    )
+    is_only_sound_engineer = (
+            request.user.is_superuser or
+            request.user.groups.filter(name="مدیر صدابرداران").exists()
+    )
     is_sound_engineer = (
             request.user.is_superuser or
-            request.user.groups.filter(name="صدابرداران").exists()
+            request.user.groups.filter(name="مدیر صدابرداران").exists() or
+            request.user.groups.filter(name="کارشناس صدابرداران").exists()
     )
 
-    # Get current date in Persian format
     today = jdatetime.datetime.now()
     persian_date = today.strftime("%Y/%m/%d")
 
-    # Map English days to Persian
     day_mapping = {
         'Saturday': 'شنبه',
         'Sunday': 'یکشنبه',
@@ -47,6 +50,8 @@ def home_view(request):
         'persian_date': persian_date,
         'persian_day': persian_day,
         'is_info_manager': is_info_manager,
+        'is_only_info_manager': is_only_info_manager,
         'is_sound_engineer': is_sound_engineer,
+        'is_only_sound_engineer': is_only_sound_engineer,
     }
     return render(request, 'main/home.html', context)

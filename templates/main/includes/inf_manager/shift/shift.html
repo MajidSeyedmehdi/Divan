@@ -1,0 +1,903 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block content %}
+
+<style>
+    input[type="text"], select, textarea {
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 6px 10px;
+        width: 150px;
+        height: 35px;
+        font-size: 12px;
+        transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    input[type="text"]:focus, select:focus, textarea:focus {
+        border-color: #66afe9;
+        outline: none;
+        font-size: 12px;
+        box-shadow: 0 0 5px rgba(102, 175, 233, 0.6);
+    }
+
+    label {
+        margin-left: 8px;
+        font-weight: bold;
+        font-size: 12px;
+    }
+
+    li {
+        margin-bottom: 12px;
+    }
+
+    table thead th {
+        background-color: #e6f2ff !important;
+        color: white;
+        font-size: 14px;
+    }
+
+    .dropdown-checkboxes {
+        position: relative;
+        display: inline-block;
+        width: 100%;
+    }
+    .dropdown-checkboxes .dropdown-menu {
+        max-height: 250px;
+        overflow-y: auto;
+        padding: 10px;
+        width: 100%;
+    }
+    .dropdown-toggle-label {
+        font-size: 14px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .table-wrapper {
+        border: 2px solid #e0e0e0;
+        border-radius: 12px;
+        padding: 15px;
+        background-color: #fff;
+        box-shadow: 0 0 3px rgba(0, 0, 0, 0.12);
+        overflow-y: hidden;
+        overflow-x: auto;
+        width: 100%;
+        scrollbar-width:auto;
+    }
+    .table-wrapper table{
+        width: max-content;
+        min-width: 100%;
+        white-space: nowrap;
+    }
+
+    .financial-table {
+        width: 100%;
+        margin-bottom: 0;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-family: 'Vazir-Black', serif;
+    }
+
+    #financial-table th,
+    #financial-table td {
+        border: 1.5px solid #000000 !important;
+    }
+
+    #financial-table thead tr:first-child th:first-child { border-top-right-radius: 10px; }
+    #financial-table thead tr:first-child th:last-child { border-top-left-radius: 10px; }
+    #financial-table tbody tr:last-child td:first-child { border-bottom-right-radius: 10px; }
+    #financial-table tbody tr:last-child td:last-child { border-bottom-left-radius: 10px; }
+
+    @font-face {
+        font-family: 'Vazir-Black';
+        src: url("{% static 'fonts/Vazir-Black.woff2' %}") format('woff2'),
+             url("{% static 'fonts/Vazir-Black.woff' %}") format('woff');
+             url("{% static 'fonts/Vazir-Bold.woff' %}") format('woff');
+        font-weight: normal;
+        font-style: normal;
+    }
+
+    body, input, select, textarea {
+        font-family: 'Vazir', sans-serif !important;
+        direction: rtl;
+        text-align: right;
+    }
+
+    .ui-datepicker, .ui-datepicker table, .ui-datepicker td, .ui-datepicker th {
+        font-family: 'Vazir', sans-serif !important;
+        direction: rtl !important;
+        text-align: center;
+    }
+
+    .breadcrumb-box {
+        background: #fff;
+        border-radius: 12px;
+        padding: 15px 20px;
+        position: relative;
+        border: 1px solid #e0e0e0;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
+    .breadcrumb-box::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 10px;
+        width: 100%;
+        background: #00CED1;
+        border-top-left-radius: 12px;
+        border-top-right-radius: 12px;
+    }
+
+    .breadcrumb-box label { font-weight: 600; color: #333; }
+
+    .breadcrumb-box input[type="text"],
+    .breadcrumb-box select {
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 5px 10px;
+        font-size: 13px;
+        transition: all 0.2s ease;
+        background-color: #fafafa;
+    }
+
+    .breadcrumb-box input[type="text"]:focus,
+    .breadcrumb-box select:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 3px rgba(0, 123, 255, 0.3);
+        outline: none;
+    }
+
+    .tab-wrapper {
+        background: #fff;
+        border: 1px solid #dee2e6;
+        border-radius: 12px;
+        padding: 0;
+    }
+
+    input[readonly].date-readonly {
+        border: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        outline: none !important;
+        padding: 0 !important;
+        text-align: center;
+        font-size: 12px;
+        cursor: default;
+        font-family: 'Vazir-Black', serif;
+    }
+
+    .network-summary {
+        cursor: pointer;
+        color: #0d6efd;
+        font-weight: bold;
+        font-family: 'Vazir-Black', serif;
+    }
+
+    .history-header {
+        background-color: #F0DADA;
+        color: black;
+        font-size: 12px;
+        font-weight: bold;
+        font-family: 'Vazir-Black', serif;
+    }
+
+    #modal-table th, #modal-table td {
+        border: 1.5px solid #000000 !important;
+    }
+
+    .modal-table {
+        width: 100%;
+        margin-bottom: 0;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-family: 'Vazir-Black', serif;
+    }
+
+    .modal-table thead > tr > th {
+        background-color: #e6f2ff !important;
+        color: #000000 !important;
+        font-weight: 700;
+        font-size: 13px;
+        text-align: center;
+        vertical-align: middle;
+        border: 1px solid #6fbab1 !important;
+        padding: 8px 6px;
+    }
+
+    .modal-table tbody td {
+        vertical-align: middle;
+        padding: 6px;
+        border: 1px solid #dee2e6;
+        background-color: #fff;
+    }
+
+    .close-modal-btn {
+        background-color: #009688;
+        color: white;
+        border: none;
+    }
+
+    .close-modal-btn:hover {
+        background-color: #C88787;
+        color: white;
+    }
+
+    /* ==========================================
+       استایل‌های اسکرول مدال جزئیات شیفت
+    ========================================== */
+    .custom-modal-scroll {
+        max-height: 60vh;
+        overflow: auto;
+        border: 1px solid #c8d6e5;
+        border-radius: 8px;
+        box-shadow: inset 0 0 5px rgba(0,0,0,0.05);
+    }
+
+    .custom-modal-scroll table {
+        width: max-content;
+        min-width: 100%;
+        margin-bottom: 0;
+    }
+
+    .custom-modal-scroll table thead th {
+        position: sticky;
+        top: 0;
+        background-color: #8cbed6 !important;
+        z-index: 10;
+        white-space: nowrap !important;
+        min-width: 80px;
+        box-shadow: 0 2px 2px -1px rgba(0,0,0,0.2);
+    }
+
+    .custom-modal-scroll table td {
+        white-space: nowrap !important;
+        font-size: 13px;
+    }
+@media print {
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    /* مخفی کردن همه‌چیز به صورت پیش‌فرض */
+    body * {
+        visibility: hidden !important;
+    }
+
+    /* اگر مدال باز است، فقط مدال فعال چاپ شود */
+    body.modal-open .modal.show,
+    body.modal-open .modal.show * {
+        visibility: visible !important;
+    }
+
+    body.modal-open .modal.show {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        height: auto !important;
+        overflow: visible !important;
+    }
+
+    /* مخفی کردن دکمه‌های بستن و چاپ داخل مدال در برگه چاپ */
+    .modal-footer, .btn-close {
+        display: none !important;
+    }
+
+    /* اگر هیچ مدالی باز نیست، صفحه اصلی (printable) چاپ شود */
+    body:not(.modal-open) .printable,
+    body:not(.modal-open) .printable * {
+        visibility: visible !important;
+    }
+
+    body:not(.modal-open) .printable {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100% !important;
+    }
+
+    table {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+
+    tr, td, th {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+
+    @page {
+        size: A4 landscape;
+        margin: 10mm;
+    }
+}
+    /* استایل نوار تب‌ها */
+    .nav-tabs .nav-link {
+        font-family: 'Vazir-Black', sans-serif;
+        font-size: 14px;
+        color: #495057;
+        border-radius: 8px 8px 0 0;
+    }
+
+    .nav-tabs .nav-link.active {
+        background-color: #00CED1;
+        color: #fff;
+        border-color: #00CED1 #00CED1 #fff;
+    }
+    /* استایل بوردر مشکی پررنگ برای تمام جدول‌های مالی */
+.financial-table,
+.financial-table th,
+.financial-table td {
+    border: 1.5px solid #000000 !important;
+}
+
+.financial-table {
+    width: 100%;
+    margin-bottom: 0;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-family: 'Vazir-Black', serif;
+}
+
+/* گرد کردن گوشه‌های جدول */
+.financial-table thead tr:first-child th:first-child { border-top-right-radius: 10px; }
+.financial-table thead tr:first-child th:last-child { border-top-left-radius: 10px; }
+.financial-table tbody tr:last-child td:first-child { border-bottom-right-radius: 10px; }
+.financial-table tbody tr:last-child td:last-child { border-bottom-left-radius: 10px; }
+/* دکمه بازگشت */
+.back-btn {
+        background-color: #6c8ebf;
+        border-color: #6c8ebf;
+        color: white;
+    }
+
+    .back-btn:hover {
+        background-color: #5879a8;
+        border-color: #5879a8;
+        color: white;
+    }
+</style>
+
+<div class="container-fluid">
+{% if messages %}
+                <div class="row mb-3">
+                    <div class="col-lg-12">
+                        {% for message in messages %}
+                            <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags == 'warning' %}warning{% elif message.tags == 'success' %}success{% else %}info{% endif %} alert-dismissible fade show" role="alert">
+                                <i class="icon-{% if message.tags == 'error' %}close{% elif message.tags == 'warning' %}warning{% elif message.tags == 'success' %}check{% else %}info{% endif %}"></i>
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+    <!-- نوار تب‌ها -->
+<!--    بازگشت-->
+    <ul class="nav nav-tabs" id="myTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link {% if active_tab == 'receive' or not active_tab %}active{% endif %}"
+                    id="receive-tab"
+                    data-bs-toggle="tab"
+                    data-bs-target="#receive-pane"
+                    type="button"
+                    role="tab"
+                    aria-controls="receive-pane"
+                    aria-selected="true">
+                در انتظار اقدام
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link {% if active_tab == 'history' %}active{% endif %}"
+                    id="history-tab"
+                    data-bs-toggle="tab"
+                    data-bs-target="#history-pane"
+                    type="button"
+                    role="tab"
+                    aria-controls="history-pane"
+                    aria-selected="false">
+                تاریخچه
+            </button>
+        </li>
+    </ul>
+
+    <!-- محتوای تب‌ها -->
+    <div class="tab-content" id="myTabContent">
+
+        <!-- ================= تب دریافت ================= -->
+        <div class="tab-pane fade {% if active_tab == 'receive' or not active_tab %}show active{% endif %}"
+             id="receive-pane"
+             role="tabpanel"
+             aria-labelledby="receive-tab">
+            <div class="tab-wrapper">
+                <div class="printable table-wrapper">
+                    <table class="table table-bordered text-center financial-table">
+                        <thead>
+                            <tr>
+                                <th>تاریخ شروع</th>
+                                <th>تاریخ پایان</th>
+                                <th>مرخصی</th>
+                                <th>ساعت موظف</th>
+                                <th>برآورد کل</th>
+                                <th>وضعیت</th>
+                                <th>واحد رسیدگی کننده</th>
+                                <th>روکش شبکه ها</th>
+                                <th>روکش نهایی</th>
+                                <th>جزئیات شیفت</th>
+                                <th>توضیحات</th>
+                                {% if show_last_column %}
+                                <th>ارسال</th>
+                                {% endif %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in receive_rows %}
+                            <tr>
+                                <td>{{ row.Start_date_j }}</td>
+                                <td>{{ row.End_date_calc_j }}</td>
+                                <td>{{ row.Leaves|default_if_none:"0" }}</td>
+                                <td>{{ row.Required_hours }}</td>
+                                <td>{{ row.Total_pay }}</td>
+                                <td>{{ row.Full_Workflow_Status }}</td>
+                                <td>{{ row.Current_Manager }}</td>
+                                <td>
+                                    <a href="{% url 'information:inf_manager:shift:get_network_coating' %}?start_date={{ row.Start_date_j }}&end_date={{ row.End_date_j }}"
+                                       class="network-summary"
+                                       style="text-decoration: none; display: block; width: 100%; height: 100%; color: #0d6efd; cursor: pointer;">
+                                        روکش شبکه ها
+                                    </a>
+                                </td>
+                                <td>
+                                    <a href="{% url 'information:inf_manager:shift:get_final_coating' %}?start_date={{ row.Start_date_j }}&end_date={{ row.End_date_j }}"
+                                       class="network-summary"
+                                       style="text-decoration: none; display: block; width: 100%; height: 100%; color: #0d6efd; cursor: pointer;">
+                                        روکش نهایی
+                                    </a>
+                                </td>
+                                <td>
+                                    <a href="{% url 'information:inf_manager:shift:get_shift_details' %}?start_date={{ row.Start_date_j }}&end_date={{ row.End_date_j }}"
+                                       class="network-summary"
+                                       style="text-decoration: none; display: block; width: 100%; height: 100%; color: #0d6efd; cursor: pointer;">
+                                        جزئیات شیفت
+                                    </a>
+                                </td>
+                                <td>
+                                    <span class="network-summary"
+                                          data-url="{% url 'information:inf_manager:shift:get_workflow_history' %}"
+                                          onclick="openDataModal('descriptionModal', '{{ row.Id_final_payroll_calc }}', this)">
+                                        توضیحات
+                                    </span>
+                                </td>
+
+                                {% if show_last_column %}
+                                <td>
+                                    <form method="post" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="id_final_payroll_calc" value="{{ row.Id_final_payroll_calc }}">
+                                        <button type="submit" class="btn btn-light btn-sm" name="action" value="confirm">
+                                            <i class="fa fa-check text-success"></i>
+                                        </button>
+                                    </form>
+
+                                    <form id="reject-form-{{ row.Id_final_payroll_calc }}" method="post" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="id_final_payroll_calc" value="{{ row.Id_final_payroll_calc }}">
+                                        <input type="hidden" name="action" value="reject">
+                                        <button type="button" class="btn btn-light btn-sm" onclick="confirmReject('reject-form-{{ row.Id_final_payroll_calc }}')">
+                                            <i class="fa fa-times text-danger"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                                {% endif %}
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="{% if show_last_column %}12{% else %}11{% endif %}" class="text-muted">موردی جهت دریافت موجود نیست.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= تب تاریخچه ================= -->
+        <div class="tab-pane fade {% if active_tab == 'history' %}show active{% endif %}"
+             id="history-pane"
+             role="tabpanel"
+             aria-labelledby="history-tab">
+            <div class="tab-wrapper">
+                <div class="printable table-wrapper">
+                    <table class="table table-bordered text-center financial-table">
+                        <thead>
+                            <tr>
+                                <th>تاریخ شروع</th>
+                                <th>تاریخ پایان</th>
+                                <th>مرخصی</th>
+                                <th>ساعت موظف</th>
+                                <th>برآورد کل</th>
+                                <th>وضعیت</th>
+                                <th>واحد رسیدگی کننده</th>
+                                <th>روکش شبکه ها</th>
+                                <th>روکش نهایی</th>
+                                <th>جزئیات شیفت</th>
+                                <th>توضیحات</th>
+                            </tr>
+                        </thead>
+           <tbody>
+                {% for row in history_rows %}
+                <tr>
+                    <td>{{ row.Start_date_j }}</td>
+                    <td>{{ row.End_date_calc_j }}</td>
+                    <td>{{ row.Leaves|default_if_none:"0" }}</td>
+                    <td>{{ row.Required_hours }}</td>
+                    <td>{{ row.Total_pay }}</td>
+                    <td>{{ row.Full_Workflow_Status }}</td>
+                    <td>{{ row.Current_Manager }}</td>
+
+                    <td>
+                        <a href="{% url 'information:inf_manager:shift:get_network_coating' %}?start_date={{ row.Start_date_j }}&end_date={{ row.End_date_j }}"
+                           class="network-summary">
+                            روکش شبکه ها
+                        </a>
+                    </td>
+
+                    <td>
+                        <a href="{% url 'information:inf_manager:shift:get_final_coating' %}?start_date={{ row.Start_date_j }}&end_date={{ row.End_date_j }}"
+                           class="network-summary">
+                            روکش نهایی
+                        </a>
+                    </td>
+
+                    <td>
+                        <a href="{% url 'information:inf_manager:shift:get_shift_details' %}?start_date={{ row.Start_date_j }}&end_date={{ row.End_date_j }}"
+                           class="network-summary">
+                            جزئیات شیفت
+                        </a>
+                    </td>
+
+                    <td>
+                        <span class="network-summary"
+                              data-url="{% url 'information:inf_manager:shift:get_workflow_history' %}"
+                              onclick="openDataModal(
+                                  'descriptionModal',
+                                  '{{ row.Id_final_payroll_calc }}',
+                                  this
+                              )">
+                            توضیحات
+                        </span>
+                    </td>
+                </tr>
+
+                {% empty %}
+                <tr>
+                    <td colspan="11" class="text-muted">
+                        موردی جهت نمایش در تاریخچه موجود نیست.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- ========================= MODALS (مشترک بین دو تب) ========================= -->
+<!-- مدال  توضیحات -->
+
+<div class="modal fade" id="descriptionModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="card-header history-header py-2 rounded mb-3">
+                    <h5 class="mb-0 text-center">سابقه توضیحات</h5>
+                </div>
+                <table id="modal-table" class="table modal-table table-bordered text-center align-middle">
+                    <thead>
+                        <tr>
+                            <th>ردیف</th>
+                            <th>تاریخ و ساعت</th>
+                            <th>اقدام کننده</th>
+                            <th>وضعیت</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTableBody"></tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn close-modal-btn" data-bs-dismiss="modal">بستن</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function openDataModal(modalId, payrollId, element) {
+    try {
+        // فقط descriptionModal اجازه باز شدن دارد
+        if (modalId !== 'descriptionModal') {
+            return;
+        }
+
+        var modalElement = document.getElementById(modalId);
+        if (!modalElement) return;
+
+        var tbody = modalElement.querySelector('tbody');
+        var myModal = bootstrap.Modal.getOrCreateInstance(modalElement);
+
+        // باز کردن فقط مدال توضیحات
+        myModal.show();
+
+        var thead = modalElement.querySelector('thead tr');
+        var colCount = thead ? thead.children.length : 4;
+
+        if (tbody) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="${colCount}" class="text-center py-4">
+                        در حال دریافت اطلاعات...
+                    </td>
+                </tr>`;
+        }
+
+        var baseUrl = element ? element.getAttribute('data-url') : null;
+
+        if (!baseUrl) {
+            if (tbody) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="${colCount}"
+                            class="text-danger text-center fw-bold py-4">
+                            آدرس URL ست نشده است.
+                        </td>
+                    </tr>`;
+            }
+            return;
+        }
+
+        if (!payrollId ||
+            payrollId === 'None' ||
+            String(payrollId).trim() === '' ||
+            payrollId === 'undefined') {
+
+            if (tbody) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="${colCount}"
+                            class="text-danger text-center fw-bold py-4">
+                            شناسه رکورد معتبر نیست.
+                        </td>
+                    </tr>`;
+            }
+            return;
+        }
+
+        var requestUrl =
+            `${baseUrl}?id=${encodeURIComponent(payrollId)}`;
+
+        fetch(requestUrl)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`خطای سرور: ${response.status}`);
+                }
+
+                return response.json();
+            })
+            .then(res => {
+                if (!tbody) return;
+
+                tbody.innerHTML = '';
+
+                if (
+                    res.status === 'success' &&
+                    res.data &&
+                    res.data.length > 0
+                ) {
+                    renderTableDataSafely(
+                        modalId,
+                        tbody,
+                        res.data,
+                        modalElement
+                    );
+                } else {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="${colCount}"
+                                class="text-muted text-center py-4">
+                                هیچ اطلاعاتی یافت نشد.
+                            </td>
+                        </tr>`;
+                }
+            })
+            .catch(error => {
+                console.error(error);
+
+                if (tbody) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="${colCount}"
+                                class="text-danger text-center fw-bold py-4">
+                                خطا: ${error.message}
+                            </td>
+                        </tr>`;
+                }
+            });
+
+    } catch (error) {
+        console.error('Modal Error:', error);
+    }
+}
+function renderTableDataSafely(modalId, tbody, data, modalElement) {
+    try {
+        var htmlContent = '';
+
+        if (modalId === 'descriptionModal') {
+
+            data.forEach((item, index) => {
+
+                htmlContent += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${item.action_date || '-'}</td>
+                        <td>${item.manager || '-'}</td>
+                        <td>
+                            <span class="badge bg-info text-dark">
+                                ${item.workflow_action || '-'}
+                            </span>
+                        </td>
+                    </tr>`;
+            });
+        }
+
+        tbody.innerHTML = htmlContent;
+
+    } catch (error) {
+
+        console.error('Render Error:', error);
+
+        var colCount =
+            modalElement.querySelectorAll('thead th').length || 4;
+
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="${colCount}"
+                    class="text-danger text-center">
+                    خطا در رندر اطلاعات.
+                </td>
+            </tr>`;
+    }
+}
+/* ===============================
+   🖨️ چاپ - نسخه اشکال‌زدایی (Debug)
+=============================== */
+document.addEventListener("click", function (e) {
+    const printBtn = e.target.closest(".btn-print-modal, #btn-print-hardcopy");
+    if (!printBtn) return;
+
+    console.log("1. دکمه چاپ کلیک شد:", printBtn);
+
+    // پیدا کردن مدال
+    const modal = printBtn.closest(".modal") || printBtn.closest("[id*='Modal']") || printBtn.closest("[class*='modal']");
+    console.log("2. مدال پیدا شده:", modal);
+
+    if (!modal) {
+        alert("خطا: کانتینر مدال پیدا نشد! لطفا بررسی کنید که دکمه داخل یک دایو با کلاس modal قرار دارد.");
+        return;
+    }
+
+    const modalBody = modal.querySelector(".modal-body") || modal;
+    const printWindow = window.open("", "_blank", "width=1200,height=800");
+
+    if (!printWindow) {
+        alert("پنجره چاپ توسط مرورگر مسدود شد (Pop-up Blocked). لطفاً اجازه باز شدن پاپ‌آپ را بدهید.");
+        return;
+    }
+
+    printWindow.document.write(`
+        <html dir="rtl" lang="fa">
+        <head>
+            <title>چاپ</title>
+            <style>
+                body { font-family: Tahoma, sans-serif; direction: rtl; text-align: center; padding: 20px; }
+                table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+                table, th, td { border: 1px solid #000; padding: 8px; }
+                th { background-color: #eee; }
+                .btn, button { display: none !important; }
+            </style>
+        </head>
+        <body>
+            ${modalBody.innerHTML}
+        </body>
+        </html>
+    `);
+
+    printWindow.document.close();
+    setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+    }, 500);
+});
+
+/* ===============================
+   📊 اکسل - نسخه اشکال‌زدایی (Debug)
+=============================== */
+document.addEventListener("click", function (e) {
+    const excelBtn = e.target.closest(".btn-excel-modal, #btn-excel");
+    if (!excelBtn) return;
+
+    console.log("1. دکمه اکسل کلیک شد:", excelBtn);
+
+    if (typeof XLSX === 'undefined') {
+        alert("خطا: کتابخانه XLSX در صفحه بارگذاری نشده است.");
+        return;
+    }
+
+    const modal = excelBtn.closest(".modal") || excelBtn.closest("[id*='Modal']") || excelBtn.closest("[class*='modal']");
+    console.log("2. مدال پیدا شده:", modal);
+
+    if (!modal) {
+        alert("خطا: کانتینر مدال پیدا نشد!");
+        return;
+    }
+
+    const table = modal.querySelector("table");
+    console.log("3. جدول پیدا شده:", table);
+
+    if (!table) {
+        alert("هیچ جدولی (تگ table) در این مدال پیدا نشد!");
+        return;
+    }
+
+    try {
+        const tableClone = table.cloneNode(true);
+        tableClone.querySelectorAll("button, .btn").forEach(el => el.remove());
+
+        const workbook = XLSX.utils.book_new();
+        const sheet = XLSX.utils.table_to_sheet(tableClone);
+        XLSX.utils.book_append_sheet(workbook, sheet, "گزارش");
+        XLSX.writeFile(workbook, "گزارش.xlsx");
+        console.log("4. خروجی اکسل ساخته شد.");
+    } catch (err) {
+        console.error("خطا در اکسل:", err);
+        alert("خطا در ساخت اکسل: " + err.message);
+    }
+});
+</script>
+<!-- اضافه کردن کتابخانه خروجی اکسل -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script>
+function confirmReject(formId) {
+    Swal.fire({
+        title: 'آیا از رد گزارش مالی مطمئن هستید؟',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#0b8457',
+        cancelButtonColor: '#FF0000',
+        confirmButtonText: 'بله، رد شود',
+        cancelButtonText: 'خیر، انصراف',
+        reverseButtons: true            /* برای درست قرار گرفتن دکمه‌ها در زبان فارسی */
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // اگر کاربر دکمه بله را بزند، فرم ارسال می‌شود
+            document.getElementById(formId).submit();
+        }
+    });
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+{% endblock %}

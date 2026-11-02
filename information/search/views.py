@@ -64,6 +64,8 @@ def search_input(request):
                 "Levels": "jl.Levels",
                 "Hire_status": "hs.Hire_status",
                 "Salary_base": "f.Salary_base",
+                "Total_financial": "f.Total_finansial",
+                "Baravord" : "f.Baravord",
                 "Insurance_type": "it.Insurance_type",
                 "Account_Melli": "Account_Melli",
                 "Account_Jamjam": "Account_Jamjam",
@@ -79,7 +81,7 @@ def search_input(request):
 
             selected_sql_columns = [all_columns[field] for field in selected_fields if field in all_columns]
 
-            query = """EXEC Sp_Search ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+            query = """EXEC Sp_Search ?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
                             ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?"""
 
             def clean_param(val, expected_type=None):
@@ -105,6 +107,8 @@ def search_input(request):
                 clean_param(form.cleaned_data.get('marital_status')),
                 clean_param(form.cleaned_data.get('children_num'), 'int'),
                 clean_param(form.cleaned_data.get('salary_base'), 'bigint'),
+                clean_param(form.cleaned_data.get('total_financial'), 'bigint'),
+                clean_param(form.cleaned_data.get('baravord'), 'bigint'),
                 clean_param(form.cleaned_data.get('id_personal'), 'int'),
                 clean_param(form.cleaned_data.get('activity_type')),
                 clean_param(form.cleaned_data.get('payment_type')),

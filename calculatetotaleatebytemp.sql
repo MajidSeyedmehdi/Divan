@@ -1,0 +1,284 @@
+﻿-- تعیین بازه تاریخی مورد نظر
+DECLARE @StartDate DATE = '2026-05-22';
+DECLARE @EndDate DATE = '2026-06-21';
+
+-- خطوط حفاظتی برای پاک کردن جداول موقت قبلی در صورت وجود
+IF OBJECT_ID('tempdb..#FinalResult') IS NOT NULL
+    DROP TABLE #FinalResult;
+
+IF OBJECT_ID('tempdb..#Temp_Shift_Payroll_Calc') IS NOT NULL
+    DROP TABLE #Temp_Shift_Payroll_Calc;
+
+-- خطوط حفاظتی برای بستن کرسرهای باز مانده احتمالی در حافظه
+IF CURSOR_STATUS('global', 'Recorder_Cursor') >= 0
+BEGIN
+    CLOSE Recorder_Cursor;
+    DEALLOCATE Recorder_Cursor;
+END
+
+-- ۱. ایجاد جدول موقت با ستون‌های آماری
+CREATE TABLE #FinalResult (
+    Id_sound_recorder INT,
+    Total_Leaves INT,
+    Initial_Total_Hours INT,       
+    Initial_Shifts_Count INT,      
+    Special_Shifts_Count INT,
+    Deleted_Morning_Shifts INT,    
+    Deleted_Evening_Shifts INT,    
+    Deleted_Special_Shifts INT,    
+    Remaining_Total_Hours INT,     
+    Remaining_Shifts_Count INT,    
+    Final_Baraovard DECIMAL(18, 2)
+);
+
+-- ساخت و پر کردن جدول تمپ در بازه زمانی مشخص
+SELECT *
+INTO #Temp_Shift_Payroll_Calc
+FROM Tbl_Shift_Payroll_Calc
+WHERE Shift_date >= @StartDate AND Shift_date <= @EndDate;
+
+-- تعریف متغیرهای مورد نیاز برای حلقه اصلی
+DECLARE @CurrentRecorder INT;
+DECLARE @TotalHoursRequired INT;
+DECLARE @LeaveDays INT;
+DECLARE @SpecialShiftsCount INT;
+DECLARE @NewDutyHours INT;
+
+-- متغیرهای آماری اولیه
+DECLARE @InitialHours INT;
+DECLARE @InitialCount INT;
+
+-- متغیرهای شمارش شیفت‌های حذف شده
+DECLARE @DeletedMorning INT;
+DECLARE @DeletedEvening INT;
+DECLARE @DeletedSpecial INT;
+
+-- تعریف متغیرهایی برای حذف شیفت‌ها و قوانین شبکه
+DECLARE @CurrentShiftId INT;
+DECLARE @CurrentShiftHours INT;
+DECLARE @CurrentShiftTypeId INT;
+DECLARE @NetworkId INT;
+DECLARE @MaxSpecialHoursAllowed INT;
+DECLARE @DeductedSpecialHours INT;
+
+-- ۲. تعریف کرسر اول به صورت LOCAL برای پیمایش صدابرداران
+DECLARE Recorder_Cursor CURSOR LOCAL FOR 
+SELECT DISTINCT Id_sound_recorder 
+FROM #Temp_Shift_Payroll_Calc;
+
+OPEN Recorder_Cursor;
+FETCH NEXT FROM Recorder_Cursor INTO @CurrentRecorder;
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @TotalHoursRequired = 104;
+    SET @DeletedMorning = 0;
+    SET @DeletedEvening = 0;
+    SET @DeletedSpecial = 0;
+    SET @DeductedSpecialHours = 0;
+
+    -- الف) محاسبه آمار اولیه قبل از شروع حذفیات این شخص
+    SELECT 
+        @InitialHours = ISNULL(SUM(
+            CASE 
+                WHEN t.Id_shift IN (3, 10, 11, 12, 13) THEN 4 
+                ELSE st.Shift_type 
+            END
+        ), 0),
+        @InitialCount = COUNT(*)
+    FROM #Temp_Shift_Payroll_Calc t
+    JOIN tbl_Shift_Type st ON t.Id_shift_type = st.Id_shift_type
+    WHERE t.Id_sound_recorder = @CurrentRecorder;
+
+    -- ب) محاسبه مرخصی‌ها 
+    SELECT @LeaveDays = ISNULL(SUM(Leaves), 0) 
+    FROM tbl_leaves 
+    WHERE Id_sound_recorder = @CurrentRecorder 
+      AND Active = 1 
+      AND Del = 0
+      AND Start_date >= @StartDate AND End_date <= @EndDate;
+
+    SET @NewDutyHours = @TotalHoursRequired - (@LeaveDays * 8);
+
+    -- ج) شمارش کل شیفت‌های ویژه اولیه (شامل شب و تعطیلات)
+    SELECT @SpecialShiftsCount = COUNT(*)
+    FROM #Temp_Shift_Payroll_Calc
+    WHERE Id_sound_recorder = @CurrentRecorder
+      AND (Is_holiday = 1 OR Id_shift IN (3, 10, 11, 12, 13));
+
+    -- د) تعیین سقف کسر ساعات شیفت ویژه بر اساس Id_network
+    SELECT TOP 1 @NetworkId = Id_network 
+    FROM #Temp_Shift_Payroll_Calc 
+    WHERE Id_sound_recorder = @CurrentRecorder;
+
+    IF @NetworkId IN (4, 5)
+        SET @MaxSpecialHoursAllowed = 16; -- سقف ۱۶ ساعت برای شبکه‌های ۴ و ۵
+    ELSE
+        SET @MaxSpecialHoursAllowed = 32; -- سقف ۳۲ ساعت برای سایر شبکه‌ها
+
+
+    -- هـ) اولویت ۱: کسر شیفت‌های ویژه در مرحله اول (تا سقف ۱۶ یا ۳۲ ساعت بر اساس شبکه)
+    DECLARE Special_Shift_Cursor CURSOR LOCAL FOR
+    SELECT t.Id_calc, 
+           CASE WHEN t.Id_shift IN (3, 10, 11, 12, 13) THEN 4 ELSE st.Shift_type END
+    FROM #Temp_Shift_Payroll_Calc t
+    JOIN tbl_Shift_Type st ON t.Id_shift_type = st.Id_shift_type
+    WHERE t.Id_sound_recorder = @CurrentRecorder
+      AND (t.Is_holiday = 1 OR t.Id_shift IN (3, 10, 11, 12, 13))
+    ORDER BY t.Shift_date ASC;
+
+    OPEN Special_Shift_Cursor;
+    FETCH NEXT FROM Special_Shift_Cursor INTO @CurrentShiftId, @CurrentShiftHours;
+
+    WHILE @@FETCH_STATUS = 0 AND @NewDutyHours > 0 AND (@DeductedSpecialHours + @CurrentShiftHours) <= @MaxSpecialHoursAllowed
+    BEGIN
+        SET @NewDutyHours = @NewDutyHours - @CurrentShiftHours;
+        SET @DeductedSpecialHours = @DeductedSpecialHours + @CurrentShiftHours;
+        SET @DeletedSpecial = @DeletedSpecial + 1;
+
+        DELETE FROM #Temp_Shift_Payroll_Calc WHERE Id_calc = @CurrentShiftId;
+
+        FETCH NEXT FROM Special_Shift_Cursor INTO @CurrentShiftId, @CurrentShiftHours;
+    END;
+
+    CLOSE Special_Shift_Cursor;
+    DEALLOCATE Special_Shift_Cursor;
+
+
+    -- و) اولویت ۲: کسر متوازن و یکی‌درمیان از شیفت‌های معمولی (صبح و عصر)
+    IF @NewDutyHours > 0
+    BEGIN
+        DECLARE Shift_Cursor CURSOR LOCAL FOR
+        WITH RankedShifts AS (
+            SELECT 
+                t.Id_calc, 
+                CASE WHEN t.Id_shift IN (3, 10, 11, 12, 13) THEN 4 ELSE st.Shift_type END AS ShiftHours, 
+                t.Id_shift,
+                t.Shift_date,
+                -- گروه ۱: صبح معمولی | گروه ۲: عصر معمولی
+                CASE WHEN t.Id_shift IN (1, 4, 5) THEN 1 ELSE 2 END AS ShiftGroup,
+                ROW_NUMBER() OVER (
+                    PARTITION BY CASE WHEN t.Id_shift IN (1, 4, 5) THEN 1 ELSE 2 END 
+                    ORDER BY t.Shift_date ASC
+                ) AS GroupRank
+            FROM #Temp_Shift_Payroll_Calc t
+            JOIN tbl_Shift_Type st ON t.Id_shift_type = st.Id_shift_type
+            WHERE t.Id_sound_recorder = @CurrentRecorder
+              AND t.Is_holiday = 0                       -- غیر تعطیل
+              AND t.Id_shift NOT IN (3, 10, 11, 12, 13)  -- غیر ویژه / غیر شب
+              AND t.Id_shift IN (1, 2, 4, 5, 6, 8)       -- فقط شیفت‌های معمولی صبح و عصر
+        )
+        SELECT Id_calc, ShiftHours, Id_shift
+        FROM RankedShifts
+        ORDER BY GroupRank ASC, ShiftGroup ASC; 
+
+        OPEN Shift_Cursor;
+        FETCH NEXT FROM Shift_Cursor INTO @CurrentShiftId, @CurrentShiftHours, @CurrentShiftTypeId;
+
+        WHILE @@FETCH_STATUS = 0 AND @NewDutyHours > 0
+        BEGIN
+            SET @NewDutyHours = @NewDutyHours - @CurrentShiftHours;
+
+            IF @CurrentShiftTypeId IN (1, 4, 5)
+                SET @DeletedMorning = @DeletedMorning + 1;
+            ELSE IF @CurrentShiftTypeId IN (2, 6, 8)
+                SET @DeletedEvening = @DeletedEvening + 1;
+
+            DELETE FROM #Temp_Shift_Payroll_Calc WHERE Id_calc = @CurrentShiftId;
+
+            FETCH NEXT FROM Shift_Cursor INTO @CurrentShiftId, @CurrentShiftHours, @CurrentShiftTypeId;
+        END;
+
+        CLOSE Shift_Cursor;
+        DEALLOCATE Shift_Cursor;
+    END;
+
+
+    -- ز) اولویت ۳: اگر شیفت‌های معمولی تمام شد اما هنوز موظفی پر نشده بود، کسر مابقی شیفت‌های ویژه
+    IF @NewDutyHours > 0
+    BEGIN
+        DECLARE Remaining_Special_Cursor CURSOR LOCAL FOR
+        SELECT t.Id_calc, 
+               CASE WHEN t.Id_shift IN (3, 10, 11, 12, 13) THEN 4 ELSE st.Shift_type END
+        FROM #Temp_Shift_Payroll_Calc t
+        JOIN tbl_Shift_Type st ON t.Id_shift_type = st.Id_shift_type
+        WHERE t.Id_sound_recorder = @CurrentRecorder
+          AND (t.Is_holiday = 1 OR t.Id_shift IN (3, 10, 11, 12, 13))
+        ORDER BY t.Shift_date ASC;
+
+        OPEN Remaining_Special_Cursor;
+        FETCH NEXT FROM Remaining_Special_Cursor INTO @CurrentShiftId, @CurrentShiftHours;
+
+        WHILE @@FETCH_STATUS = 0 AND @NewDutyHours > 0
+        BEGIN
+            SET @NewDutyHours = @NewDutyHours - @CurrentShiftHours;
+            SET @DeletedSpecial = @DeletedSpecial + 1;
+
+            DELETE FROM #Temp_Shift_Payroll_Calc WHERE Id_calc = @CurrentShiftId;
+
+            FETCH NEXT FROM Remaining_Special_Cursor INTO @CurrentShiftId, @CurrentShiftHours;
+        END;
+
+        CLOSE Remaining_Special_Cursor;
+        DEALLOCATE Remaining_Special_Cursor;
+    END;
+
+
+    -- ح) محاسبه آمار ثانویه بر اساس آنچه در جدول تمپ باقی مانده است
+    DECLARE @RemainingHours INT;
+    DECLARE @RemainingCount INT;
+    DECLARE @Baraovard DECIMAL(18,2);
+
+    SELECT 
+        @RemainingHours = ISNULL(SUM(CASE WHEN t.Id_shift IN (3, 10, 11, 12, 13) THEN 4 ELSE st.Shift_type END), 0),
+        @RemainingCount = COUNT(*),
+        @Baraovard = ISNULL(SUM(t.Total_rate), 0) 
+    FROM #Temp_Shift_Payroll_Calc t
+    JOIN tbl_Shift_Type st ON t.Id_shift_type = st.Id_shift_type
+    WHERE t.Id_sound_recorder = @CurrentRecorder;
+
+    -- ط) ذخیره اطلاعات در جدول نتایج
+    INSERT INTO #FinalResult (
+        Id_sound_recorder, Total_Leaves, 
+        Initial_Total_Hours, Initial_Shifts_Count, 
+        Special_Shifts_Count, 
+        Deleted_Morning_Shifts, Deleted_Evening_Shifts, Deleted_Special_Shifts,
+        Remaining_Total_Hours, Remaining_Shifts_Count, 
+        Final_Baraovard
+    )
+    VALUES (
+        @CurrentRecorder, @LeaveDays, 
+        @InitialHours, @InitialCount, 
+        @SpecialShiftsCount, 
+        @DeletedMorning, @DeletedEvening, @DeletedSpecial,
+        @RemainingHours, @RemainingCount, 
+        @Baraovard
+    );
+
+    FETCH NEXT FROM Recorder_Cursor INTO @CurrentRecorder;
+END;
+
+CLOSE Recorder_Cursor;
+DEALLOCATE Recorder_Cursor;
+
+-- ۳. نمایش گزارش نهایی
+SELECT 
+    Id_sound_recorder AS [کد صدابردار],
+    Total_Leaves AS [روزهای مرخصی],
+    Initial_Shifts_Count AS [کل شیفت‌ها (قبل حذف)],
+    Initial_Total_Hours AS [کل ساعات کارکرد (قبل حذف)],
+    Special_Shifts_Count AS [تعداد کل شیفت‌های ویژه],
+    Deleted_Morning_Shifts AS [شیفت صبح حذف شده],
+    Deleted_Evening_Shifts AS [شیفت عصر حذف شده],
+    Deleted_Special_Shifts AS [شیفت ویژه حذف شده],
+    Remaining_Shifts_Count AS [شیفت‌های باقی‌مانده (بعد حذف)],
+    Remaining_Total_Hours AS [ساعات باقی‌مانده (بعد حذف)],
+    Final_Baraovard AS [مبلغ برآورد نهایی]
+FROM #FinalResult;
+
+-- پاکسازی جداول موقت
+DROP TABLE #FinalResult;
+DROP TABLE #Temp_Shift_Payroll_Calc;
+
+--select * from #Temp_Shift_Payroll_Calc
+--where Id_sound_recorder=886

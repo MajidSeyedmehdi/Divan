@@ -1,0 +1,269 @@
+{% extends 'main/base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+<link rel="stylesheet" href="{% static 'assets/css/style.css' %}">
+{% block content %}
+
+<style>
+    input[type="text"], select, textarea {
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 6px 10px;
+        width: 100%;
+        height: 35px;
+        font-size: 14px;
+        transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    input[type="text"]:focus, select:focus, textarea:focus {
+        border-color: #66afe9;
+        outline: none;
+        font-size: 14px;
+        box-shadow: 0 0 5px rgba(102, 175, 233, 0.6);
+    }
+
+    label {
+        margin-left: 8px;
+        font-weight: bold;
+        font-size: 14px;
+
+    }
+
+    li {
+        margin-bottom: 12px;
+    }
+
+    .small-table{
+        font-size: 16px;
+    }
+    /* رنگ پس‌زمینه سطر اول (سرتیترها) */
+    table thead th {
+        background-color: #e6f2ff   !important;
+        color: white;
+        font-size: 14px;/* رنگ نوشته‌ها */
+    }
+
+    /* رنگ پس‌زمینه ستون اول در تمام ردیف‌ها */
+    table tbody td:first-child {
+        background-color: white;
+        font-size: 14px;
+
+    }
+    .dropdown-checkboxes {
+        position: relative;
+        display: inline-block;
+        width: 100%;
+    }
+    .dropdown-checkboxes .dropdown-menu {
+        max-height: 250px;
+        overflow-y: auto;
+        padding: 10px;
+        width: 100%;
+    }
+    .dropdown-toggle-label {
+        font-size: 14px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+    .scrollable-table {
+        overflow-x: auto;
+        width: 100%;
+    }
+
+    .scrollable-table table {
+        min-width: 900px; /* یا بیشتر، مثلاً 1200px */
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .scrollable-table th,
+    .scrollable-table td {
+        white-space: nowrap;
+    }
+
+@font-face {
+    font-family: 'Vazir-Black';
+    src: url("{% static 'fonts/Vazir-Black.woff2' %}") format('woff2'),
+         url("{% static 'fonts/Vazir-Black.woff' %}") format('woff');
+
+    font-weight: normal;
+    font-style: normal;
+
+
+/* اعمال فونت روی همه input های فرم و جدول */
+body, input, select, textarea {
+    font-family: 'Vazir', sans-serif !important;
+    direction: rtl;
+    text-align: right;
+}
+
+/* مخصوص ویجت jQuery UI که django-jalali استفاده می‌کند */
+.ui-datepicker, .ui-datepicker table, .ui-datepicker td, .ui-datepicker th {
+    font-family: 'Vazir', sans-serif !important;
+    direction: rtl !important;
+    text-align: center;}}
+
+
+.custom-header {
+  background-color: #ffffff;
+  border-radius: 14px;
+  padding: 20px 25px;
+  position: relative;
+  border: none;
+}
+
+/* نوار فیروزه‌ای بالا */
+.custom-header::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 6px;
+  background-color: #00CED1;
+  border-top-left-radius: 14px;
+  border-top-right-radius: 14px;
+}
+
+/* فاصله داخلی */
+.custom-header form {
+  margin-top: 8px;
+}
+
+/* لیبل */
+.custom-header label {
+  font-weight: 600;
+  color: #333;
+}
+
+/* اینپوت‌ها */
+.custom-header input,
+.custom-header select {
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  padding: 6px 10px;
+  min-width: 160px;
+}
+
+/* دکمه */
+.custom-header .btn-primary {
+  background-color: #1f9ed4;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 18px;
+  font-size: 13px;
+}
+
+.custom-header .btn-primary:hover {
+  background-color: #00CED1;
+}
+/* متن چشمک زن */
+@keyframes blink {
+  0%, 50%, 100% { opacity: 1; }
+  25%, 75% { opacity: 0; }
+}
+
+.blink-red {
+  color: red;
+  font-weight: bold;
+  animation: blink 1s infinite;
+}
+</style>
+
+<!-- فرم انتخاب تاریخ -->
+ <div class="breadcrumb-box custom-header shadow">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+
+    <form method="post" class="mb-0 w-100">
+      {% csrf_token %}
+
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+
+        <div class="d-flex flex-wrap align-items-center gap-3">
+          <label for="id_p_date" class="mb-0">تاریخ:</label>
+          {{ form.p_date }}
+          {{ form.media }}
+        </div>
+
+        <!-- دکمه سمت چپ -->
+        <div>
+          <button type="submit"
+                  name="action"
+                  value="show"
+                  class="btn btn-primary btn-sm px-4">
+            <span class="fa fa-eye"></span> نمایش
+          </button>
+        </div>
+        </div>
+    </form>
+<p class="blink-red">در صورت تغییر وضعیت حتما توضیحات پر شود!!!</p>
+  </div>
+</div>
+
+<div class="printable">
+  <form method="post">
+    {% csrf_token %}
+
+    <input type="hidden" name="p_date" value="{{ selected_date_str }}">
+    <input type="hidden" name="action" value="save">
+
+    <div class="scrollable-table">
+      <table class="table table-bordered text-center shift-table">
+
+    <div class="mt-3 text-start">
+      <button type="submit" class="btn btn-primary btn-sm px-4">
+        ثبت
+      </button>
+    </div>
+        <thead>
+
+         <!-- سطر ستون‌ها -->
+          <tr>
+            <th>تاریخ</th>
+            <th>روز</th>
+            <th>وضعیت</th>
+            <th>توضیحات</th>
+            <th>تعطیل</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for day in daily_forms %}
+          <tr>
+            <td>{{ day.jalali_date }}</td>
+            <td>{{ day.jalali_day_name }}</td>
+
+            <td>
+              {% if day.holiday_desc %}
+                <span class="badge bg-danger">تعطیل</span>
+              {% else %}
+                <span class="badge bg-success">عادی</span>
+              {% endif %}
+            </td>
+
+            <td>
+              <input type="text"
+                     name="desc_{{ day.jalali_date }}"
+                     value="{{ day.holiday_desc|default_if_none:'' }}"
+                     class="form-control form-control-sm">
+            </td>
+
+            <td>
+              <input type="checkbox"
+                     name="holiday_days"
+                     value="{{ day.jalali_date }}"
+                     {% if day.holiday_desc %}checked{% endif %}>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+
+      </table>
+    </div>
+
+  </form>
+</div>
+
+
+{% endblock %}

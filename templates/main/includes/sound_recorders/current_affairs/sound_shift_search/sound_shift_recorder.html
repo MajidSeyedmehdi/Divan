@@ -36,35 +36,6 @@
         margin-bottom: 12px;
     }
 
-{#    button[type="submit"] {#}
-{#        background-color: #D8B7DD;#}
-{#        color: BLACK;#}
-{#        border: none;#}
-{#        padding: 8px 16px;#}
-{#        border-radius: 6px;#}
-{#        cursor: pointer;#}
-{#        font-size: 14px;#}
-{#        width: 100px;#}
-{#        height: 40px;#}
-{#    }#}
-{#    button[type="submit"]:hover {#}
-{#        background-color: #D8B7DD;#}
-{#    }#}
-{#/* دکمه اکسل*/#}
-{#    button[type="button"] {#}
-{#        background-color: #D8B7DD;#}
-{#        color: BLACK;#}
-{#        border: none;#}
-{#        padding: 8px 16px;#}
-{#        border-radius: 6px;#}
-{#        cursor: pointer;#}
-{#        font-size: 14px;#}
-{#        width: 100px;#}
-{#        height: 40px;#}
-{#    }#}
-{#    button[type="button"]:hover {#}
-{#        background-color: #C8A2C8;#}
-{#    }#}
 
 /* فاصله بین دکمه‌ها */
 .btn + .btn {
@@ -136,19 +107,6 @@ thead tr:nth-child(2) th {
     font-weight: bold;
     cursor: pointer;
 }
-{# .scrollable-table table {#}
-{#    table-layout: fixed;   /* ستون‌ها اندازه ثابت داشته باشن */#}
-{#    width: 100%;           /* جدول کل عرض رو بگیره */#}
-{#    border-collapse: collapse;#}
-
-{##}
-{#.scrollable-table th,#}
-{#.scrollable-table td {#}
-{#    width: 90px !important;          /* مثلا هر ستون 100px */#}
-{#    text-align: right;    /* محتوا وسط‌چین بشه */#}
-{#    white-space: nowrap;   /* متن نشکنه به خط بعد */#}
-{#    overflow: hidden;      /* متن اضافه مخفی بشه */#}
-{#    text-overflow: ellipsis; /* ... بذاره اگه متن طولانی بود */#}
 
 td.selected {
   background-color: #cce5ff; /* رنگ پس‌زمینه انتخابی */
@@ -416,6 +374,16 @@ table th, table td {
 table th, table td {
     -webkit-print-color-adjust: exact !important;
 }
+.shift-count-box {
+    font-family: 'Vazir', sans-serif;
+    font-weight: 600;              /* پررنگ */
+    font-size: 13px;
+    color: #000;                   /* مشکی واقعی */
+}
+.shift-count-box strong {
+    font-weight: 800;
+    color: #000;
+}
 </style>
 
 <!-- فرم انتخاب تاریخ و شبکه -->
@@ -447,25 +415,29 @@ table th, table td {
               <label for="shift_table_choice" class="form-label mb-0 me-3 fw-bold">جدول شیفت:</label>
               <select name="shift_table_choice" id="shift_table_choice" class="form-select" style="min-width:150px;">
                   <option value="">انتخاب کنید</option>
-                  <option value="1" {% if request.session.shift_table_choice == '1' %}selected{% endif %}>لوح ابتدایی</option>
-                  <option value="2" {% if request.session.shift_table_choice == '2' %}selected{% endif %}>لوح برآورد</option>
+                  <option value="1" {% if request.session.shift_table_choice == '1' %}selected{% endif %}>شیفت اولیه</option>
+                  <option value="2" {% if request.session.shift_table_choice == '2' %}selected{% endif %}>شیفت نهایی</option>
               </select>
           </div>
 
           <!-- دکمه‌ها -->
           <div class="col-auto d-flex align-items-center gap-2">
-              <button type="submit" name="show_button" class="btn btn-info">
-                  <span class="fa fa-eye"></span> نمایش</button>
+              <button type="submit" formaction="{% url 'sound_recorders:current_affairs:sound_shift_search:sound_shift_search' %}" class="btn btn-primary">
+                    گزارش ماهانه
+                </button>
               <button type="button" id="btn-print-hardcopy" class="btn btn-warning btn-lg">
                   <span class="fa fa-print"></span>
                   چاپ
-                  
+
               </button>
               <button type="button" id="btn-excel" class="btn btn-success btn">
                   <span class="fas fa-file-excel"></span>
                   ذخیره اکسل
               </button>
-{#              <button type="button" id="btn-pdf" class="btn btn-danger">ذخیره PDF</button>#}
+                <button type="submit" formaction="{% url 'sound_recorders:current_affairs:sound_shift_search:search_shift_weekly' %}" class="btn btn-info">
+                گزارش هفتگی
+              </button>
+
           </div>
 
         </div>
@@ -485,35 +457,52 @@ table th, table td {
         <ul class="mb-0">
           <li><strong>دکمه "نمایش" : </strong>قبل از نمایش شیفت ها دقت کنید فقط شبکه یا صدابردار را انتخاب کنید و حتما جدول شیفت انتخاب شود.</li>
           <li><strong>دکمه "چاپ" : </strong> برای چاپ و ذخیره فایل pdf. در هنگام چاپ برای نمایش رنگ ها حتما گزینه 'Print backgrounds' فعال باشد.</li>
-          <li><strong>نکته:</strong> اگر صدابردار بیش از ۱۶ ساعت شیفت متوالی داشته باشد یا شیفتش با شیفت دیگری هم‌پوشانی داشته باشد، ثبت انجام نمی‌شود.</li>
+         
         </ul>
       </div>
     </details>
   </div>
 </div>
+<!-- آمار هر صدابردار -->
+<div class="col-md-12">
+  <div class="breadcrumb-box shadow shift-count-box">
+    <div class="breadcrumb-right ">
+      <form method="post" class="mb-3">
+        {% csrf_token %}
+        <div class="d-flex flex-wrap align-items-center gap-3">
 
+               {% if sound_recorder %}
+                <p>تعداد شیفت‌های {{ sound_recorder }}: {{ total_shifts }}</p>
+            {% endif %}
+
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 <!-- جدول شیفت‌ها -->
 <div class="printable">
 <table id="shift-table" class="table table-bordered text-center">
     <!--  تیتر کلی جدول (سطر بالایی) -->
     <thead>
         <tr class="header-table">
-        <th colspan="{{ shift_columns|length|add:'2' }}" class="header-title shift-title">
-          {% if sound_recorder %}
-            صدابردار {{ sound_recorder.id_personal.first_name }} {{ sound_recorder.id_personal.last_name }}
-          {% else %}
-            اطلاعاتی جهت نمایش وجود ندارد
-          {% endif %}
-        </th>
+        <th colspan="{{ shift_columns|length|add:'2' }}">
+            {% if sound_recorder and sound_recorder != "all_rec" %}
+                صدابردار {{ sound_recorder.id_personal.first_name }} {{ sound_recorder.id_personal.last_name }}
+            {% else %}
+        صدابردار
+    {% endif %}
+</th>
+
       </tr>
       <!-- ردیف ستون‌ها -->
 
       <tr>
         <th>تاریخ</th>
         <th>روز</th>
-        <th>شیفت اول (14-6)</th>
-        <th>شیفت دوم (22-14)</th>
-        <th>شیفت سوم (6-22)</th>
+        <th>14 - 6</th>
+        <th>22 - 14</th>
+        <th>6 - 22</th>
       </tr>
     </thead>
 <!--  بدنه جدول -->
@@ -526,9 +515,7 @@ table th, table td {
             {% with cells=shift_lookup|get_item:day.greg_date|get_item:shift_num %}
             <td class="shift-cell">
                 {% if cells %}
-                    {% for c in cells %}
-                        <div style="height:50%; padding:2px;">{{ c }}</div>
-                    {% endfor %}
+                        {{ cells|join:" - " }}
                 {% endif %}
             </td>
             {% endwith %}
@@ -717,21 +704,6 @@ document.getElementById('btn-excel').addEventListener('click', function () {
 </script>
 
 
-{#<script>#}
-{#document.getElementById('btn-pdf').addEventListener('click', function() {#}
-{#    const element = document.querySelector('.printable'); // فقط جدول و تیتر#}
-{#    if (!element) { alert("محتوا برای PDF پیدا نشد!"); return; }#}
-{##}
-{#    const opt = {#}
-{#        margin:       0.5,#}
-{#        filename:     'گزارش_شیفت.pdf',#}
-{#        image:        { type: 'jpeg', quality: 0.98 },#}
-{#        html2canvas:  { scale: 2, useCORS: true },#}
-{#        jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' } // ← افقی#}
-{#    };#}
-{#    html2pdf().set(opt).from(element).save();#}
-
-{#</script>    #}
 <script>
 document.addEventListener("DOMContentLoaded", function () {
 

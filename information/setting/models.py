@@ -1,4 +1,6 @@
 from django.db import models
+from information.employment_info.models import CurrentJob
+from sound_recorders.models import *
 
 class Personal(models.Model):
     id_personal = models.IntegerField(db_column="Id_personal", primary_key=True)
@@ -119,4 +121,17 @@ class FormulaSetting(models.Model):
 
     class Meta:
         db_table = 'Tbl_Formula'
+        managed = False
+
+class FinancialPeriod(models.Model):
+    id_period = models.AutoField(db_column="Id_period", primary_key=True)
+    start_date = models.DateField(db_column="Start_time", default=timezone.now)
+    end_date = models.DateField(db_column="End_time", default=timezone.now)
+    description = models.CharField(db_column="Description", max_length=255)
+    update_date = models.DateTimeField(db_column="Update_time", default=timezone.now)
+    user_name = models.CharField(db_column="User_name", max_length=50)
+    active = models.BooleanField(db_column="Active", default=True)
+    Del = models.BooleanField(db_column="Del", default=False)
+    class Meta:
+        db_table = 'Tbl_Financial_Period'
         managed = False

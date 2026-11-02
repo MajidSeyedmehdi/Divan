@@ -1,0 +1,1378 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+<link rel="stylesheet" href="{% static 'assets/css/style.css' %}">
+
+{% block content %}
+<script src="{% static 'admin/js/vendor/jquery/jquery.js' %}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<style>
+    input[type="text"], select, textarea {
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 6px 10px;
+        width: 150px;
+        height: 35px;
+        font-size: 12px;
+        transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    input[type="text"]:focus, select:focus, textarea:focus {
+        border-color: #66afe9;
+        outline: none;
+        font-size: 12px;
+        box-shadow: 0 0 5px rgba(102, 175, 233, 0.6);
+    }
+
+    label {
+        margin-left: 8px;
+        font-weight: bold;
+        font-size: 12px;
+    }
+
+    li {
+        margin-bottom: 12px;
+    }
+
+    /* استایل جدول بدون اسکرول افقی */
+.fit-table {
+    width: 100% !important;
+    table-layout: auto; /* یا fixed بر حسب نیاز */
+    font-size: 11px !important; /* کوچک‌تر کردن فونت جهت جا شدن */
+}
+
+/* فشرده‌سازی فاصله‌های داخل سلول‌ها */
+.fit-table th,
+.fit-table td {
+    padding: 4px 2px !important; /* حداقل پدینگ افقی */
+    vertical-align: middle;
+    text-align: center;
+    word-wrap: break-word;
+}
+
+/* شکستن خطوط برای متن‌های طولانی */
+.fit-table th {
+    font-size: 11px !important;
+    white-space: normal !important; /* اجازه به شکستن خط در سرتیترها */
+    line-height: 1.2;
+}
+
+/* کاهش اندازه بَج‌ها */
+.fit-table .badge {
+    font-size: 10px;
+    padding: 2px 4px;
+}
+    table thead th {
+        background-color: #e6f2ff !important;
+        color: white;
+        font-size: 14px;
+    }
+
+    .dropdown-checkboxes {
+        position: relative;
+        display: inline-block;
+        width: 100%;
+    }
+    .dropdown-checkboxes .dropdown-menu {
+        max-height: 250px;
+        overflow-y: auto;
+        padding: 10px;
+        width: 100%;
+    }
+    .dropdown-toggle-label {
+        font-size: 14px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .table-wrapper {
+        border: 2px solid #e0e0e0;
+        border-radius: 12px;
+        padding: 15px;
+        background-color: #fff;
+        box-shadow: 0 0 3px rgba(0, 0, 0, 0.12);
+        overflow-y: hidden;
+        overflow-x: auto;
+        width: 100%;
+        scrollbar-width:auto;
+    }
+    .table-wrapper table{
+        width: max-content;
+        min-width: 100%;
+        white-space: nowrap;
+    }
+
+    .financial-table {
+        width: 100%;
+        margin-bottom: 0;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-family: 'Vazir-Black', serif;
+    }
+
+    #financial-table th,
+    #financial-table td {
+        border: 1.5px solid #000000 !important;
+    }
+
+    #financial-table thead tr:first-child th:first-child { border-top-right-radius: 10px; }
+    #financial-table thead tr:first-child th:last-child { border-top-left-radius: 10px; }
+    #financial-table tbody tr:last-child td:first-child { border-bottom-right-radius: 10px; }
+    #financial-table tbody tr:last-child td:last-child { border-bottom-left-radius: 10px; }
+
+    @font-face {
+        font-family: 'Vazir-Black';
+        font-weight: normal;
+        font-style: normal;
+    }
+
+    body, input, select, textarea {
+        font-family: 'Vazir', sans-serif !important;
+        direction: rtl;
+        text-align: right;
+    }
+
+    .ui-datepicker, .ui-datepicker table, .ui-datepicker td, .ui-datepicker th {
+        font-family: 'Vazir', sans-serif !important;
+        direction: rtl !important;
+        text-align: center;
+    }
+
+    .breadcrumb-box {
+        background: #fff;
+        border-radius: 12px;
+        padding: 15px 20px;
+        position: relative;
+        border: 1px solid #e0e0e0;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
+    .breadcrumb-box::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 10px;
+        width: 100%;
+        background: #00CED1;
+        border-top-left-radius: 12px;
+        border-top-right-radius: 12px;
+    }
+
+    .breadcrumb-box label { font-weight: 600; color: #333; }
+
+    .breadcrumb-box input[type="text"],
+    .breadcrumb-box select {
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 5px 10px;
+        font-size: 13px;
+        transition: all 0.2s ease;
+        background-color: #fafafa;
+    }
+
+    .breadcrumb-box input[type="text"]:focus,
+    .breadcrumb-box select:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 3px rgba(0, 123, 255, 0.3);
+        outline: none;
+    }
+
+    input[readonly].date-readonly {
+        border: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        outline: none !important;
+        padding: 0 !important;
+        text-align: center;
+        font-size: 12px;
+        cursor: default;
+        font-family: 'Vazir-Black', serif;
+    }
+
+    #modal-table th, #modal-table td {
+        border: 1.5px solid #000000 !important;
+    }
+
+    .modal-table {
+        width: 100%;
+        margin-bottom: 0;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-family: 'Vazir-Black', serif;
+    }
+
+    .modal-table thead > tr > th {
+        background-color: #e6f2ff !important;
+        color: #000000 !important;
+        font-weight: 700;
+        font-size: 13px;
+        text-align: center;
+        vertical-align: middle;
+        border: 1px solid #6fbab1 !important;
+        padding: 8px 6px;
+    }
+
+    .modal-table tbody td {
+        vertical-align: middle;
+        padding: 6px;
+        border: 1px solid #dee2e6;
+        background-color: #fff;
+    }
+
+    .close-modal-btn {
+        background-color: #009688;
+        color: white;
+        border: none;
+    }
+
+    .close-modal-btn:hover {
+        background-color: #C88787;
+        color: white;
+    }
+    /* استایل بوردر مشکی پررنگ برای تمام جدول‌های مالی */
+.financial-table,
+.financial-table th,
+.financial-table td {
+    border: 1.5px solid #000000 !important;
+}
+
+.financial-table {
+    width: 100%;
+    margin-bottom: 0;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-family: 'Vazir-Black', serif;
+}
+
+/* گرد کردن گوشه‌های جدول */
+.financial-table thead tr:first-child th:first-child { border-top-right-radius: 10px; }
+.financial-table thead tr:first-child th:last-child { border-top-left-radius: 10px; }
+.financial-table tbody tr:last-child td:first-child { border-bottom-right-radius: 10px; }
+.financial-table tbody tr:last-child td:last-child { border-bottom-left-radius: 10px; }
+
+</style>
+
+<div class="container-fluid">
+{% if messages %}
+                <div class="row mb-3">
+                    <div class="col-lg-12">
+                        {% for message in messages %}
+                            <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags == 'warning' %}warning{% elif message.tags == 'success' %}success{% else %}info{% endif %} alert-dismissible fade show" role="alert">
+                                <i class="icon-{% if message.tags == 'error' %}close{% elif message.tags == 'warning' %}warning{% elif message.tags == 'success' %}check{% else %}info{% endif %}"></i>
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+<form method="post" id="mainForm" class="mb-3">
+    {% csrf_token %}
+
+    <input type="hidden" name="action" id="formAction" value="">
+    <input type="hidden" name="selected_id" id="selectedId" value="{{ selected_id }}">
+
+    {{ header_form.media }}
+    <div class="col-md-12">
+        <div class="breadcrumb-box shadow">
+            <div class="breadcrumb-right">
+
+                <div class="d-flex flex-wrap align-items-center gap-4">
+
+                    <!-- تاریخ شروع -->
+                    <div class="d-flex align-items-center gap-2">
+                        <label class="form-label mb-0">
+                            تاریخ شروع
+                        </label>
+
+                        {{ header_form.start_date }}
+                    </div>
+                    <!-- شبکه اصلی -->
+                    <div class="d-flex align-items-center gap-2">
+                        <label class="form-label mb-0">
+                            شبکه
+                        </label>
+
+                        {{ header_form.network }}
+                    </div>
+
+                    <!-- روز -->
+                    <div class="d-flex align-items-center gap-2">
+                        <label class="form-label mb-0">
+                            روز
+                        </label>
+
+                        {{ header_form.day }}
+                    </div>
+
+                    <!-- شیفت -->
+                    <div class="d-flex align-items-center gap-2">
+                        <label class="form-label mb-0">
+                            شیفت
+                        </label>
+
+                        {{ header_form.shift_number }}
+                    </div>
+
+                    <!-- وضعیت -->
+                    <div class="d-flex align-items-center gap-2">
+                        <label class="form-label mb-0">
+                            وضعیت
+                        </label>
+
+                        {{ header_form.status }}
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <label class="form-label mb-0">
+                            صدابردار
+                        </label>
+
+                        {{ header_form.sound_recorder }}
+                    </div>
+
+                </div>
+                <!-- دکمه باز کردن Modal -->
+                <button type="button"
+                        class="btn btn-primary mt-3"
+                        onclick="openProgramModal()">
+                    برنامه جدید
+                </button>
+                <button type="submit"
+                        class="btn btn-primary"
+                        onclick="document.getElementById('formAction').value='search';">
+                    جستجو
+                </button>
+            </div>
+        </div>
+    </div>
+</form>
+<!-- ========================================================= -->
+<!-- جدول بالا جستجو -->
+<!-- ========================================================= -->
+<div class="col-md-12 mt-4 mb-5">
+  <div class="table-wrapper shadow-sm">
+    <div class="w-100">
+      <table class="table table-bordered table-striped align-middle fit-table mb-0" id="top_shift-table">
+        <thead>
+          <tr>
+            <th>ردیف</th>
+            <th>برنامه</th>
+            <th>کد براورد</th>
+            <th>نوع</th>
+            <th>تعداد مجاز</th>
+            <th>تعداد ساخته شده</th>
+            <th>تاریخ شروع</th>
+            <th>تاریخ اعتبار</th>
+            <th>ساعت پخش</th>
+            <th> مدت</th>
+            <th>تخصیص صدابردار</th>
+            <th>تغییر وضعیت</th>
+            <th>افزایش قسمت ها</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in top_list %}
+            <tr>
+              <td>{{ forloop.counter }}</td>
+              <td class="text-start"
+        style="max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"
+       >
+        {{ item.Program_name }}
+    </td>
+              <td> {{ item.Code }} </td>
+              <td>{{ item.type|default:"-" }}</td>
+              <td>{{ item.Permitted_count|default:"0" }}</td>
+              <td>{{ item.Used_count|default:"0" }}</td>
+              <td>{{ item.Start_date_jalali|default:"-" }}</td>
+              <td>{{ item.End_date_jalali|default:"-" }}</td>
+              <td class="dir-ltr">{{ item.Play_time }}</td>
+              <td class="dir-ltr">{{ item.Time_duration }}</td>
+              <td>
+                  ID: {{ item.Id_manual_program }}
+                  <button type="button"
+                        class="btn btn-sm btn-outline-warning"
+                        onclick="submitBottomList('{{ item.Id_manual_program }}')">
+                    تخصیص صدابردار
+                </button>
+              </td>
+              <td>
+                <button type="button" class="btn btn-sm btn-outline-warning" onclick="changeStatus('{{ item.Code }}')">
+                  تغییر
+                </button>
+              </td>
+<td>
+  <button type="button"
+          class="btn btn-sm btn-outline-success btn-extend-modal"
+          data-program-name="{{ item.Program_name }}"
+          data-network-id="{{ item.Id_network }}">
+    افزایش برنامه
+  </button>
+</td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="23" class="text-muted py-4">
+                هیچ اطلاعاتی در دیتابیس یافت نشد.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<!-- ========================================================= -->
+<!-- جدول پایین تخصیص صدابردار -->
+<!-- ========================================================= -->
+<div class="col-md-12 mt-4 mb-5">
+  <div class="table-wrapper shadow-sm">
+    <div class="w-100">
+      <table class="table table-bordered table-striped align-middle fit-table mb-0" id="bottom_shift-table">
+        <thead>
+          <tr>
+            <th>ردیف</th>
+            <th>نام برنامه</th>
+            <th> صدابردار</th>
+            <th>عنوان شغلی</th>
+            <th>رده</th>
+            <th>تاریخ</th>
+            <th>شبکه</th>
+            <th>کد براورد</th>
+            <th>حقوق پایه</th>
+            <th> عملیات</th>
+          </tr>
+        </thead>
+        <tbody me-auto>
+          {% for item in bottom_list %}
+            <tr>
+              <td>{{ forloop.counter }}</td>
+              <td class="text-start"
+        style="max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"
+       >
+        {{ item.Program_name }}
+    </td>
+              <td>{{ item.SoundRecorderName|default:"تعیین نشده" }}</td>
+              <td>{{ item.Job_title|default:"-" }}</td>
+              <td>{{ item.Shift_number|default:"-" }}</td>
+              <td>{{ item.Start_date_jalali|default:"-" }}</td>
+              <td> {{ item.Network }} </td>
+              <td> {{ item.Code }}</td>
+              <td> {{ item.Salary_base }}</td>
+              <td>
+                <button type="button" class="btn btn-sm btn-outline-success" >
+                  ذخیره
+                </button>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="10" class="text-muted py-4">
+                هیچ اطلاعاتی برای این برنامه پیدا نشد.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<!-- ========================================================= -->
+<!-- Modal ثبت برنامه جدید -->
+<!-- ========================================================= -->
+
+<div class="modal fade" id="programModal" tabindex="-1" aria-labelledby="programModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <!-- Header -->
+            <div class="modal-header">
+                <h5 class="modal-title" id="programModalLabel">
+                    ثبت برنامه جدید
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="بستن"> </button>
+            </div>
+            <!-- Body -->
+            <div class="modal-body">
+                <div class="row g-3">
+                    <!-- نام برنامه -->
+                    <div class="col-md-6">
+                        <label class="form-label">  نام برنامه </label>
+                        <input type="text" id="program_name" name="program_name"class="form-control"form="mainForm">
+                    </div>
+                    <!-- شبکه -->
+                    <div class="col-md-6">
+                        <label class="form-label">  شبکه</label>
+                        <select name="network_name" id="network_name" class="form-control" form="mainForm">
+                            <option value="">
+                                انتخاب شبکه
+                            </option>
+                            {% for network in networks %}
+                                <option value="{{ network.id_network }}">
+                                    {{ network.network }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <!-- ساعت پخش -->
+                    <div class="col-md-6">
+                        <label class="form-label">
+                            ساعت پخش
+                        </label>
+                        <input type="time"
+                               id="play_time"
+                               name="play_time"
+                               class="form-control"
+                               form="mainForm">
+                    </div>
+                    <!-- مدت برنامه -->
+                    <div class="col-md-6">
+                        <label class="form-label">
+                            مدت برنامه
+                        </label>
+                        <input type="text"
+                               id="time_duration"
+                               name="time_duration"
+                               class="form-control"
+                               min="0"
+                               form="mainForm">
+                    </div>
+                    <!-- روزهای پخش -->
+                    <div class="col-md-12">
+                        <label class="form-label">
+                            روزهای پخش
+                        </label>
+                        <div class="dropdown">
+                            <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start"
+                                    type="button"
+                                    id="daysDropdown"
+                                    data-bs-toggle="dropdown"
+                                    aria-expanded="false">
+                            </button>
+                            <div class="dropdown-menu w-100 p-3"
+                                 aria-labelledby="daysDropdown">
+                                <!-- شنبه -->
+                                <div class="form-check">
+                                    <input class="form-check-input day-checkbox"
+                                           type="checkbox"
+                                           name="Saturday"
+                                           value="1"
+                                           id="Saturday"
+                                           checked
+                                           form="mainForm">
+                                    <label class="form-check-label"
+                                           for="Saturday">
+                                        شنبه
+                                    </label>
+                                </div>
+                                <!-- یکشنبه -->
+                                <div class="form-check">
+
+                                    <input class="form-check-input day-checkbox"
+                                           type="checkbox"
+                                           name="Sunday"
+                                           value="1"
+                                           id="Sunday"
+                                           checked
+                                           form="mainForm">
+
+                                    <label class="form-check-label"
+                                           for="Sunday">
+                                        یکشنبه
+                                    </label>
+                                </div>
+                                <!-- دوشنبه -->
+                                <div class="form-check">
+
+                                    <input class="form-check-input day-checkbox"
+                                           type="checkbox"
+                                           name="Monday"
+                                           value="1"
+                                           id="Monday"
+                                           checked
+                                           form="mainForm">
+
+                                    <label class="form-check-label"
+                                           for="Monday">
+                                        دوشنبه
+                                    </label>
+                                </div>
+                                <!-- سه‌شنبه -->
+                                <div class="form-check">
+
+                                    <input class="form-check-input day-checkbox"
+                                           type="checkbox"
+                                           name="Tuesday"
+                                           value="1"
+                                           id="Tuesday"
+                                           checked
+                                           form="mainForm">
+                                    <label class="form-check-label"
+                                           for="Tuesday">
+                                        سه‌شنبه
+                                    </label>
+                                </div>
+                                <!-- چهارشنبه -->
+                                <div class="form-check">
+                                    <input class="form-check-input day-checkbox"
+                                           type="checkbox"
+                                           name="Wednesday"
+                                           value="1"
+                                           id="Wednesday"
+                                           checked
+                                           form="mainForm">
+                                    <label class="form-check-label"
+                                           for="Wednesday">
+                                        چهارشنبه
+                                    </label>
+                                </div>
+                                <!-- پنجشنبه -->
+                                <div class="form-check">
+                                    <input class="form-check-input day-checkbox"
+                                           type="checkbox"
+                                           name="Thursday"
+                                           value="1"
+                                           id="Thursday"
+                                           checked
+                                           form="mainForm">
+                                    <label class="form-check-label"
+                                           for="Thursday">
+                                        پنجشنبه
+                                    </label>
+                                </div>
+                                <!-- جمعه -->
+                                <div class="form-check">
+                                    <input class="form-check-input day-checkbox"
+                                           type="checkbox"
+                                           name="Friday"
+                                           value="1"
+                                           id="Friday"
+                                           checked
+                                           form="mainForm">
+                                    <label class="form-check-label"
+                                           for="Friday">
+                                        جمعه
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="modal-footer">
+                <button type="button"
+                        class="btn btn-secondary"
+                        data-bs-dismiss="modal">
+                    انصراف
+                </button>
+                <!-- ذخیره -->
+                <button type="submit"
+                        form="mainForm"
+                        name="action"
+                        value="save"
+                        class="btn btn-primary">
+                    ذخیره
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- ========================================================= -->
+<!-- Modal افزایش برنامه -->
+<!-- ========================================================= -->
+
+<div class="modal fade"  id="ExtendModal" tabindex="-1" aria-labelledby="ExtendModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <!-- Header -->
+            <div class="modal-header">
+                <h5 class="modal-title" id="ExtendModalLabel">
+                    افزایش زمان برنامه
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="بستن"> </button>
+            </div>
+            <!-- Body -->
+            <div class="modal-body">
+                <div class="row g-3">
+                    <!-- نام برنامه -->
+                    <div class="col-md-6">
+    <label class="form-label">نام برنامه</label>
+    <input type="text"
+           id="extend_program_name"
+           class="form-control"
+           readonly>
+    <input type="hidden"
+           id="extend_program_name_hidden"
+           name="program_name"
+           form="mainForm">
+</div>
+                    <!-- شبکه -->
+                    <div class="col-md-6">
+    <label class="form-label">شبکه</label>
+    <!-- برای نمایش غیرقابل تغییر -->
+    <select id="extend_network_name" class="form-control" disabled>
+        <option value="">انتخاب شبکه</option>
+        {% for network in networks %}
+            <option value="{{ network.id_network }}">
+                {{ network.network }}
+            </option>
+        {% endfor %}
+    </select>
+    <!-- ارسال مقدار واقعی شبکه به فرم (زیرا فیلدهای disabled ارسال نمی‌شوند) -->
+    <input type="hidden" id="extend_network_name_hidden" name="network_name" form="mainForm">
+</div>
+                    <!-- ساعت پخش -->
+                    <div class="col-md-6">
+                        <label class="form-label">
+                            ساعت پخش
+                        </label>
+                        <input type="time"
+                               id="extend_play_time"
+                               name="play_time"
+                               class="form-control"
+                               form="mainForm">
+                    </div>
+                    <!-- مدت برنامه -->
+                    <div class="col-md-6">
+                        <label class="form-label">
+                            مدت برنامه
+                        </label>
+                        <input type="text"
+                               id="extend_time_duration"
+                               name="time_duration"
+                               class="form-control"
+                               min="0"
+                               form="mainForm">
+                    </div>
+                    <!-- روزهای پخش -->
+                    <div class="col-md-12">
+                        <label class="form-label">
+                            روزهای پخش
+                        </label>
+                        <div class="dropdown">
+                            <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start"
+                                    type="button"
+                                    id="extend_daysDropdown"
+                                    data-bs-toggle="dropdown"
+                                    aria-expanded="false">
+                            </button>
+                            <div class="dropdown-menu w-100 p-3"
+                                 aria-labelledby="extend_daysDropdown">
+                                <!-- شنبه -->
+                                <div class="form-check">
+                                    <input class="form-check-input day-checkbox"
+                                           type="checkbox"
+                                           name="Saturday"
+                                           value="1"
+                                           id="extend_Saturday"
+                                           checked
+                                           form="mainForm">
+                                    <label class="form-check-label"
+                                           for="Saturday">
+                                        شنبه
+                                    </label>
+                                </div>
+                                <!-- یکشنبه -->
+                                <div class="form-check">
+
+                                    <input class="form-check-input day-checkbox"
+                                           type="checkbox"
+                                           name="Sunday"
+                                           value="1"
+                                           id="extend_Sunday"
+                                           checked
+                                           form="mainForm">
+
+                                    <label class="form-check-label"
+                                           for="Sunday">
+                                        یکشنبه
+                                    </label>
+                                </div>
+                                <!-- دوشنبه -->
+                                <div class="form-check">
+
+                                    <input class="form-check-input day-checkbox"
+                                           type="checkbox"
+                                           name="Monday"
+                                           value="1"
+                                           id="extend_Monday"
+                                           checked
+                                           form="mainForm">
+
+                                    <label class="form-check-label"
+                                           for="Monday">
+                                        دوشنبه
+                                    </label>
+                                </div>
+                                <!-- سه‌شنبه -->
+                                <div class="form-check">
+
+                                    <input class="form-check-input day-checkbox"
+                                           type="checkbox"
+                                           name="Tuesday"
+                                           value="1"
+                                           id="extend_Tuesday"
+                                           checked
+                                           form="mainForm">
+                                    <label class="form-check-label"
+                                           for="Tuesday">
+                                        سه‌شنبه
+                                    </label>
+                                </div>
+                                <!-- چهارشنبه -->
+                                <div class="form-check">
+                                    <input class="form-check-input day-checkbox"
+                                           type="checkbox"
+                                           name="Wednesday"
+                                           value="1"
+                                           id="extend_Wednesday"
+                                           checked
+                                           form="mainForm">
+                                    <label class="form-check-label"
+                                           for="Wednesday">
+                                        چهارشنبه
+                                    </label>
+                                </div>
+                                <!-- پنجشنبه -->
+                                <div class="form-check">
+                                    <input class="form-check-input day-checkbox"
+                                           type="checkbox"
+                                           name="Thursday"
+                                           value="1"
+                                           id="extend_Thursday"
+                                           checked
+                                           form="mainForm">
+                                    <label class="form-check-label"
+                                           for="Thursday">
+                                        پنجشنبه
+                                    </label>
+                                </div>
+                                <!-- جمعه -->
+                                <div class="form-check">
+                                    <input class="form-check-input day-checkbox"
+                                           type="checkbox"
+                                           name="Friday"
+                                           value="1"
+                                           id="extend_Friday"
+                                           checked
+                                           form="mainForm">
+                                    <label class="form-check-label"
+                                           for="Friday">
+                                        جمعه
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="modal-footer">
+                <button type="button"
+                        class="btn btn-secondary"
+                        data-bs-dismiss="modal">
+                    انصراف
+                </button>
+                <!-- ذخیره -->
+                <button type="submit"
+                        form="mainForm"
+                        name="action"
+                        value="save"
+                        class="btn btn-primary">
+                    ذخیره
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    // پاک کردن تاریخچه POST جهت جلوگیری از ارسال مجدد فرم هنگام F5 یا Refresh
+    if (window.history.replaceState) {
+        window.history.replaceState(null, null, window.location.href);
+    }
+</script>
+<script>
+$(document).ready(function() {
+    $('#id_network').change(function() {
+        var networkId = $(this).val();
+        var shiftSelect = $('#id_shift_number');
+
+        shiftSelect.empty().append('<option value="">انتخاب شیفت</option>');
+
+        if (networkId) {
+            $.ajax({
+                url: window.location.href, // ارسال به همین صفحه جاری
+                data: {
+                    'action': 'get_shifts',
+                    'network_id': networkId
+                },
+                dataType: 'json',
+                success: function(data) {
+                    $.each(data.shifts, function(index, shift) {
+                        shiftSelect.append(
+                            $('<option></option>').val(shift.id).html(shift.name)
+                        );
+                    });
+                }
+            });
+        }
+    });
+});
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    const checkboxes = document.querySelectorAll('.day-checkbox');
+    const dropdownButton = document.getElementById('daysDropdown');
+
+    function updateDaysText() {
+
+        const selectedCount = Array.from(checkboxes)
+            .filter(checkbox => checkbox.checked).length;
+
+        if (selectedCount === 0) {
+            dropdownButton.textContent = 'هیچ روزی انتخاب نشده';
+        } else {
+            dropdownButton.textContent = 'انتخاب کنید';
+        }
+    }
+
+    checkboxes.forEach(function (checkbox) {
+        checkbox.addEventListener('change', updateDaysText);
+    });
+
+    updateDaysText();
+});
+</script>
+<script>
+function openProgramModal() {
+
+    const modalElement = document.getElementById('programModal');
+
+    const modal = new bootstrap.Modal(modalElement);
+
+    modal.show();
+}
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    const checkboxes = document.querySelectorAll('.day-checkbox');
+    const dropdownButton = document.getElementById('extend_daysDropdown');
+
+    function updateDaysText() {
+
+        const selectedCount = Array.from(checkboxes)
+            .filter(checkbox => checkbox.checked).length;
+
+        if (selectedCount === 0) {
+            dropdownButton.textContent = 'هیچ روزی انتخاب نشده';
+        } else {
+            dropdownButton.textContent = 'انتخاب کنید';
+        }
+    }
+
+    checkboxes.forEach(function (checkbox) {
+        checkbox.addEventListener('change', updateDaysText);
+    });
+
+    updateDaysText();
+});
+</script>
+<script>
+function openExtendModal() {
+
+    const modalElement = document.getElementById('ExtendModal');
+
+    const modal = new bootstrap.Modal(modalElement);
+
+    modal.show();
+}
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    // -----------------------------------------
+    // فیلدهای تاریخ و روز
+    // -----------------------------------------
+    const dateInput = document.querySelector('[name="start_date"]');
+    const dayInput = document.querySelector('[name="day"]');
+
+    if (!dateInput || !dayInput) {
+        console.warn('فیلد start_date یا day پیدا نشد.');
+        return;
+    }
+
+
+    // -----------------------------------------
+    // تبدیل اعداد فارسی و عربی به انگلیسی
+    // -----------------------------------------
+    function toEnglishDigits(value) {
+        return value
+            .replace(/[۰-۹]/g, function (digit) {
+                return '۰۱۲۳۴۵۶۷۸۹'.indexOf(digit);
+            })
+            .replace(/[٠-٩]/g, function (digit) {
+                return '٠١٢٣٤٥٦٧٨٩'.indexOf(digit);
+            });
+    }
+
+
+    // -----------------------------------------
+    // تبدیل تاریخ جلالی به میلادی
+    // -----------------------------------------
+    function jalaliToGregorian(jy, jm, jd) {
+
+        jy = parseInt(jy, 10);
+        jm = parseInt(jm, 10);
+        jd = parseInt(jd, 10);
+
+        let gy;
+
+        if (jy > 979) {
+            gy = 1600;
+            jy -= 979;
+        } else {
+            gy = 621;
+        }
+
+        let days =
+            (365 * jy)
+            + Math.floor(jy / 33) * 8
+            + Math.floor(((jy % 33) + 3) / 4)
+            + 78
+            + jd
+            + (jm < 7
+                ? (jm - 1) * 31
+                : ((jm - 7) * 30) + 186
+            );
+
+        gy += 400 * Math.floor(days / 146097);
+        days %= 146097;
+
+        if (days > 36524) {
+            gy += 100 * Math.floor(--days / 36524);
+            days %= 36524;
+
+            if (days >= 365) {
+                days++;
+            }
+        }
+
+        gy += 4 * Math.floor(days / 1461);
+        days %= 1461;
+
+        if (days > 365) {
+            gy += Math.floor((days - 1) / 365);
+            days = (days - 1) % 365;
+        }
+
+        const gd = days + 1;
+
+        const leap =
+            (gy % 4 === 0 && gy % 100 !== 0)
+            || (gy % 400 === 0);
+
+        const monthDays = [
+            0,
+            31,
+            leap ? 29 : 28,
+            31,
+            30,
+            31,
+            30,
+            31,
+            31,
+            30,
+            31,
+            30,
+            31
+        ];
+
+        let gm = 1;
+        let remainingDays = gd;
+
+        while (remainingDays > monthDays[gm]) {
+            remainingDays -= monthDays[gm];
+            gm++;
+        }
+
+        return {
+            year: gy,
+            month: gm,
+            day: remainingDays
+        };
+    }
+
+
+    // -----------------------------------------
+    // تشخیص روز هفته
+    // -----------------------------------------
+    function updateDay() {
+
+        let value = dateInput.value.trim();
+
+        if (!value) {
+            dayInput.value = '';
+            return;
+        }
+
+        // تبدیل اعداد فارسی به انگلیسی
+        value = toEnglishDigits(value);
+
+        /*
+         * فرمت مورد انتظار:
+         * 1405/06/30
+         *
+         * اگر جداکننده - یا . هم باشد مشکلی ندارد.
+         */
+        const parts = value.split(/[\/\-\.]/);
+
+        if (parts.length !== 3) {
+            return;
+        }
+
+        const jy = parseInt(parts[0], 10);
+        const jm = parseInt(parts[1], 10);
+        const jd = parseInt(parts[2], 10);
+
+        if (
+            isNaN(jy) ||
+            isNaN(jm) ||
+            isNaN(jd) ||
+            jm < 1 ||
+            jm > 12 ||
+            jd < 1 ||
+            jd > 31
+        ) {
+            return;
+        }
+
+        try {
+
+            const gregorian = jalaliToGregorian(jy, jm, jd);
+
+            const date = new Date(
+                gregorian.year,
+                gregorian.month - 1,
+                gregorian.day
+            );
+
+            /*
+             * JavaScript:
+             * 0 = Sunday
+             * 1 = Monday
+             * ...
+             * 6 = Saturday
+             */
+            const days = [
+                'یکشنبه',
+                'دوشنبه',
+                'سه‌شنبه',
+                'چهارشنبه',
+                'پنجشنبه',
+                'جمعه',
+                'شنبه'
+            ];
+
+            dayInput.value = days[date.getDay()];
+
+        } catch (error) {
+            console.error('خطا در محاسبه روز هفته:', error);
+            dayInput.value = '';
+        }
+    }
+
+
+    // -----------------------------------------
+    // وقتی مقدار تاریخ به صورت عادی تغییر کند
+    // -----------------------------------------
+    dateInput.addEventListener('change', updateDay);
+    dateInput.addEventListener('input', updateDay);
+    dateInput.addEventListener('keyup', updateDay);
+
+
+    // -----------------------------------------
+    // بررسی تغییر تاریخ توسط تقویم Jalali
+    // -----------------------------------------
+    let lastDateValue = dateInput.value;
+
+    setInterval(function () {
+
+        if (dateInput.value !== lastDateValue) {
+
+            lastDateValue = dateInput.value;
+
+            updateDay();
+        }
+
+    }, 200);
+
+
+    // -----------------------------------------
+    // نمایش روز اولیه هنگام باز شدن صفحه
+    // -----------------------------------------
+    updateDay();
+
+});
+</script>
+
+
+<script>
+function confirmReject(formId) {
+
+    Swal.fire({
+        title: 'آیا مطمئن هستید؟',
+        text: 'این عملیات قابل بازگشت نیست.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'بله، ادامه بده',
+        cancelButtonText: 'انصراف',
+        reverseButtons: true
+    }).then((result) => {
+
+        if (result.isConfirmed) {
+            document.getElementById(formId).submit();
+        }
+
+    });
+}
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+function confirmReject(formId) {
+    Swal.fire({
+        title: 'آیا از رد گزارش مالی مطمئن هستید؟',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#0b8457',
+        cancelButtonColor: '#FF0000',
+        confirmButtonText: 'بله، رد شود',
+        cancelButtonText: 'خیر، انصراف',
+        reverseButtons: true            /* برای درست قرار گرفتن دکمه‌ها در زبان فارسی */
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // اگر کاربر دکمه بله را بزند، فرم ارسال می‌شود
+            document.getElementById(formId).submit();
+        }
+    });
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+function submitBottomList(programId) {
+    // ۱. مقداردهی اکشن فرم
+    document.getElementById('formAction').value = 'bottom_list';
+
+    // ۲. مقداردهی اینپوت مخفی selected_id
+    document.getElementById('selectedId').value = programId;
+
+    // ۳. ارسال فرم به سرور
+    document.getElementById('mainForm').submit();
+}
+</script>
+<!-- اینپوت‌های مخفی فرم -->
+<input type="hidden" name="form_action" id="formAction" value="">
+<input type="hidden" name="selected_id" id="selectedId" value="{{ selected_id|default:'' }}">
+
+<script>
+// آرایه‌ای برای نگهداری تمام آی‌دی‌های انتخاب‌شده
+let selectedIds = [];
+
+// اگر قبلاً آی‌دی‌هایی انتخاب شده بوده (مثلاً پس از Reload صفحه)، آنها را بازآوری می‌افزاییم
+let initialSelectedValue = document.getElementById('selectedId').value;
+if (initialSelectedValue) {
+    selectedIds = initialSelectedValue.split(',').filter(id => id.trim() !== '');
+}
+
+function submitBottomList(programId) {
+    // تبدیل آی‌دی جدید به رشته
+    let pIdStr = String(programId);
+
+    // اگر آی‌دی جدید در لیست نبود، به لیست اضافه شود
+    if (!selectedIds.includes(pIdStr)) {
+        selectedIds.push(pIdStr);
+    }
+
+    // ۱. تنظیم مقدار form_action
+    document.getElementById('formAction').value = 'bottom_list';
+
+    // ۲. قرار دادن کل آی‌دی‌ها (جدا شده با کاما) در اینپوت مخفی
+    document.getElementById('selectedId').value = selectedIds.join(',');
+
+    // ۳. ارسال فرم
+    document.getElementById('mainForm').submit();
+}
+</script>
+
+<script>
+         /* =========================================================
+     ۳. انتخاب سلول‌ها با Ctrl، جابجایی و ثبت اولیه / نهایی
+     ========================================================= */
+  let selectedCells = [];
+  const recorderSelect = document.getElementById("id_sound_recorder");
+  const networkSelect = document.getElementById("id_network");
+
+  // انتخاب سلول‌ها با کلید Ctrl
+  document.querySelectorAll('.shift-cell').forEach(td => {
+    td.addEventListener('click', function(e) {
+      if (!e.ctrlKey) return;
+      this.classList.toggle('selected-cell');
+      if (this.classList.contains('selected-cell')) {
+        selectedCells.push(this);
+      } else {
+        selectedCells = selectedCells.filter(c => c !== this);
+      }
+    });
+  });
+
+  function resetSelection() {
+    selectedCells.forEach(td => td.classList.remove('selected-cell'));
+    selectedCells = [];
+  }
+  </script>
+
+<script>
+             /* =========================================================
+     برای انداختن نام برنامه در مدال افزایش برنامه
+     ========================================================= */
+$(document).ready(function() {
+    $('.btn-extend-modal').on('click', function() {
+        var programName = $(this).attr('data-program-name') || '';
+        var networkId = $(this).attr('data-network-id') || '';
+
+        // ۱. مقداردهی نام برنامه
+        $('#extend_program_name').val(programName);
+        $('#extend_program_name_hidden').val(programName);
+
+        // ۲. مقداردهی شبکه بر اساس Id_network
+        var networkSelect = $('#extend_network_name');
+
+        if (networkId !== '') {
+            networkSelect.val(networkId);
+        } else {
+            networkSelect.val('');
+        }
+
+        // ۳. مقداردهی فیلد مخفی شبکه برای ارسال با mainForm
+        $('#extend_network_name_hidden').val(networkSelect.val());
+
+        // ۴. نمایش مدال
+        var extendModal = new bootstrap.Modal(document.getElementById('ExtendModal'));
+        extendModal.show();
+    });
+});
+</script>
+{% endblock %}

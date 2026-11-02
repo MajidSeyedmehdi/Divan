@@ -1,0 +1,134 @@
+{% extends 'main/base.html' %}
+{% load jformat %}
+{% load static %}
+
+{% block title %}ایجاد دوره مالی جدید{% endblock %}
+
+{% block content %}
+<div class="container mt-5" dir="rtl">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg border-0 rounded-4">
+                <div class="card-header bg-primary text-white py-3 rounded-top-4">
+                    <h4 class="mb-0 text-center">
+                        <i class="fas fa-calendar-plus ml-2"></i>
+                        ایجاد دوره مالی جدید
+                    </h4>
+                </div>
+                
+                <div class="card-body p-4">
+                    <!-- نمایش پیام‌ها -->
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    
+                    <form method="post" id="financialPeriodForm" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- ردیف تاریخ شروع و پایان -->
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <label for="{{ form.start_date.id_for_label }}" class="form-label fw-bold">
+                                    <i class="fas fa-play-circle text-success ml-1"></i>
+                                    {{ form.start_date.label }}
+                                </label>
+                                {{ form.start_date }}
+                                {{ form.media }}
+                                {% if form.start_date.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {{ form.start_date.errors }}
+                                    </div>
+                                {% endif %}
+                                <small class="text-muted">* پیش‌فرض: اولین روز ماه قبل</small>
+                            </div>
+                            
+                            <div class="col-md-6 mb-4">
+                                <label for="{{ form.end_date.id_for_label }}" class="form-label fw-bold">
+                                    <i class="fas fa-stop-circle text-danger ml-1"></i>
+                                    {{ form.end_date.label }}
+                                </label>
+                                {{ form.end_date }}
+                                {{ form.media }}
+                                {% if form.end_date.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {{ form.end_date.errors }}
+                                    </div>
+                                {% endif %}
+                                <small class="text-muted">* پیش‌فرض: آخرین روز ماه قبل</small>
+                            </div>
+                        </div>
+                        
+                        <!-- فیلد توضیحات -->
+                        <div class="mb-4">
+                            <label for="{{ form.description.id_for_label }}" class="form-label fw-bold">
+                                <i class="fas fa-align-left text-info ml-1"></i>
+                                {{ form.description.label }}
+                            </label>
+                            {{ form.description }}
+                            {% if form.description.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.description.errors }}
+                                </div>
+                            {% endif %}
+{#                            <small class="text-muted">* توضیحات پیشنهادی: {{ form.description.initial }}</small>#}
+                        </div>
+                        
+                        <!-- هشدار غیرفعال شدن دوره قبلی -->
+                        <div class="alert alert-warning d-flex align-items-center mb-4" role="alert">
+                            <i class="fas fa-exclamation-triangle fs-4 me-3"></i>
+                            <div>
+                                <strong>توجه!</strong> با ثبت این دوره مالی، دوره های فعال قبلی به طور خودکار غیرفعال خواهد شد.
+                            </div>
+                        </div>
+                        
+                        <!-- دکمه‌های فرم -->
+                        <div class="d-flex justify-content-center gap-3">
+                            <button type="submit" class="btn btn-primary px-5 py-2">
+                                <i class="fas fa-save ml-2"></i>
+                                ثبت دوره مالی
+                            </button>
+                            <a href="{% url 'setting:financial_Period:create_financial_period' %}" class="btn btn-secondary px-5 py-2">
+                                <i class="fas fa-times ml-2"></i>
+                                انصراف
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- اضافه کردن Font Awesome اگر در base.html نیست -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+<!-- اعتبارسنجی سمت کلاینت -->
+<script>
+document.getElementById('financialPeriodForm').addEventListener('submit', function(e) {
+    var startDate = document.getElementById('{{ form.start_date.id_for_label }}').value;
+    var endDate = document.getElementById('{{ form.end_date.id_for_label }}').value;
+    
+    if (startDate && endDate) {
+        // تبدیل تاریخ‌ها به فرمت قابل مقایسه
+        var startParts = startDate.split('/');
+        var endParts = endDate.split('/');
+        
+        var start = new Date(startParts[0], startParts[1] - 1, startParts[2]);
+        var end = new Date(endParts[0], endParts[1] - 1, endParts[2]);
+        
+        if (start > end) {
+            e.preventDefault();
+            alert('تاریخ شروع باید قبل از تاریخ پایان باشد!');
+        }
+    }
+});
+
+
+
+</script>
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+    <!-- BEGIN BREADCRUMB -->
+    <div class="col-md-12">
+        <div class="breadcrumb-box shadow">
+            <ul class="breadcrumb">
+                <li><a href="http://localhost:8000/home/">صدابرداران فنی</a></li>
+                <li class="active">مدیر صدابرداران فنی</li>
+            </ul>
+            </div>
+        </div>
+            <!-- END BREADCRUMB -->
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">{{ title }}</h3>
+                </div>
+                <div class="card-body">
+                    <p>محتوای صفحه مدیر صدابرداران اینجا قرار می‌گیرد.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
