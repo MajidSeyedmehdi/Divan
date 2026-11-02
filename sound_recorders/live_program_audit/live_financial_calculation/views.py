@@ -99,6 +99,13 @@ def live_programs_summary_view(request):
                       AND Id_live_payment_status = ?
                       AND (? IS NULL OR Live_shift_date >= ?)
                       AND (? IS NULL OR Live_shift_date <= ?)
+                      AND EXISTS (
+                          SELECT 1
+                          FROM dbo.Tbl_Program_Sound_Spec p
+                          WHERE p.Id_manual_program = dbo.Tbl_Sound_Shift_Live.Id_manual_program
+                            AND p.Active = 1 AND p.Del = 0
+                            AND NULLIF(LTRIM(RTRIM(p.Code)), '') IS NOT NULL
+                      )
                 """, (
                     target_status, request.user.username, program_id, source_status,
                     start_greg, start_greg, end_greg, end_greg
