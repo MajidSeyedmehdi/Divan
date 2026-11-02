@@ -1,0 +1,896 @@
+{% extends 'main/base.html' %}
+{% load static %}
+<!--{#&lt;!&ndash; style="border: 1px solid #333; box-shadow: 0 4px 10px rgba(0,0,0,0.4);" &ndash;&gt;#}-->
+{% block content %}
+
+<style>
+    input[type="text"], select, textarea {
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 6px 10px;
+        width: 150px;
+        height: 35px;
+        font-size: 12px;
+        transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    input[type="text"]:focus, select:focus, textarea:focus {
+        border-color: #66afe9;
+        outline: none;
+        font-size: 12px;
+        box-shadow: 0 0 5px rgba(102, 175, 233, 0.6);
+    }
+
+    label {
+        margin-left: 8px;
+        font-weight: bold;
+        font-size: 12px;
+    }
+
+    li {
+        margin-bottom: 12px;
+    }
+
+    table thead th {
+        background-color: #e6f2ff !important;
+        color: white;
+        font-size: 14px;
+    }
+
+    .dropdown-checkboxes {
+        position: relative;
+        display: inline-block;
+        width: 100%;
+    }
+    .dropdown-checkboxes .dropdown-menu {
+        max-height: 250px;
+        overflow-y: auto;
+        padding: 10px;
+        width: 100%;
+    }
+    .dropdown-toggle-label {
+        font-size: 14px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .table-wrapper {
+        border: 2px solid #e0e0e0;
+        border-radius: 12px;
+        padding: 15px;
+        background-color: #fff;
+        box-shadow: 0 0 3px rgba(0, 0, 0, 0.12);
+        overflow: hidden;
+    }
+
+    .financial-table {
+        width: 100%;
+        margin-bottom: 0;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-family: 'Vazir-Black', serif;
+    }
+
+    #financial-table th,
+    #financial-table td {
+        border: 1.5px solid #000000 !important;
+    }
+
+    #financial-table thead tr:first-child th:first-child { border-top-right-radius: 10px; }
+    #financial-table thead tr:first-child th:last-child { border-top-left-radius: 10px; }
+    #financial-table tbody tr:last-child td:first-child { border-bottom-right-radius: 10px; }
+    #financial-table tbody tr:last-child td:last-child { border-bottom-left-radius: 10px; }
+
+    @font-face {
+        font-family: 'Vazir-Black';
+        src: url("{% static 'fonts/Vazir-Black.woff2' %}") format('woff2'),
+             url("{% static 'fonts/Vazir-Black.woff' %}") format('woff');
+        font-weight: normal;
+        font-style: normal;
+    }
+
+    body, input, select, textarea {
+        font-family: 'Vazir', sans-serif !important;
+        direction: rtl;
+        text-align: right;
+    }
+
+    .ui-datepicker, .ui-datepicker table, .ui-datepicker td, .ui-datepicker th {
+        font-family: 'Vazir', sans-serif !important;
+        direction: rtl !important;
+        text-align: center;
+    }
+
+    .breadcrumb-box {
+        background: #fff;
+        border-radius: 12px;
+        padding: 15px 20px;
+        position: relative;
+        border: 1px solid #e0e0e0;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
+    .breadcrumb-box::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 10px;
+        width: 100%;
+        background: #00CED1;
+        border-top-left-radius: 12px;
+        border-top-right-radius: 12px;
+    }
+
+    .breadcrumb-box label { font-weight: 600; color: #333; }
+
+    .breadcrumb-box input[type="text"],
+    .breadcrumb-box select {
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 5px 10px;
+        font-size: 13px;
+        transition: all 0.2s ease;
+        background-color: #fafafa;
+    }
+
+    .breadcrumb-box input[type="text"]:focus,
+    .breadcrumb-box select:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 3px rgba(0, 123, 255, 0.3);
+        outline: none;
+    }
+
+    .tab-wrapper {
+        background: #fff;
+        border: 1px solid #dee2e6;
+        border-radius: 12px;
+        padding: 0;
+    }
+
+    input[readonly].date-readonly {
+        border: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        outline: none !important;
+        padding: 0 !important;
+        text-align: center;
+        font-size: 12px;
+        cursor: default;
+        font-family: 'Vazir-Black', serif;
+    }
+
+    .network-summary {
+        cursor: pointer;
+        color: #0d6efd;
+        font-weight: bold;
+        font-family: 'Vazir-Black', serif;
+    }
+
+    .history-header {
+        background-color: #DCA1A1;
+        color: white;
+    }
+
+    #modal-table th, #modal-table td {
+        border: 1.5px solid #000000 !important;
+    }
+
+    .modal-table {
+        width: 100%;
+        margin-bottom: 0;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-family: 'Vazir-Black', serif;
+    }
+
+    .modal-table thead > tr > th {
+        background-color: #8cbed6 !important;
+        color: #000000 !important;
+        font-weight: 700;
+        font-size: 13px;
+        text-align: center;
+        vertical-align: middle;
+        border: 1px solid #6fbab1 !important;
+        padding: 8px 6px;
+    }
+
+    .modal-table tbody td {
+        vertical-align: middle;
+        padding: 6px;
+        border: 1px solid #dee2e6;
+        background-color: #fff;
+    }
+
+    .close-modal-btn {
+        background-color: #009688;
+        color: white;
+        border: none;
+    }
+
+    .close-modal-btn:hover {
+        background-color: #C88787;
+        color: white;
+    }
+
+    .custom-modal-scroll {
+        max-height: 60vh;
+        overflow: auto;
+        border: 1px solid #c8d6e5;
+        border-radius: 8px;
+        box-shadow: inset 0 0 5px rgba(0,0,0,0.05);
+    }
+
+    .custom-modal-scroll table {
+        width: max-content;
+        min-width: 100%;
+        margin-bottom: 0;
+    }
+
+    .custom-modal-scroll table thead th {
+        position: sticky;
+        top: 0;
+        background-color: #8cbed6 !important;
+        z-index: 10;
+        white-space: nowrap !important;
+        min-width: 80px;
+        box-shadow: 0 2px 2px -1px rgba(0,0,0,0.2);
+    }
+
+    .custom-modal-scroll table td {
+        white-space: nowrap !important;
+        font-size: 13px;
+    }
+@media print {
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    /* مخفی کردن همه‌چیز به صورت پیش‌فرض */
+    body * {
+        visibility: hidden !important;
+    }
+
+    /* اگر مدال باز است، فقط مدال فعال چاپ شود */
+    body.modal-open .modal.show,
+    body.modal-open .modal.show * {
+        visibility: visible !important;
+    }
+
+    body.modal-open .modal.show {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        height: auto !important;
+        overflow: visible !important;
+    }
+
+    /* مخفی کردن دکمه‌های بستن و چاپ داخل مدال در برگه چاپ */
+    .modal-footer, .btn-close {
+        display: none !important;
+    }
+
+    /* اگر هیچ مدالی باز نیست، صفحه اصلی (printable) چاپ شود */
+    body:not(.modal-open) .printable,
+    body:not(.modal-open) .printable * {
+        visibility: visible !important;
+    }
+
+    body:not(.modal-open) .printable {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100% !important;
+    }
+
+    table {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+
+    tr, td, th {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+
+    @page {
+        size: A4 landscape;
+        margin: 10mm;
+    }
+}
+
+</style>
+<div class="container-fluid">
+  <div class="col-md-12">
+    <div class="breadcrumb-box shadow">
+      <form method="post" class="mb-0">
+        {% csrf_token %}
+        {{ header_form.media }}
+        <div class="breadcrumb-right">
+          <div class="d-flex flex-wrap align-items-center gap-4">
+            <div class="d-flex align-items-center gap-2">
+              <label class="form-label mb-0">تاریخ شروع</label>
+              {{ header_form.start_date }}
+            </div>
+            <div class="d-flex align-items-center gap-2">
+              <label class="form-label mb-0">تاریخ پایان</label>
+              {{ header_form.end_date }}
+            </div>
+            <div>
+              <button type="submit" class="btn btn-primary d-flex align-items-center gap-2 px-3" name="action" value="show">
+                <i class="fa fa-search"></i> نمایش
+              </button>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="tab-wrapper">
+    <div class="printable mt-3 table-wrapper">
+      <table id="financial-table" class="table table-bordered text-center financial-table">
+        <thead>
+          <tr>
+            <th>تاریخ شروع</th>
+            <th>تاریخ پایان</th>
+            <th>نیروهای موظف</th>
+            <th>مرخصی</th>
+            <th>ساعت موظف</th>
+            <th>برآورد کل</th>
+            <th>امریه</th>
+            <th>اضافه کار</th>
+            <th>نیروهای کمکی</th>
+            <th>وضعیت</th>
+            <th>واحد رسیدگی کننده</th>
+            <th>شبکه</th>
+            <th>روکش</th>
+            <th>توضیحات</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in financial_rows %}
+          <tr>
+            <td>{{ row.Start_date_j }}</td>
+            <td>{{ row.End_date_j }}</td>
+            <td>{{ row.Required_personnel }}</td>
+            <td>{{ row.Leaves|default_if_none:"0" }}</td>
+            <td>{{ row.Required_hours }}</td>
+            <td>{{ row.Total_pay }}</td>
+            <td>{{ row.Amrie }}</td>
+            <td>{{ row.Overtime_pay }}</td>
+            <td>{{ row.Supportive_personel }}</td>
+            <td>{{ row.Full_Workflow_Status }}</td>
+            <td>{{ row.Current_Manager }}</td>
+            <td>
+              <span class="network-summary"
+                    data-url="{% url 'sound_recorders:soundrecorders_managers:get_network_coating' %}"
+                    data-start="{{ row.Start_date_j }}"
+                    data-end="{{ row.End_date_j }}"
+                    onclick="openDataModal('networkModal', null, this)"
+                    style="cursor: pointer; color: #0d6efd;">
+                روکش شبکه ها
+              </span>
+            </td>
+            <td>
+              <span class="network-summary"
+                    data-url="{% url 'sound_recorders:soundrecorders_managers:get_final_coating' %}"
+                    data-start="{{ row.Start_date_j }}"
+                    data-end="{{ row.End_date_j }}"
+                    onclick="openDataModal('coatingModal', null, this)"
+                    style="cursor: pointer; color: #0d6efd;">
+                روکش نهایی
+              </span>
+            </td>
+            <td>
+              <span class="network-summary"
+                    data-url="{% url 'information:inf_manager:get_workflow_history' %}"
+                    onclick="openDataModal('descriptionModal', '{{ row.Id_final_payroll_calc|default_if_none:"" }}', this)"
+                    style="cursor: pointer; color: #0d6efd;">
+                توضیحات
+              </span>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="networkModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="card-header history-header py-2 rounded mb-3">
+                    <h5 class="mb-0 text-center">روکش شبکه ها</h5>
+                </div>
+                <table class="table modal-table text-center">
+                    <thead>
+                        <tr>
+                            <th>ردیف</th>
+                            <th>نام شبکه</th>
+                            <th>براورد</th>
+                            <th>جزئیات</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn close-modal-btn" data-bs-dismiss="modal">بستن</button>
+                 <button type="button" id="btn-print-hardcopy" class="btn btn-warning btn-lg">
+                      <span class="fa fa-print"></span>
+                      چاپ
+                  </button>
+                  <button type="button" id="btn-excel" class="btn btn-success btn">
+                      <span class="fas fa-file-excel"></span>
+                      ذخیره اکسل
+                  </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" data-url="{% url 'soundrecorders:get_network_detail' %}" id="networkDetailModal" tabindex="-1" aria-hidden="true" style="z-index: 1060;">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="card-header history-header py-2 rounded mb-3">
+                    <h5 class="mb-0 text-center">جزئیات شبکه</h5>
+                </div>
+                <table class="table modal-table text-center align-middle" id="networkDetailTable">
+                    <thead id="networkDetailTableHead"></thead>
+                    <tbody id="networkDetailTableBody"></tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn close-modal-btn" data-bs-dismiss="modal">بستن</button>
+                <button type="button" id="btn-print-hardcopy" class="btn btn-warning btn-lg btn-print-modal">چاپ</button>
+                <button type="button" id="btn-excel" class="btn btn-success btn-excel-modal">ذخیره اکسل</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="coatingModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="card-header history-header py-2 rounded mb-3">
+                    <h5 class="mb-0 text-center">روکش نهایی</h5>
+                </div>
+                <table class="table modal-table text-center">
+                    <thead>
+                        <tr>
+                            <th>ردیف</th>
+                            <th>کد ملی</th>
+                            <th>نام</th>
+                            <th>نام خانوادگی</th>
+                            <th>عنوان شغلی</th>
+                            <th>رده</th>
+                            <th>برآورد</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn close-modal-btn" data-bs-dismiss="modal">بستن</button>
+                <button type="button" id="btn-print-hardcopy" class="btn btn-warning btn-lg btn-print-modal">چاپ</button>
+                <button type="button" id="btn-excel" class="btn btn-success btn-excel-modal">ذخیره اکسل</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="descriptionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="card-header history-header py-2 rounded mb-3">
+                    <h5 class="mb-0 text-center">سابقه توضیحات</h5>
+                </div>
+                <table id="modal-table" class="table modal-table table-bordered text-center align-middle">
+                    <thead>
+                        <tr>
+                            <th>ردیف</th>
+                            <th>تاریخ و ساعت</th>
+                            <th>اقدام کننده</th>
+                            <th>وضعیت</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTableBody"></tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn close-modal-btn" data-bs-dismiss="modal">بستن</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function openDataModal(modalId, payrollId, element) {
+    try {
+        var modalElement = document.getElementById(modalId);
+        if (!modalElement) return;
+
+        var tbody = modalElement.querySelector('tbody');
+        var myModal = bootstrap.Modal.getOrCreateInstance(modalElement);
+        myModal.show();
+
+        var thead = modalElement.querySelector('thead tr');
+        var colCount = thead ? thead.children.length : 4;
+
+        if (tbody) {
+            tbody.innerHTML = `<tr><td colspan="${colCount}" class="text-center py-4">در حال دریافت اطلاعات...</td></tr>`;
+        }
+
+        var baseUrl = element ? element.getAttribute('data-url') : null;
+        if (!baseUrl) {
+            if (tbody) {
+                tbody.innerHTML = `<tr><td colspan="${colCount}" class="text-danger text-center fw-bold py-4">آدرس URL ست نشده است.</td></tr>`;
+            }
+            return;
+        }
+
+        var requestUrl = '';
+
+        if (modalId === 'coatingModal' || modalId === 'networkModal') {
+            var startDate = element.getAttribute('data-start');
+            var endDate = element.getAttribute('data-end');
+
+            if (!startDate || !endDate) {
+                if (tbody) {
+                    tbody.innerHTML = `<tr><td colspan="${colCount}" class="text-danger text-center fw-bold py-4">تاریخ شروع یا پایان معتبر نیست.</td></tr>`;
+                }
+                return;
+            }
+
+            modalElement.setAttribute('data-start', startDate);
+            modalElement.setAttribute('data-end', endDate);
+
+            requestUrl = `${baseUrl}?start_date=${encodeURIComponent(startDate)}&end_date=${encodeURIComponent(endDate)}`;
+        } else {
+            if (!payrollId || payrollId === 'None' || String(payrollId).trim() === '' || payrollId === 'undefined') {
+                if (tbody) {
+                    tbody.innerHTML = `<tr><td colspan="${colCount}" class="text-danger text-center fw-bold py-4">شناسه رکورد معتبر نیست.</td></tr>`;
+                }
+                return;
+            }
+            requestUrl = `${baseUrl}?id=${encodeURIComponent(payrollId)}`;
+        }
+
+        fetch(requestUrl)
+            .then(response => {
+                if (!response.ok) throw new Error(`خطای سرور: ${response.status}`);
+                return response.json();
+            })
+            .then(res => {
+                if (!tbody) return;
+                tbody.innerHTML = '';
+
+                if (res.status === 'success' && res.data && res.data.length > 0) {
+                    renderTableDataSafely(modalId, tbody, res.data, modalElement);
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="${colCount}" class="text-muted text-center py-4">هیچ اطلاعاتی یافت نشد.</td></tr>`;
+                }
+            })
+            .catch(error => {
+                console.error(error);
+                if (tbody) {
+                    tbody.innerHTML = `<tr><td colspan="${colCount}" class="text-danger text-center fw-bold py-4">خطا: ${error.message}</td></tr>`;
+                }
+            });
+
+    } catch (error) {
+        console.error('Modal Error:', error);
+    }
+}
+
+function renderTableDataSafely(modalId, tbody, data, modalElement) {
+    try {
+        var htmlContent = '';
+
+        if (modalId === 'descriptionModal') {
+            data.forEach((item, index) => {
+                htmlContent += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${item.action_date || '-'}</td>
+                        <td>${item.manager || '-'}</td>
+                        <td><span class="badge bg-info text-dark">${item.workflow_action || '-'}</span></td>`;
+            });
+        }
+        if (modalId === 'networkModal') {
+            if (!Array.isArray(data) || data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="text-muted text-center py-3">هیچ داده‌ای یافت نشد.</td></tr>`;
+                return;
+            }
+
+            var startDate = modalElement ? modalElement.getAttribute('data-start') || '' : '';
+            var endDate = modalElement ? modalElement.getAttribute('data-end') || '' : '';
+
+            data.forEach((item, index) => {
+                var networkName = item.network || item.Network || '-';
+                var networkId = item.id_network || item.Id_network || '';
+                var baravordVal = item.network_baravord !== undefined ? item.network_baravord : (item.Network_baraovard || 0);
+
+                var formattedBaravord = !isNaN(baravordVal)
+                    ? Number(baravordVal).toLocaleString('fa-IR') + ' ریال'
+                    : '۰ ریال';
+
+                htmlContent += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${networkName}</td>
+                        <td class="fw-bold">${formattedBaravord}</td>
+                        <td>
+                            <button type="button" class="btn btn-sm btn-info text-white px-3 fw-bold"
+                                    onclick="openNetworkDetailModal('${networkId}', '${networkName}', '${startDate}', '${endDate}')">
+                                جزئیات
+                            </button>
+                        </td>
+                    </tr>`;
+            });
+        }
+        else if (modalId === 'coatingModal') {
+            data.forEach((item, index) => {
+                var nationalCode = item.national_code || item.National_code || '-';
+                var firstName = item.first_name || item.First_name || '-';
+                var lastName = item.last_name || item.Last_name || '-';
+                var currentJob = item.current_job || item.Current_job || '-';
+                var levels = item.levels || item.Levels || '-';
+
+                var rawBaraovard = item.final_baraovard !== undefined && item.final_baraovard !== null ? item.final_baraovard : item.Final_baraovard;
+                var baraovard = (rawBaraovard !== undefined && rawBaraovard !== null && !isNaN(rawBaraovard))
+                    ? Number(rawBaraovard).toLocaleString('fa-IR') + ' ریال'
+                    : '-';
+
+                htmlContent += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${nationalCode}</td>
+                        <td>${firstName}</td>
+                        <td>${lastName}</td>
+                        <td>${currentJob}</td>
+                        <td>${levels}</td>
+                        <td class="fw-bold">${baraovard}</td>
+                    </tr>`;
+            });
+        }
+
+        tbody.innerHTML = htmlContent;
+
+    } catch (error) {
+        console.error('Render Error:', error);
+        var colCount = modalElement ? modalElement.querySelectorAll('thead th').length : 4;
+        tbody.innerHTML = `<tr><td colspan="${colCount}" class="text-danger text-center">خطا در رندر اطلاعات: ${error.message}</td></tr>`;
+    }
+}
+
+function openNetworkDetailModal(networkId, networkName, startDate, endDate) {
+    var modalElement = document.getElementById('networkDetailModal');
+    if (!modalElement) {
+        alert('مدال جزئیات شبکه در HTML یافت نشد.');
+        return;
+    }
+
+    var thead = document.getElementById('networkDetailTableHead');
+    var tbody = document.getElementById('networkDetailTableBody');
+    var titleElement = document.getElementById('networkDetailTitle');
+
+    if (titleElement) {
+        titleElement.innerText = `جزئیات شبکه: ${networkName}`;
+    }
+
+    if (thead) thead.innerHTML = '';
+    if (tbody) {
+        tbody.innerHTML = `<tr><td colspan="10" class="text-center py-4">در حال دریافت جزئیات...</td></tr>`;
+    }
+
+    var detailModal = bootstrap.Modal.getOrCreateInstance(modalElement);
+    detailModal.show();
+
+    var baseUrl = modalElement.getAttribute('data-url');
+    var requestUrl = `${baseUrl}?network_id=${encodeURIComponent(networkId)}&start_date=${encodeURIComponent(startDate)}&end_date=${encodeURIComponent(endDate)}`;
+
+    fetch(requestUrl)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`خطای سرور: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(res => {
+            if (!tbody || !thead) return;
+            tbody.innerHTML = '';
+            thead.innerHTML = '';
+
+            if (res.status === 'success' && res.data && res.data.length > 0) {
+                var shiftColumns = res.shift_columns || [];
+
+                var headerHtml = `
+                    <tr>
+                        <th>ردیف</th>
+                        <th>نام و نام خانوادگی</th>
+                        <th>عنوان شغلی</th>
+                        <th>رده</th>`;
+
+                shiftColumns.forEach(function(shiftName) {
+                    headerHtml += `
+                        <th class="bg-light">مبلغ ${shiftName}</th>
+                        <th class="bg-light">تعداد </th>`;
+                });
+
+                headerHtml += `
+                        <th>جمع برآورد</th>
+                    </tr>`;
+                thead.innerHTML = headerHtml;
+
+                var bodyHtml = '';
+                res.data.forEach((item, index) => {
+                    bodyHtml += `
+                        <tr>
+                            <td>${(index + 1).toLocaleString('fa-IR')}</td>
+                            <td>${item.soundrecorder_name || '-'}</td>
+                            <td>${item.current_job || '-'}</td>
+                            <td>${item.levels || '-'}</td>`;
+
+                    shiftColumns.forEach(function(shiftName) {
+                        var shiftData = item.shifts ? item.shifts[shiftName] : null;
+
+                        if (shiftData && (shiftData.count > 0 || shiftData.rate > 0)) {
+                            var formattedCount = Number(shiftData.count || 0).toLocaleString('fa-IR');
+                            var formattedRate = Number(shiftData.rate || 0).toLocaleString('fa-IR');
+
+                            bodyHtml += `
+                                <td class="text-center text-success">${formattedRate}</td>
+                                <td class="text-center fw-bold">${formattedCount}</td>`;
+                        } else {
+                            bodyHtml += `
+                                <td class="text-muted text-center">-</td>
+                                <td class="text-muted text-center">-</td>`;
+                        }
+                    });
+
+                    var totalBaraovard = !isNaN(item.total_baraovard)
+                        ? Number(item.total_baraovard).toLocaleString('fa-IR') + ' ریال'
+                        : '۰ ریال';
+
+                    bodyHtml += `
+                            <td class="fw-bold text-primary text-center">${totalBaraovard}</td>
+                        </tr>`;
+                });
+
+                tbody.innerHTML = bodyHtml;
+
+            } else {
+                thead.innerHTML = `<tr><th>اطلاعات</th></tr>`;
+                tbody.innerHTML = `<tr><td class="text-muted text-center py-4">هیچ جزئیاتی یافت نشد.</td></tr>`;
+            }
+        })
+        .catch(error => {
+            if (tbody) {
+                tbody.innerHTML = `<tr><td colspan="10" class="text-danger text-center py-4">خطا در دریافت اطلاعات: ${error.message}</td></tr>`;
+            }
+        });
+}
+/* ===============================
+   🖨️ چاپ - نسخه اشکال‌زدایی (Debug)
+=============================== */
+document.addEventListener("click", function (e) {
+    const printBtn = e.target.closest(".btn-print-modal, #btn-print-hardcopy");
+    if (!printBtn) return;
+
+    console.log("1. دکمه چاپ کلیک شد:", printBtn);
+
+    // پیدا کردن مدال
+    const modal = printBtn.closest(".modal") || printBtn.closest("[id*='Modal']") || printBtn.closest("[class*='modal']");
+    console.log("2. مدال پیدا شده:", modal);
+
+    if (!modal) {
+        alert("خطا: کانتینر مدال پیدا نشد! لطفا بررسی کنید که دکمه داخل یک دایو با کلاس modal قرار دارد.");
+        return;
+    }
+
+    const modalBody = modal.querySelector(".modal-body") || modal;
+    const printWindow = window.open("", "_blank", "width=1200,height=800");
+
+    if (!printWindow) {
+        alert("پنجره چاپ توسط مرورگر مسدود شد (Pop-up Blocked). لطفاً اجازه باز شدن پاپ‌آپ را بدهید.");
+        return;
+    }
+
+    printWindow.document.write(`
+        <html dir="rtl" lang="fa">
+        <head>
+            <title>چاپ</title>
+            <style>
+                body { font-family: Tahoma, sans-serif; direction: rtl; text-align: center; padding: 20px; }
+                table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+                table, th, td { border: 1px solid #000; padding: 8px; }
+                th { background-color: #eee; }
+                .btn, button { display: none !important; }
+            </style>
+        </head>
+        <body>
+            ${modalBody.innerHTML}
+        </body>
+        </html>
+    `);
+
+    printWindow.document.close();
+    setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+    }, 500);
+});
+
+/* ===============================
+   📊 اکسل - نسخه اشکال‌زدایی (Debug)
+=============================== */
+document.addEventListener("click", function (e) {
+    const excelBtn = e.target.closest(".btn-excel-modal, #btn-excel");
+    if (!excelBtn) return;
+
+    console.log("1. دکمه اکسل کلیک شد:", excelBtn);
+
+    if (typeof XLSX === 'undefined') {
+        alert("خطا: کتابخانه XLSX در صفحه بارگذاری نشده است.");
+        return;
+    }
+
+    const modal = excelBtn.closest(".modal") || excelBtn.closest("[id*='Modal']") || excelBtn.closest("[class*='modal']");
+    console.log("2. مدال پیدا شده:", modal);
+
+    if (!modal) {
+        alert("خطا: کانتینر مدال پیدا نشد!");
+        return;
+    }
+
+    const table = modal.querySelector("table");
+    console.log("3. جدول پیدا شده:", table);
+
+    if (!table) {
+        alert("هیچ جدولی (تگ table) در این مدال پیدا نشد!");
+        return;
+    }
+
+    try {
+        const tableClone = table.cloneNode(true);
+        tableClone.querySelectorAll("button, .btn").forEach(el => el.remove());
+
+        const workbook = XLSX.utils.book_new();
+        const sheet = XLSX.utils.table_to_sheet(tableClone);
+        XLSX.utils.book_append_sheet(workbook, sheet, "گزارش");
+        XLSX.writeFile(workbook, "گزارش.xlsx");
+        console.log("4. خروجی اکسل ساخته شد.");
+    } catch (err) {
+        console.error("خطا در اکسل:", err);
+        alert("خطا در ساخت اکسل: " + err.message);
+    }
+});
+</script>
+<!-- اضافه کردن کتابخانه خروجی اکسل -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+{% endblock %}

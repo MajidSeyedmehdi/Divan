@@ -1,0 +1,526 @@
+{% extends 'main/base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+<link rel="stylesheet" href="{% static 'assets/css/style.css' %}">
+{% block content %}
+
+<style>
+
+    input[type="text"], select, textarea {
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 6px 10px;
+        width: 150px;
+        height: 35px;
+        font-size: 14px;
+        transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    input[type="text"]:focus, select:focus, textarea:focus {
+        border-color: #66afe9;
+        outline: none;
+        font-size: 14px;
+        box-shadow: 0 0 5px rgba(102, 175, 233, 0.6);
+    }
+
+    label {
+        margin-left: 8px;
+        font-weight: bold;
+        font-size: 14px;
+    }
+
+    li {
+        margin-bottom: 12px;
+    }
+
+    .small-table {
+        font-size: 16px;
+    }
+
+
+    /* =========================================================
+       استایل سرتیتر جدول
+       ========================================================= */
+
+    #shift-table thead th {
+        background-color: #e6f2ff !important;
+        color: black !important;
+        font-size: 14px;
+    }
+
+
+    /* =========================================================
+       ستون اول جدول
+       ========================================================= */
+
+    #shift-table tbody td:first-child {
+        background-color: white;
+        font-size: 14px;
+    }
+
+
+    /* =========================================================
+       Dropdown
+       ========================================================= */
+
+    .dropdown-checkboxes {
+        position: relative;
+        display: inline-block;
+        width: 100%;
+    }
+
+    .dropdown-checkboxes .dropdown-menu {
+        max-height: 250px;
+        overflow-y: auto;
+        padding: 10px;
+        width: 100%;
+    }
+
+    .dropdown-toggle-label {
+        font-size: 14px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+
+    /* =========================================================
+       قاب جدول + اسکرول افقی و عمودی
+       ========================================================= */
+
+    .printable {
+        border: 2px solid #e0e0e0;
+        border-radius: 12px;
+        padding: 15px;
+        background-color: #fff;
+        box-shadow: 0 0 3px rgba(0, 0, 0, 0.12);
+
+        width: 100%;
+        max-width: 100%;
+
+        /* ارتفاع محدوده جدول */
+        max-height: 600px;
+
+        /* اسکرول افقی و عمودی */
+        overflow-x: auto;
+        overflow-y: auto;
+
+        scrollbar-width: auto;
+    }
+
+
+    /* =========================================================
+       خود جدول
+       ========================================================= */
+
+    #shift-table {
+        min-width: 1200px;
+        width: max-content;
+
+        border-collapse: separate;
+        border-spacing: 0;
+
+        border-radius: 10px;
+    }
+
+
+    /* =========================================================
+       فریز کردن سطر اول
+       ========================================================= */
+
+    #shift-table thead {
+        position: sticky;
+        top: 0;
+        z-index: 99;
+    }
+
+    #shift-table thead th {
+        position: sticky !important;
+        top: 0 !important;
+
+        z-index: 100 !important;
+
+        background-color: #e6f2ff !important;
+        color: #000 !important;
+
+        font-size: 14px;
+
+        /* جلوگیری از دیده شدن ردیف‌های زیر هدر */
+        box-shadow: 0 1px 0 #000;
+    }
+
+
+    /* =========================================================
+       خطوط بین سلول‌ها
+       ========================================================= */
+
+    #shift-table th,
+    #shift-table td {
+        border: 1.5px solid #000000 !important;
+    }
+
+
+    /* =========================================================
+       گرد شدن گوشه‌های جدول
+       ========================================================= */
+
+    #shift-table thead tr:first-child th:first-child {
+        border-top-right-radius: 10px;
+    }
+
+    #shift-table thead tr:first-child th:last-child {
+        border-top-left-radius: 10px;
+    }
+
+    #shift-table tbody tr:last-child td:first-child {
+        border-bottom-right-radius: 10px;
+    }
+
+    #shift-table tbody tr:last-child td:last-child {
+        border-bottom-left-radius: 10px;
+    }
+
+
+    /* =========================================================
+       فونت
+       ========================================================= */
+
+    @font-face {
+        font-family: 'Vazir-Black';
+
+        src: url("{% static 'fonts/Vazir-Black.woff2' %}") format('woff2'),
+             url("{% static 'fonts/Vazir-Black.woff' %}") format('woff');
+
+        font-weight: normal;
+        font-style: normal;
+    }
+
+
+    /* اعمال فونت روی همه input های فرم و جدول */
+
+    body,
+    input,
+    select,
+    textarea {
+        font-family: 'Vazir', sans-serif !important;
+        direction: rtl;
+        text-align: right;
+    }
+
+
+    /* =========================================================
+       DatePicker
+       ========================================================= */
+
+    .ui-datepicker,
+    .ui-datepicker table,
+    .ui-datepicker td,
+    .ui-datepicker th {
+        font-family: 'Vazir', sans-serif !important;
+        direction: rtl !important;
+        text-align: center;
+    }
+
+
+    /* =========================================================
+       Breadcrumb
+       ========================================================= */
+
+    .breadcrumb-box label {
+        font-weight: 600;
+        color: #333;
+    }
+
+
+    /* ورودی‌ها و select‌ها */
+
+    .breadcrumb-box input[type="text"],
+    .breadcrumb-box select {
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 5px 10px;
+        font-size: 13px;
+        transition: all 0.2s ease;
+        background-color: #fafafa;
+    }
+
+    .breadcrumb-box input[type="text"]:focus,
+    .breadcrumb-box select:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 3px rgba(0, 123, 255, 0.3);
+        outline: none;
+    }
+
+
+    /* =========================================================
+       چاپ
+       ========================================================= */
+
+    table th,
+    table td {
+        -webkit-print-color-adjust: exact !important;
+    }
+
+
+    @media print {
+
+        * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+
+        /* مخفی کردن همه‌چیز به صورت پیش‌فرض */
+
+        body * {
+            visibility: hidden !important;
+        }
+
+
+        /* =====================================================
+           اگر مدال باز است
+           ===================================================== */
+
+        body.modal-open .modal.show,
+        body.modal-open .modal.show * {
+            visibility: visible !important;
+        }
+
+        body.modal-open .modal.show {
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+
+            width: 100% !important;
+            height: auto !important;
+
+            overflow: visible !important;
+        }
+
+
+        /* مخفی کردن دکمه‌های بستن و چاپ داخل مدال */
+
+        .modal-footer,
+        .btn-close {
+            display: none !important;
+        }
+
+
+        /* =====================================================
+           چاپ جدول اصلی
+           ===================================================== */
+
+        body:not(.modal-open) .printable,
+        body:not(.modal-open) .printable * {
+            visibility: visible !important;
+        }
+
+        body:not(.modal-open) .printable {
+            position: absolute;
+
+            left: 0;
+            top: 0;
+
+            width: 100% !important;
+
+            /* هنگام چاپ اسکرول وجود نداشته باشد */
+            max-height: none !important;
+
+            overflow: visible !important;
+
+            border: none !important;
+            box-shadow: none !important;
+        }
+
+
+        /* هنگام چاپ sticky غیرفعال شود */
+
+        #shift-table thead,
+        #shift-table thead th {
+            position: static !important;
+        }
+
+
+        /* جدول در حالت چاپ */
+
+        #shift-table {
+            min-width: 0 !important;
+            width: 100% !important;
+        }
+
+
+        /* جلوگیری از شکستن جدول */
+
+        table {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+        }
+
+        tr,
+        td,
+        th {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+        }
+
+
+        /* تنظیم صفحه چاپ */
+
+        @page {
+            size: A4 landscape;
+            margin: 10mm;
+        }
+    }
+
+</style>
+<form method="post" class="mb-3">
+  {% csrf_token %}
+<div class="mb-3 d-flex gap-2">
+    <a href="javascript:history.back()"
+       class="btn btn-secondary d-flex align-items-center gap-2 px-3">
+        <i class="fa fa-arrow-right"></i>
+        بازگشت
+    </a>
+</div>
+      <button type="button" id="btn-print-hardcopy" class="btn btn-warning btn-lg btn-print-modal">چاپ</button>
+      <button type="button" id="btn-excel" class="btn btn-success btn-excel-modal">ذخیره اکسل</button>
+  <div class="printable mt-3 table-wrapper">
+
+    <!-- جدول خروجی -->
+    <table id="shift-table" class="table table-bordered text-center">
+      <thead>
+        <tr>
+          <th>ردیف</th>
+          <th>نام خانوادگی</th>
+          <th>نام</th>
+          <th>کد ملی</th>
+          <th>شماره کارمندی</th>
+          <th>عنوان شغلی</th>
+          <th>رده</th>
+          <th>وضعیت</th>
+          <th>مرخصی</th>
+          <th>شیفت ویژه</th>
+          <th>مجموع ساعت کارکرد</th>
+          <th>ساعت موظف</th>
+          <th>ساعت برآورد</th>
+          <th>برآورد</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for row in result %}
+        {% if row.Id_sound_recorder %}
+        <tr class="person-row"
+          onclick="window.location.href='{% url 'sound_recorders:soundrecorders:person_shift_details' %}?id_sound_recorder={{ row.Id_sound_recorder }}&start_date={{ row.Start_date_j|default:start_date_j }}&end_date={{ row.End_date_j|default:end_date_j }}'"
+          style="cursor: pointer;">
+        {% else %}
+        <tr>
+        {% endif %}
+          <td>{{ forloop.counter }}</td>
+          <td>{{ row.Last_name|default:"-" }}</td>
+          <td>{{ row.First_name|default:"-" }}</td>
+          <td>{{ row.National_code|default:"-" }}</td>
+          <td>{{ row.Employment_id|default_if_none:"" }}</td>
+          <td>{{ row.Current_job|default:"-" }}</td>
+          <td>{{ row.Levels|default:"-" }}</td>
+          <td>{{ row.Job_relation|default:"-" }}</td>
+          <td>{{ row.Leaves|default:"0" }}</td>
+          <td>{{ row.Special_shift|default:"0" }}</td>
+          <td>{{ row.Total_hours|default:"0" }}</td>
+          <td>{{ row.Mandatory_hours|default:"0" }}</td>
+          <td>{{ row.Remaining_Total_Hours|default:"0" }}</td>
+          <td>{{ row.Baravord|default:"0" }}</td>
+</tr>
+{% empty %}
+<tr>
+    <td colspan="13">هیچ داده‌ای یافت نشد.</td>
+</tr>
+{% endfor %}
+      </tbody>
+    </table>
+    </div>
+  </div>
+</form>
+{% endblock %}
+{% block extra_js %}
+<script>
+
+document.getElementById("btn-print-hardcopy").addEventListener("click", print_report);
+
+function print_report() {
+
+    const printable = document.querySelector(".printable");
+    if (!printable) {
+        alert("بخش قابل چاپ پیدا نشد!");
+        return;
+    }
+
+    const printContent = printable.innerHTML;
+
+    const printWindow = window.open("", "_blank", "width=1400,height=900");
+
+    printWindow.document.write(`
+        <html dir="rtl" lang="fa">
+        <head>
+            <title>چاپ گزارش شیفت</title>
+
+            <style>
+                body {
+                    font-family: Vazir, sans-serif;
+                    direction: rtl;
+                    text-align: center;
+                }
+
+                @page {
+                    size: A4 landscape;
+                    margin: 10mm;
+                }
+
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    font-size: 14px;
+                    margin: 0 !important;
+                }
+
+                table, th, td {
+                    border: 1px solid #000;
+                    padding: 4px;
+                }
+
+                th {
+                    background-color: #e6f2ff;
+                }
+
+                /* جلوگیری از شکسته شدن بین جدول‌ها */
+                table, tr, td, th {
+                    page-break-inside: avoid !important;
+                }
+            </style>
+        </head>
+
+        <body>
+            ${printContent}
+        </body>
+        </html>
+    `);
+
+    printWindow.document.close();
+
+    setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+    }, 400);
+}
+
+/*  اکسل  */
+document.getElementById('btn-excel').addEventListener('click', function () {
+    const table = document.getElementById('shift-table');
+    if (!table) { alert(" جدول پیدا نشد!"); return; }
+    const workbook = XLSX.utils.table_to_book(table, { sheet: "گزارش شیفت" });
+    XLSX.writeFile(workbook, "گزارش_شیفت.xlsx");
+});
+</script>
+<!-- اضافه کردن کتابخانه خروجی اکسل -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+{% endblock %}
