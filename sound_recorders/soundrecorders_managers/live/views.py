@@ -115,7 +115,7 @@ def manager_live_details(request, id_manual_program):
         context["error"] = "تاریخ شروع نباید بعد از تاریخ پایان باشد."
         return render(
             request,
-            "main/includes/sound_recorders/live_program_audit/live_program_details.html",
+            "main/includes/sound_recorders/sound_recorder_manager/live/details.html",
             context,
         )
 
@@ -158,6 +158,6 @@ def manager_live_details(request, id_manual_program):
 
     return render(
         request,
-        "main/includes/sound_recorders/live_program_audit/live_program_details.html",
+        "main/includes/sound_recorders/sound_recorder_manager/live/details.html",
         context,
     )
