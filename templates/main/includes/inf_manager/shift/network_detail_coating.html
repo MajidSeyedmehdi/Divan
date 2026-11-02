@@ -1,0 +1,376 @@
+{% extends 'main/base.html' %}
+{% load static %}
+{% load custom_filters %}
+<!--{#&lt;!&ndash; style="border: 1px solid #333; box-shadow: 0 4px 10px rgba(0,0,0,0.4);" &ndash;&gt;#}-->
+{% block content %}
+
+<style>
+    input[type="text"], select, textarea {
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 6px 10px;
+        width: 150px;
+        height: 35px;
+        font-size: 12px;
+        transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    input[type="text"]:focus, select:focus, textarea:focus {
+        border-color: #66afe9;
+        outline: none;
+        font-size: 12px;
+        box-shadow: 0 0 5px rgba(102, 175, 233, 0.6);
+    }
+
+    label {
+        margin-left: 8px;
+        font-weight: bold;
+        font-size: 12px;
+    }
+
+    li {
+        margin-bottom: 12px;
+    }
+
+    table thead th {
+        background-color: #e6f2ff !important;
+        color: white;
+        font-size: 14px;
+    }
+
+    .table-wrapper {
+        border: 2px solid #e0e0e0;
+        border-radius: 12px;
+        padding: 15px;
+        background-color: #fff;
+        box-shadow: 0 0 3px rgba(0, 0, 0, 0.12);
+        overflow-y: hidden;
+        overflow-x: auto;
+        width: 100%;
+        scrollbar-width:auto;
+    }
+    .table-wrapper table{
+        width: max-content;
+        min-width: 100%;
+        white-space: nowrap;
+    }
+
+    .network-detail-table {
+        width: 100%;
+        margin-bottom: 0;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-family: 'Vazir-Black', serif;
+    }
+.printable {
+    width: 100%;
+    max-width: 100%;
+    max-height: 600px;
+    overflow-x: auto;
+    overflow-y: auto;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 15px;
+    background-color: #fff;
+    box-shadow: 0 0 3px rgba(0, 0, 0, 0.12);
+    scrollbar-width: auto;
+}
+
+/* خود جدول */
+#network_detail-table {
+    width: max-content;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 10px;
+}
+
+/* سطر اول فریز بشه
+*/
+#network-detail-table thead th {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 100;
+    background-color: #e6f2ff !important;
+    border: 1.5px solid #000 !important;
+    border-bottom: 2px solid #000 !important;
+    color: #000 !important;
+    font-size: 14px;
+    font-weight: bold;
+    box-shadow: 0 2px 2px rgba(0, 0, 0, 0.15);
+    background-clip: padding-box;
+}
+    #network-detail-table th,
+    #network-detail-table td {
+        border: 1.5px solid #000000 !important;
+    }
+
+    #network-detail-table thead tr:first-child th:first-child { border-top-right-radius: 10px; }
+    #network-detail-table thead tr:first-child th:last-child { border-top-left-radius: 10px; }
+    #network-detail-table tbody tr:last-child td:first-child { border-bottom-right-radius: 10px; }
+    #network-detail-table tbody tr:last-child td:last-child { border-bottom-left-radius: 10px; }
+
+    @font-face {
+        font-family: 'Vazir-Black';
+        src: url("{% static 'fonts/Vazir-Black.woff2' %}") format('woff2'),
+             url("{% static 'fonts/Vazir-Black.woff' %}") format('woff');
+        font-weight: normal;
+        font-style: normal;
+    }
+
+    body, input, select, textarea {
+        font-family: 'Vazir', sans-serif !important;
+        direction: rtl;
+        text-align: right;
+    }
+
+    .ui-datepicker, .ui-datepicker table, .ui-datepicker td, .ui-datepicker th {
+        font-family: 'Vazir', sans-serif !important;
+        direction: rtl !important;
+        text-align: center;
+    }
+
+    .tab-wrapper {
+        background: #fff;
+        border: 1px solid #dee2e6;
+        border-radius: 12px;
+        padding: 0;
+    }
+
+    input[readonly].date-readonly {
+        border: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        outline: none !important;
+        padding: 0 !important;
+        text-align: center;
+        font-size: 12px;
+        cursor: default;
+        font-family: 'Vazir-Black', serif;
+    }
+
+    .history-header {
+        background-color: #F0DADA;
+        color: black;
+        font-size: 12px;
+        font-weight: bold;
+        font-family: 'Vazir-Black', serif;
+    }
+@media print {
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    /* مخفی کردن همه‌چیز به صورت پیش‌فرض */
+    body * {
+        visibility: hidden !important;
+    }
+
+    /* اگر مدال باز است، فقط مدال فعال چاپ شود */
+    body.modal-open .modal.show,
+    body.modal-open .modal.show * {
+        visibility: visible !important;
+    }
+
+    body.modal-open .modal.show {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        height: auto !important;
+        overflow: visible !important;
+    }
+
+    /* مخفی کردن دکمه‌های بستن و چاپ داخل مدال در برگه چاپ */
+    .modal-footer, .btn-close {
+        display: none !important;
+    }
+
+    /* اگر هیچ مدالی باز نیست، صفحه اصلی (printable) چاپ شود */
+    body:not(.modal-open) .printable,
+    body:not(.modal-open) .printable * {
+        visibility: visible !important;
+    }
+
+    body:not(.modal-open) .printable {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100% !important;
+    }
+
+    table {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+
+    tr, td, th {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+
+    @page {
+        size: A4 landscape;
+        margin: 10mm;
+    }
+}
+/* دکمه بازگشت */
+.back-btn {
+        background-color: #6c8ebf;
+        border-color: #6c8ebf;
+        color: white;
+    }
+
+    .back-btn:hover {
+        background-color: #5879a8;
+        border-color: #5879a8;
+        color: white;
+    }
+</style>
+<div class="container-fluid">
+    <div class="mb-3 d-flex gap-2">
+        <a href="javascript:history.back()"
+        class="btn back-btn d-flex align-items-center gap-2 px-3">
+        <i class="fa fa-arrow-right"></i>
+            بازگشت
+        </a>
+    </div>
+  <div class="tab-wrapper">
+    <div class="card-header history-header py-2 rounded mb-3">
+       <h5 class="mb-0 text-center">جزئیات شبکه ها</h5>
+    </div>
+      <button type="button" id="btn-print-hardcopy" class="btn btn-warning btn-lg btn-print-modal">چاپ</button>
+      <button type="button" id="btn-excel" class="btn btn-success btn-excel-modal">ذخیره اکسل</button>
+    <div class="printable mt-3 table-wrapper">
+      <table id="network-detail-table" class="table table-bordered rounded text-center financial-table">
+          <thead>
+            <tr>
+              <th>ردیف</th>
+              <th>نام و نام خانوادگی</th>
+              <th>عنوان شغلی</th>
+              <th>رده</th>
+
+              <!-- هدر شیفت‌های پویا -->
+              {% for shift_name in shift_columns %}
+                <th>مبلغ {{ shift_name }}</th>
+                <th>تعداد</th>
+              {% endfor %}
+
+              <th>جمع برآورد</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in result_data %}
+            <tr>
+              <td>{{ forloop.counter }}</td>
+              <td>{{ row.soundrecorder_name }}</td>
+              <td>{{ row.current_job }}</td>
+              <td>{{ row.levels }}</td>
+
+              <!-- مقادیر شیفت‌ها بر اساس هدرها -->
+              {% for shift_name in shift_columns %}
+                {% with shift_info=row.shifts|get_item:shift_name %}
+                  <td>{{ shift_info.rate|default:0 }}</td>
+                  <td>{{ shift_info.count|default:0 }}</td>
+                {% endwith %}
+              {% endfor %}
+
+              <td class="text-primary font-weight-bold">{{ row.total_baraovard }} ریال</td>
+            </tr>
+            {% empty %}
+            <tr>
+              <!-- تعداد ستون‌ها: 4 ستون ثابت + (تعداد شیفت‌ها * 2) + 1 ستون جمع برآورد -->
+              <td colspan="{{ shift_columns|length|add:shift_columns|length|add:5 }}" class="text-center text-muted">
+                داده‌ای برای نمایش وجود ندارد
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+
+document.getElementById("btn-print-hardcopy").addEventListener("click", print_report);
+
+function print_report() {
+
+    const printable = document.querySelector(".printable");
+    if (!printable) {
+        alert("بخش قابل چاپ پیدا نشد!");
+        return;
+    }
+
+    const printContent = printable.innerHTML;
+
+    const printWindow = window.open("", "_blank", "width=1400,height=900");
+
+    printWindow.document.write(`
+        <html dir="rtl" lang="fa">
+        <head>
+            <title>چاپ گزارش شیفت</title>
+
+            <style>
+                body {
+                    font-family: Vazir, sans-serif;
+                    direction: rtl;
+                    text-align: center;
+                }
+
+                @page {
+                    size: A4 landscape;
+                    margin: 10mm;
+                }
+
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    font-size: 14px;
+                    margin: 0 !important;
+                }
+
+                table, th, td {
+                    border: 1px solid #000;
+                    padding: 4px;
+                }
+
+                th {
+                    background-color: #e6f2ff;
+                }
+
+                /* جلوگیری از شکسته شدن بین جدول‌ها */
+                table, tr, td, th {
+                    page-break-inside: avoid !important;
+                }
+            </style>
+        </head>
+
+        <body>
+            ${printContent}
+        </body>
+        </html>
+    `);
+
+    printWindow.document.close();
+
+    setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+    }, 400);
+}
+
+/*  اکسل  */
+document.getElementById('btn-excel').addEventListener('click', function () {
+    const table = document.getElementById('network-detail-table');
+    if (!table) { alert(" جدول پیدا نشد!"); return; }
+    const workbook = XLSX.utils.table_to_book(table, { sheet: "گزارش شیفت" });
+    XLSX.writeFile(workbook, "گزارش_شیفت.xlsx");
+});
+</script>
+<!-- اضافه کردن کتابخانه خروجی اکسل -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+{% endblock %}

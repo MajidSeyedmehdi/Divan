@@ -1,0 +1,270 @@
+{% extends 'main/base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+<link rel="stylesheet" href="{% static 'assets/css/style.css' %}">
+{% block content %}
+
+<style>
+    input[type="text"], select, textarea {
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 6px 10px;
+        width: 150px;
+        height: 35px;
+        font-size: 14px;
+        transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    input[type="text"]:focus, select:focus, textarea:focus {
+        border-color: #66afe9;
+        outline: none;
+        font-size: 14px;
+        box-shadow: 0 0 5px rgba(102, 175, 233, 0.6);
+    }
+
+    label {
+        margin-left: 8px;
+        font-weight: bold;
+        font-size: 14px;
+
+    }
+
+    li {
+        margin-bottom: 12px;
+    }
+
+    .small-table{
+        font-size: 16px;
+    }
+    /* رنگ پس‌زمینه سطر اول (سرتیترها) */
+    table thead th {
+        background-color: #e6f2ff   !important;
+        color: white;
+        font-size: 14px;/* رنگ نوشته‌ها */
+    }
+
+    /* رنگ پس‌زمینه ستون اول در تمام ردیف‌ها */
+    table tbody td:first-child {
+        background-color: white;
+        font-size: 14px;
+
+    }
+    .dropdown-checkboxes {
+        position: relative;
+        display: inline-block;
+        width: 100%;
+    }
+    .dropdown-checkboxes .dropdown-menu {
+        max-height: 250px;
+        overflow-y: auto;
+        padding: 10px;
+        width: 100%;
+    }
+    .dropdown-toggle-label {
+        font-size: 14px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+    #shift-table{
+    border-radius: 10px;
+    overflow: hidden;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+/* خطوط بین سلول‌ها */
+#shift-table th,
+#shift-table td{
+    border: 1.5px solid #000000 !important;
+}
+
+/* گرد شدن گوشه‌های جدول */
+#shift-table thead tr:first-child th:first-child{
+    border-top-right-radius: 10px;
+}
+
+#shift-table thead tr:first-child th:last-child{
+    border-top-left-radius: 10px;
+}
+
+#shift-table tbody tr:last-child td:first-child{
+    border-bottom-right-radius: 10px;
+}
+
+#shift-table tbody tr:last-child td:last-child{
+    border-bottom-left-radius: 10px;
+}
+/* بوردر دور جدول*/
+    .table-wrapper{
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 15px;
+    background-color: #fff;
+    box-shadow: 0 0 3px rgba(0, 0, 0, 0.12);
+}
+@media print {
+    body * {
+        visibility: hidden;
+    }
+
+    .printable, .printable * {
+        visibility: visible;
+    }
+
+    .printable {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+    }
+
+@font-face {
+    font-family: 'Vazir-Black';
+    src: url("{% static 'fonts/Vazir-Black.woff2' %}") format('woff2'),
+         url("{% static 'fonts/Vazir-Black.woff' %}") format('woff');
+
+    font-weight: normal;
+    font-style: normal;
+
+
+/* اعمال فونت روی همه input های فرم و جدول */
+body, input, select, textarea {
+    font-family: 'Vazir', sans-serif !important;
+    direction: rtl;
+    text-align: right;
+}
+
+/* مخصوص ویجت jQuery UI که django-jalali استفاده می‌کند */
+.ui-datepicker, .ui-datepicker table, .ui-datepicker td, .ui-datepicker th {
+    font-family: 'Vazir', sans-serif !important;
+    direction: rtl !important;
+    text-align: center;}}}
+
+    /* برای ظاهر مرتب هدر bredcrumb */
+.breadcrumb-box {
+  background: #fff;
+  border-radius: 12px;
+  padding: 15px 20px;
+  position: relative;
+  border: 1px solid #e0e0e0;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  box-sizing: border-box;
+
+
+}
+/* نوار رنگی بالایی */
+.breadcrumb-box::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 10px;
+  width: 100%;
+  background: #00CED1;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+}
+
+/* برچسب‌ها */
+.breadcrumb-box label {
+  font-weight: 600;
+  color: #333;
+}
+
+/* ورودی‌ها و select‌ها */
+.breadcrumb-box input[type="text"],
+.breadcrumb-box select {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-size: 13px;
+  transition: all 0.2s ease;
+  background-color: #fafafa;
+}
+
+.breadcrumb-box input[type="text"]:focus,
+.breadcrumb-box select:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 3px rgba(0, 123, 255, 0.3);
+  outline: none;
+}
+
+table th, table td {
+    -webkit-print-color-adjust: exact !important;
+}
+</style>
+<!-- فرم انتخاب تاریخ و شبکه -->
+<form method="post" class="mb-3">
+  {% csrf_token %}
+  {{ header_form.media }}
+
+  <div class="col-md-12">
+    <div class="breadcrumb-box shadow">
+      <div class="breadcrumb-right">
+        <div class="d-flex flex-wrap align-items-center gap-4">
+        <div class="d-flex align-items-center gap-2">
+            <label class="form-label mb-0">تاریخ شروع</label>
+            {{ header_form.start_date }}
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <label class="form-label mb-0">تاریخ پایان</label>
+            {{ header_form.end_date }}
+        </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</form>
+<form method="post" class="mb-3">
+  {% csrf_token %}
+<div class="printable mt-3 table-wrapper">
+    <div class="mb-3">
+        <button type="submit"
+                class="btn btn-primary d-flex align-items-center gap-2 px-3"
+                name="action" value="submit">
+            <i class="fa fa-save"></i> ذخیره
+        </button>
+    </div>
+    <table id="shift-table" class="table table-bordered text-center">
+      <thead>
+        <tr>
+          <th>ردیف</th>
+          <th>نام خانوادگی</th>
+          <th>نام</th>
+          <th>کد ملی</th>
+          <th>شماره کارمندی</th>
+          <th>مرخصی</th>
+        </tr>
+      </thead>
+
+      <tbody>
+  {% for row in leaves_rows %}
+  <tr>
+    <td>{{ forloop.counter }}</td>
+    <td>{{ row.Last_name }}</td>
+    <td>{{ row.First_name }}</td>
+    <td>{{ row.National_code }}</td>
+    <td>{{ row.Employment_id|default_if_none:"" }}</td>
+
+    <td>
+      <input type="text"
+             name="leaves_{{ forloop.counter0 }}"
+             value="{{ row.Leaves|default_if_none:"0" }}"
+             min="0"
+             style="width:60px" />
+
+      <input type="hidden" name="national_code_{{ forloop.counter0 }}" value="{{ row.National_code }}">
+      <input type="hidden" name="employment_id_{{ forloop.counter0 }}" value="{{ row.Employment_id }}">
+    </td>
+  </tr>
+  {% endfor %}
+</tbody>
+    </table>
+  </div>
+</form>
+
+{% endblock %}
