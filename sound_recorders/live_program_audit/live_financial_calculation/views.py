@@ -4,7 +4,8 @@ from datetime import datetime, date, timedelta
 from sound_recorders.live_program_audit.live_financial_calculation.forms import HeaderForm
 from sound_recorders.live_program_audit.live_financial_calculation.models import LiveStatus, LivePaymentStatus
 from sound_recorders.live_program_audit.main_live_programs.views import jalali_to_gregorian,to_number
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.contrib import messages
 from django.db import connection
 from utils.db_connection import connect_db
 import logging
@@ -68,46 +69,81 @@ def get_user_manager_id(cursor, user):
     row = cursor.fetchone()
     return row[0] if row else None
 def live_programs_summary_view(request):
-    # دریافت فیلترها از query string
-    start_date = request.GET.get('start_date', None) or None
-    end_date = request.GET.get('end_date', None) or None
-    id_live_status = request.GET.get('id_live_status', None) or None
-    id_network = request.GET.get('id_network', None) or None
+    start_date = request.GET.get('start_date') or request.POST.get('start_date') or None
+    end_date = request.GET.get('end_date') or request.POST.get('end_date') or None
+    id_live_status = request.GET.get('id_live_status') or None
+    id_network = request.GET.get('id_network') or None
+
+    # تایید/لغو تایید فقط وضعیت‌های ثبت‌شده و در انتظار پرداخت را جابه‌جا می‌کند.
+    if request.method == "POST" and request.POST.get("action") in ("confirm", "reject"):
+        try:
+            program_id = int(request.POST.get("id_manual_program"))
+            target_status = 2 if request.POST["action"] == "confirm" else 1
+            source_status = 1 if target_status == 2 else 2
+            start_greg = jalali_to_gregorian(start_date) if start_date else None
+            end_greg = jalali_to_gregorian(end_date) if end_date else None
+            if start_date and not start_greg or end_date and not end_greg:
+                raise ValueError("فرمت تاریخ معتبر نیست.")
+            if start_greg and end_greg and start_greg > end_greg:
+                raise ValueError("تاریخ شروع نباید بعد از تاریخ پایان باشد.")
+
+            with connect_db() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    UPDATE dbo.Tbl_Sound_Shift_Live
+                    SET Id_live_payment_status = ?,
+                        Update_date = SYSDATETIMEOFFSET(),
+                        User_name = ?
+                    WHERE Id_manual_program = ?
+                      AND Active = 1 AND Del = 0
+                      AND Id_live_payment_status = ?
+                      AND (? IS NULL OR Live_shift_date >= ?)
+                      AND (? IS NULL OR Live_shift_date <= ?)
+                """, (
+                    target_status, request.user.username, program_id, source_status,
+                    start_greg, start_greg, end_greg, end_greg
+                ))
+                changed = cursor.rowcount
+                conn.commit()
+            if changed:
+                messages.success(request, f"وضعیت {changed} رکورد با موفقیت تغییر کرد.")
+            else:
+                messages.warning(request, "رکوردی با وضعیت قبلی در بازه انتخاب‌شده برای تغییر وجود نداشت.")
+        except (TypeError, ValueError) as exc:
+            messages.error(request, str(exc) or "اطلاعات ارسالی معتبر نیست.")
+        except Exception:
+            logger.exception("Live payment approval update failed")
+            messages.error(request, "خطا در تغییر وضعیت پرداخت.")
+        query = request.GET.urlencode()
+        return redirect(request.path + (f"?{query}" if query else ""))
+
     form = HeaderForm(request.GET or None)
-    # دیکشنری وضعیت‌ها برای تبدیل ID به متن
     status_dict = {str(s.id_live_status): s.status for s in LiveStatus.objects.all()}
+    start_greg = jalali_to_gregorian(start_date) if start_date else None
+    end_greg = jalali_to_gregorian(end_date) if end_date else None
     programs = []
     with connection.cursor() as cursor:
         cursor.execute(
             "EXEC Sp_Live_Programs_Monthly_Summary %s, %s, %s, %s",
-            [start_date, end_date, id_live_status, id_network]
+            [start_greg, end_greg, id_live_status, id_network]
         )
         columns = [col[0] for col in cursor.description]
-        # programs = [dict(zip(columns, row)) for row in cursor.fetchall()]
         for row in cursor.fetchall():
             prog = dict(zip(columns, row))
-
-            # ۱. تبدیل وضعیت (فقط یک خط)
-            # ۱. تبدیل وضعیت (تبدیل ID به رشته برای تطبیق با دیکشنری)
             status_id = prog.get('Id_live_status')
             prog['Status_Name'] = status_dict.get(str(status_id), '-') if status_id is not None else '-'
-
-            # ۲. تبدیل تاریخ‌ها به شمسی (فقط یک خط برای هر کدام)
-            prog['Start_date'] = jdatetime.date.fromgregorian(date=prog['Start_date']).strftime('%Y/%m/%d') if prog.get(
-                'Start_date') else '-'
-            prog['End_date'] = jdatetime.date.fromgregorian(date=prog['End_date']).strftime('%Y/%m/%d') if prog.get(
-                'End_date') else '-'
-
+            prog['Start_date'] = jdatetime.date.fromgregorian(date=prog['Start_date']).strftime('%Y/%m/%d') if prog.get('Start_date') else '-'
+            prog['End_date'] = jdatetime.date.fromgregorian(date=prog['End_date']).strftime('%Y/%m/%d') if prog.get('End_date') else '-'
             programs.append(prog)
-    context = {
+
+    return render(request, 'main/includes/sound_recorders/live_program_audit/live_programs_summary.html', {
         'programs': programs,
-        'header_form' : form,
+        'header_form': form,
         'filter_start_date': start_date,
         'filter_end_date': end_date,
         'filter_id_live_status': id_live_status,
         'filter_id_network': id_network,
-    }
-    return render(request, 'main/includes/sound_recorders/live_program_audit/live_programs_summary.html', context)
+    })
 
 
 def live_program_details_view(request, id_manual_program):
