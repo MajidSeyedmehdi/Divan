@@ -31,42 +31,27 @@
         
 
         <style>
-            /* فوتر سراسری و تمام‌عرض در پایین تمام صفحات */
-            .footer-container {
-                position: fixed;
-                bottom: 0;
-                left: 0;
-                right: 0;
-                width: 100%;
-                max-width: none;
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
-                background: #172b46;
-                border-top: 1px solid rgba(255, 255, 255, 0.2);
-                z-index: 1000;
+            /* نگه‌داشتن فوتر در انتهای صفحه، حتی وقتی محتوای صفحه کوتاه است */
+            html, body {
+                min-height: 100%;
             }
 
-            .footer-container .copyright {
-                float: none;
-                width: 100%;
-                box-sizing: border-box;
-                padding: 16px 15px;
-                background: #172b46;
-                color: #fff;
-                text-align: center;
-                font-size: 14px;
+            body {
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
             }
 
-            .footer-container .copyright p {
-                float: none !important;
-                margin: 0;
-                text-align: center;
-            }
-
-            /* جلوگیری از قرار گرفتن انتهای محتوا زیر فوتر */
             #page-content {
-                padding-bottom: 58px;
+                flex: 1 0 auto;
+                width: 100%;
+            }
+
+            .footer-container {
+                flex-shrink: 0;
+                margin-top: auto;
+                position: relative;
+                z-index: 1;
             }
         </style>
 
