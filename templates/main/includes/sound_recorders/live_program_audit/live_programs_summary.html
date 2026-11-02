@@ -370,10 +370,19 @@
             <td>{{ prog.Status_Name }}</td>
             <td>واحد مالی</td>
             <td>
-                <!-- دکمه سوییچ تایید / عدم تایید -->
-                <button class="btn btn-sm btn-outline-success toggle-approve" onclick="toggleApproval(this)">
-                    ✔
-                </button>
+                <form method="post" action="" class="d-inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="id_manual_program" value="{{ prog.Id_manual_program }}">
+                    <input type="hidden" name="start_date" value="{{ filter_start_date|default:'' }}">
+                    <input type="hidden" name="end_date" value="{{ filter_end_date|default:'' }}">
+                    {% if prog.Pending_Payment_Count|default:0 > 0 %}
+                        <button type="submit" name="action" value="reject"
+                                class="btn btn-sm btn-outline-danger" title="بازگشت به ثبت شده">✖</button>
+                    {% else %}
+                        <button type="submit" name="action" value="confirm"
+                                class="btn btn-sm btn-outline-success" title="ارسال به انتظار پرداخت">✔</button>
+                    {% endif %}
+                </form>
             </td>
             <td>
                 <a href="{% url 'sound_recorders:live_program_audit:live_financial_calculation:live_program_details' prog.Id_manual_program %}" class="btn btn-sm btn-primary">مشاهده جزئیات</a>
@@ -385,17 +394,5 @@
     </tbody>
 </table>
 
-<script>
-function toggleApproval(btn) {
-    if (btn.innerText.trim() === "✔") {
-        btn.innerText = "✖";
-        btn.classList.remove("btn-outline-success");
-        btn.classList.add("btn-outline-danger");
-    } else {
-        btn.innerText = "✔";
-        btn.classList.remove("btn-outline-danger");
-        btn.classList.add("btn-outline-success");
-    }
-}
-</script>
+
 {% endblock %}
