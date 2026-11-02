@@ -107,7 +107,7 @@ def live_programs_summary_view(request):
                             AND NULLIF(LTRIM(RTRIM(p.Code)), '') IS NOT NULL
                       )
                 """, (
-                    target_status, request.user.username, program_id, source_status,
+                    target_status, request.user.username if request.user.is_authenticated else 'system', program_id, source_status,
                     start_greg, start_greg, end_greg, end_greg
                 ))
                 changed = cursor.rowcount
@@ -137,6 +137,8 @@ def live_programs_summary_view(request):
         columns = [col[0] for col in cursor.description]
         for row in cursor.fetchall():
             prog = dict(zip(columns, row))
+            prog['Has_Pending'] = int(prog.get('Pending_Payment_Count') or 0) > 0
+            prog['Has_Estimate_Code'] = bool(str(prog.get('Prog_Code') or '').strip())
             status_id = prog.get('Id_live_status')
             prog['Status_Name'] = status_dict.get(str(status_id), '-') if status_id is not None else '-'
             prog['Start_date'] = jdatetime.date.fromgregorian(date=prog['Start_date']).strftime('%Y/%m/%d') if prog.get('Start_date') else '-'
