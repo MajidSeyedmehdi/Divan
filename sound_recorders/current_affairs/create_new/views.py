@@ -3,7 +3,7 @@
 # from django.conf import settings
 # from django.shortcuts import render
 # from django.views.decorators.http import require_POST
-# from django.db import connection,DatabaseError
+# from django.db import connection, DatabaseError, transaction
 # from .forms import HeaderForm
 # from .models import Shift, Network_Shift
 # import jdatetime as jd
@@ -945,64 +945,152 @@ def get_network_shifts(request):
         print("❌ Error in get_network_shifts:", e)
         return JsonResponse({'shifts': [], 'error': str(e)}, status=500)
 
-@csrf_exempt
+@require_POST
 def swap_network_assignment(request):
-    if request.method != "POST":
-        return JsonResponse({"status": "error", "message": "فقط درخواست POST مجاز است"})
-
+    """
+    جابه‌جایی صدابردارهای دو شیفت در جدول اولیه یا نهایی.
+    شناسه صدابردارها از خود جدول انتخاب‌شده خوانده می‌شود، نه از مرورگر.
+    """
     try:
-        data = json.loads(request.body)
-        sound_recorder_id = data.get("sound_recorder_id")
-        from_network = data.get("from_network")
-        from_shift = data.get("from_shift")
-        to_network = data.get("to_network")
-        to_shift = data.get("to_shift")
-        raw_shift_date = data.get("shift_date")
-        user_name = request.user.username if request.user.is_authenticated else "system"
+        data = json.loads(request.body or "{}")
+        action = data.get("action")
+        if action not in ("initial", "final"):
+            return JsonResponse({
+                "status": "error",
+                "message": "نوع جابه‌جایی نامعتبر است."
+            }, status=400)
 
-        if not raw_shift_date:
-            return JsonResponse({"status": "error", "message": "تاریخ انتخاب نشده است."})
-
-            # 🔹 تبدیل تاریخ شمسی به میلادی جهت استعلام و ثبت در SQL Server
         try:
-            # تبدیل تمام جداکننده‌ها به اسلش
-            clean_date = raw_shift_date.replace('-', '/').strip()
-            j_year, j_month, j_day = map(int, clean_date.split('/'))
+            from_network = int(data.get("from_network"))
+            from_shift = int(data.get("from_shift"))
+            to_network = int(data.get("to_network"))
+            to_shift = int(data.get("to_shift"))
+        except (TypeError, ValueError):
+            return JsonResponse({
+                "status": "error",
+                "message": "شبکه و شیفت مبدأ و مقصد را به‌درستی انتخاب کنید."
+            }, status=400)
 
-            # تبدیل به تاریخ میلادی
-            g_date = jdatetime.date(j_year, j_month, j_day).togregorian()
-            shift_date = g_date.strftime('%Y-%m-%d')  # خروجی: 2026-06-22
-        except Exception as e:
-            return JsonResponse({"status": "error", "message": f"فرمت تاریخ شمسی نامعتبر است: {str(e)}"})
-        with connection.cursor() as cursor:
-            # فراخوانی Store Procedure
-            sql = """
-                EXEC Sp_SwapNetworkAssignment 
-                    @p_SoundRecorderId = %s,
-                    @p_FromNetworkId = %s,
-                    @p_FromShiftId = %s,
-                    @p_ToNetworkId = %s,
-                    @p_ToShiftId = %s,
-                    @p_ShiftDate = %s,
-                    @p_UserName = %s
-            """
-            cursor.execute(sql, [
-                sound_recorder_id,
-                from_network,
-                from_shift,
-                to_network,
-                to_shift,
-                shift_date,
-                user_name
-            ])
+        if (from_network, from_shift) == (to_network, to_shift):
+            return JsonResponse({
+                "status": "error",
+                "message": "شبکه و شیفت مبدأ و مقصد نمی‌توانند یکسان باشند."
+            }, status=400)
 
-            row = cursor.fetchone()
-            status_code, message = row[0], row[1]
+        raw_shift_date = (data.get("shift_date") or "").strip()
+        if not raw_shift_date:
+            return JsonResponse({
+                "status": "error",
+                "message": "تاریخ جابه‌جایی انتخاب نشده است."
+            }, status=400)
 
-            if status_code == 1:
-                return JsonResponse({"status": "success", "message": message})
-            else:
-                return JsonResponse({"status": "error", "message": message})
+        try:
+            clean_date = raw_shift_date.replace("-", "/")
+            j_year, j_month, j_day = map(int, clean_date.split("/"))
+            shift_date = jdatetime.date(j_year, j_month, j_day).togregorian()
+        except (TypeError, ValueError):
+            return JsonResponse({
+                "status": "error",
+                "message": "فرمت تاریخ شمسی معتبر نیست."
+            }, status=400)
 
+        table_name, procedure_name = (
+            ("Tbl_Sound_Shift_Assignment", "Sp_SwapNetworkAssignment")
+            if action == "initial"
+            else ("Tbl_Sound_Shift_Final", "Sp_SwapNetworkFinal")
+        )
+        user_name = (
+            request.user.username
+            if request.user.is_authenticated
+            else "system"
+        )
+
+        # بررسی و خواندن صدابردارها از همان جدولی که قرار است تغییر کند.
+        # قفل تراکنشی مانع تغییر هم‌زمان رکوردها در فاصله خواندن تا اجرای SP می‌شود.
+        with transaction.atomic():
+            with connection.cursor() as cursor:
+                cursor.execute(f"""
+                    SELECT Id_sound_recorder
+                    FROM dbo.{table_name} WITH (UPDLOCK, HOLDLOCK)
+                    WHERE Id_network = %s
+                      AND Id_shift = %s
+                      AND Shift_date = %s
+                      AND Active = 1
+                      AND Del = 0
+                """, [from_network, from_shift, shift_date])
+                from_rows = cursor.fetchall()
+
+                cursor.execute(f"""
+                    SELECT Id_sound_recorder
+                    FROM dbo.{table_name} WITH (UPDLOCK, HOLDLOCK)
+                    WHERE Id_network = %s
+                      AND Id_shift = %s
+                      AND Shift_date = %s
+                      AND Active = 1
+                      AND Del = 0
+                """, [to_network, to_shift, shift_date])
+                to_rows = cursor.fetchall()
+
+                if len(from_rows) != 1 or len(to_rows) != 1:
+                    return JsonResponse({
+                        "status": "error",
+                        "message": (
+                            "برای هر دو شیفت باید دقیقاً یک رکورد فعال وجود داشته باشد. "
+                            "هیچ تغییری انجام نشد."
+                        )
+                    }, status=400)
+
+                from_recorder_id = from_rows[0][0]
+                to_recorder_id = to_rows[0][0]
+
+                if from_recorder_id == to_recorder_id:
+                    return JsonResponse({
+                        "status": "error",
+                        "message": "صدابردار هر دو شیفت یکسان است؛ جابه‌جایی لازم نیست."
+                    }, status=400)
+
+                # SP علاوه بر انجام UPDATE، شناسه‌های مورد انتظار را نیز کنترل می‌کند.
+                cursor.execute(f"""
+                    EXEC dbo.{procedure_name}
+                        @p_FromSoundRecorderId = %s,
+                        @p_ToSoundRecorderId = %s,
+                        @p_FromNetworkId = %s,
+                        @p_FromShiftId = %s,
+                        @p_ToNetworkId = %s,
+                        @p_ToShiftId = %s,
+                        @p_ShiftDate = %s,
+                        @p_UserName = %s
+                """, [
+                    from_recorder_id,
+                    to_recorder_id,
+                    from_network,
+                    from_shift,
+                    to_network,
+                    to_shift,
+                    shift_date,
+                    user_name
+                ])
+
+                result = cursor.fetchone()
+                if not result:
+                    raise DatabaseError("Stored Procedure هیچ نتیجه‌ای برنگرداند.")
+
+                status_code, message = result[0], result[1]
+                if status_code != 1:
+                    raise DatabaseError(str(message))
+
+        return JsonResponse({
+            "status": "success",
+            "message": message
+        })
+
+    except DatabaseError as e:
+        return JsonResponse({
+            "status": "error",
+            "message": str(e)
+        }, status=400)
     except Exception as e:
-        return JsonResponse({"status": "error", "message": f"خطا در اجرای عملیات: {str(e)}"})
+        return JsonResponse({
+            "status": "error",
+            "message": f"خطا در اجرای جابه‌جایی: {str(e)}"
+        }, status=500)
