@@ -1005,8 +1005,7 @@ def swap_network_assignment(request):
             else "system"
         )
 
-        # بررسی و خواندن صدابردارها از همان جدولی که قرار است تغییر کند.
-        # قفل تراکنشی مانع تغییر هم‌زمان رکوردها در فاصله خواندن تا اجرای SP می‌شود.
+        # خواندن شناسه‌ها از جدول هدف؛ خود SP پیش از UPDATE دوباره آن‌ها را اعتبارسنجی می‌کند.
         with connection.cursor() as cursor:
             cursor.execute(f"""
                 SELECT Id_sound_recorder
