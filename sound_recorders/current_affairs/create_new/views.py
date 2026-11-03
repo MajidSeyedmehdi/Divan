@@ -3,7 +3,7 @@
 # from django.conf import settings
 # from django.shortcuts import render
 # from django.views.decorators.http import require_POST
-# from django.db import connection, DatabaseError, transaction
+# from django.db import connection, DatabaseError
 # from .forms import HeaderForm
 # from .models import Shift, Network_Shift
 # import jdatetime as jd
@@ -1007,77 +1007,76 @@ def swap_network_assignment(request):
 
         # بررسی و خواندن صدابردارها از همان جدولی که قرار است تغییر کند.
         # قفل تراکنشی مانع تغییر هم‌زمان رکوردها در فاصله خواندن تا اجرای SP می‌شود.
-        with transaction.atomic():
-            with connection.cursor() as cursor:
-                cursor.execute(f"""
-                    SELECT Id_sound_recorder
-                    FROM dbo.{table_name} WITH (UPDLOCK, HOLDLOCK)
-                    WHERE Id_network = %s
-                      AND Id_shift = %s
-                      AND Shift_date = %s
-                      AND Active = 1
-                      AND Del = 0
-                """, [from_network, from_shift, shift_date])
-                from_rows = cursor.fetchall()
+        with connection.cursor() as cursor:
+            cursor.execute(f"""
+                SELECT Id_sound_recorder
+                FROM dbo.{table_name}
+                WHERE Id_network = %s
+                  AND Id_shift = %s
+                  AND Shift_date = %s
+                  AND Active = 1
+                  AND Del = 0
+            """, [from_network, from_shift, shift_date])
+            from_rows = cursor.fetchall()
 
-                cursor.execute(f"""
-                    SELECT Id_sound_recorder
-                    FROM dbo.{table_name} WITH (UPDLOCK, HOLDLOCK)
-                    WHERE Id_network = %s
-                      AND Id_shift = %s
-                      AND Shift_date = %s
-                      AND Active = 1
-                      AND Del = 0
-                """, [to_network, to_shift, shift_date])
-                to_rows = cursor.fetchall()
+            cursor.execute(f"""
+                SELECT Id_sound_recorder
+                FROM dbo.{table_name}
+                WHERE Id_network = %s
+                  AND Id_shift = %s
+                  AND Shift_date = %s
+                  AND Active = 1
+                  AND Del = 0
+            """, [to_network, to_shift, shift_date])
+            to_rows = cursor.fetchall()
 
-                if len(from_rows) != 1 or len(to_rows) != 1:
-                    return JsonResponse({
-                        "status": "error",
-                        "message": (
-                            "برای هر دو شیفت باید دقیقاً یک رکورد فعال وجود داشته باشد. "
-                            "هیچ تغییری انجام نشد."
-                        )
-                    }, status=400)
+            if len(from_rows) != 1 or len(to_rows) != 1:
+                return JsonResponse({
+                    "status": "error",
+                    "message": (
+                        "برای هر دو شیفت باید دقیقاً یک رکورد فعال وجود داشته باشد. "
+                        "هیچ تغییری انجام نشد."
+                    )
+                }, status=400)
 
-                from_recorder_id = from_rows[0][0]
-                to_recorder_id = to_rows[0][0]
+            from_recorder_id = from_rows[0][0]
+            to_recorder_id = to_rows[0][0]
 
-                if from_recorder_id == to_recorder_id:
-                    return JsonResponse({
-                        "status": "error",
-                        "message": "صدابردار هر دو شیفت یکسان است؛ جابه‌جایی لازم نیست."
-                    }, status=400)
+            if from_recorder_id == to_recorder_id:
+                return JsonResponse({
+                    "status": "error",
+                    "message": "صدابردار هر دو شیفت یکسان است؛ جابه‌جایی لازم نیست."
+                }, status=400)
 
-                # SP علاوه بر انجام UPDATE، شناسه‌های مورد انتظار را نیز کنترل می‌کند.
-                cursor.execute(f"""
-                    EXEC dbo.{procedure_name}
-                        @p_FromSoundRecorderId = %s,
-                        @p_ToSoundRecorderId = %s,
-                        @p_FromNetworkId = %s,
-                        @p_FromShiftId = %s,
-                        @p_ToNetworkId = %s,
-                        @p_ToShiftId = %s,
-                        @p_ShiftDate = %s,
-                        @p_UserName = %s
-                """, [
-                    from_recorder_id,
-                    to_recorder_id,
-                    from_network,
-                    from_shift,
-                    to_network,
-                    to_shift,
-                    shift_date,
-                    user_name
-                ])
+            # SP علاوه بر انجام UPDATE، شناسه‌های مورد انتظار را نیز کنترل می‌کند.
+            cursor.execute(f"""
+                EXEC dbo.{procedure_name}
+                    @p_FromSoundRecorderId = %s,
+                    @p_ToSoundRecorderId = %s,
+                    @p_FromNetworkId = %s,
+                    @p_FromShiftId = %s,
+                    @p_ToNetworkId = %s,
+                    @p_ToShiftId = %s,
+                    @p_ShiftDate = %s,
+                    @p_UserName = %s
+            """, [
+                from_recorder_id,
+                to_recorder_id,
+                from_network,
+                from_shift,
+                to_network,
+                to_shift,
+                shift_date,
+                user_name
+            ])
 
-                result = cursor.fetchone()
-                if not result:
-                    raise DatabaseError("Stored Procedure هیچ نتیجه‌ای برنگرداند.")
+            result = cursor.fetchone()
+            if not result:
+                raise DatabaseError("Stored Procedure هیچ نتیجه‌ای برنگرداند.")
 
-                status_code, message = result[0], result[1]
-                if status_code != 1:
-                    raise DatabaseError(str(message))
+            status_code, message = result[0], result[1]
+            if status_code != 1:
+                raise DatabaseError(str(message))
 
         return JsonResponse({
             "status": "success",
