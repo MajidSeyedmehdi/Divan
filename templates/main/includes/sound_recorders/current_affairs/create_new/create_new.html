@@ -265,14 +265,6 @@
             <label for="id_swap_shift_date">تاریخ:</label>
             {{ header_form.p_date }}
 
-            <label for="from_sound_recorder">صدابردار اول:</label>
-            <select id="from_sound_recorder" class="form-select form-select-sm d-inline-block w-auto pe-4">
-              <option value="">انتخاب کنید</option>
-              {% for rec in header_form.fields.sound_recorder.queryset %}
-                <option value="{{ rec.pk }}">{{ rec }}</option>
-              {% endfor %}
-            </select>    
-
             <label for="from_network">از شبکه:</label>
             <select id="from_network" class="form-select form-select-sm d-inline-block w-auto pe-4">
               <option value="">انتخاب کنید</option>
@@ -284,14 +276,6 @@
             <label for="from_shift">از شیفت:</label>
             <select id="from_shift" class="form-select form-select-sm d-inline-block w-auto pe-4">
               <option value="">ابتدا شبکه را انتخاب کنید</option>
-            </select>
-
-            <label for="to_sound_recorder">صدابردار دوم:</label>
-            <select id="to_sound_recorder" class="form-select form-select-sm d-inline-block w-auto pe-4">
-              <option value="">انتخاب کنید</option>
-              {% for rec in header_form.fields.sound_recorder.queryset %}
-                <option value="{{ rec.pk }}">{{ rec }}</option>
-              {% endfor %}
             </select>
 
             <label for="to_network">به شبکه:</label>
@@ -307,8 +291,11 @@
               <option value="">ابتدا شبکه را انتخاب کنید</option>
             </select>
 
-            <button id="btn_swap_network" type="button" class="btn btn-warning btn-sm ms-2">
-              <span class="fas fa-arrow-right-arrow-left"></span> اعمال جابجایی
+            <button id="btn_swap_initial" type="button" class="btn btn-warning btn-sm ms-2" data-action="initial">
+              <span class="fas fa-arrow-right-arrow-left"></span> اعمال جابه‌جایی شیفت اولیه
+            </button>
+            <button id="btn_swap_final" type="button" class="btn btn-outline-danger btn-sm" data-action="final">
+              <span class="fas fa-arrow-right-arrow-left"></span> اعمال جابه‌جایی شیفت نهایی
             </button>
           </div>
         </div>
@@ -641,83 +628,76 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
-    // --- ۶. دکمه جابه‌جایی شبکه (btn_swap_network) ---
-    const btnSwapNetwork = document.getElementById('btn_swap_network');
-    if (btnSwapNetwork) {
-        btnSwapNetwork.addEventListener('click', function (e) {
+    // --- ۶. جابه‌جایی شیفت اولیه یا نهایی ---
+    ['btn_swap_initial', 'btn_swap_final'].forEach(buttonId => {
+        const button = document.getElementById(buttonId);
+        if (!button) return;
+
+        button.addEventListener('click', async function (e) {
             e.preventDefault();
 
-            const pDateInputs = document.querySelectorAll("input[name='p_date'], #id_p_date");
-            const shiftDateInput = pDateInputs.length > 1 ? pDateInputs[1] : pDateInputs[0];
+            const shiftDateInput = document.getElementById("id_p_date");
             const shiftDate = shiftDateInput ? shiftDateInput.value.trim() : "";
+            const fromNetworkVal = document.getElementById("from_network")?.value;
+            const fromShiftVal = document.getElementById("from_shift")?.value;
+            const toNetworkVal = document.getElementById("to_network")?.value;
+            const toShiftVal = document.getElementById("to_shift")?.value;
 
-            const fromSoundRecorderElem = document.getElementById("from_sound_recorder") || document.getElementById("id_sound_recorder");
-            const toSoundRecorderElem = document.getElementById("to_sound_recorder");
-
-            const fromSoundRecorderId = fromSoundRecorderElem ? fromSoundRecorderElem.value : "";
-            const toSoundRecorderId = toSoundRecorderElem ? toSoundRecorderElem.value : "";
-
-            const fromNetworkVal = document.getElementById("from_network") ? document.getElementById("from_network").value : "";
-            const fromShiftVal = document.getElementById("from_shift") ? document.getElementById("from_shift").value : "";
-            const toNetworkVal = document.getElementById("to_network") ? document.getElementById("to_network").value : "";
-            const toShiftVal = document.getElementById("to_shift") ? document.getElementById("to_shift").value : "";
-
-            if (!shiftDate) {
-                alert("لطفاً تاریخ جابه‌جایی را انتخاب کنید.");
+            if (!shiftDate || !fromNetworkVal || !fromShiftVal || !toNetworkVal || !toShiftVal) {
+                alert("لطفاً تاریخ، شبکه و شیفت مبدأ و مقصد را کامل انتخاب کنید.");
                 return;
             }
 
-            if (!fromSoundRecorderId) {
-                alert("لطفاً صدابردار اول را انتخاب کنید.");
+            if (fromNetworkVal === toNetworkVal && fromShiftVal === toShiftVal) {
+                alert("شبکه و شیفت مبدأ و مقصد نمی‌توانند یکسان باشند.");
                 return;
             }
 
-            if (!toSoundRecorderId) {
-                alert("لطفاً صدابردار دوم را انتخاب کنید.");
+            const action = this.dataset.action;
+            const actionTitle = action === "initial" ? "شیفت اولیه" : "شیفت نهایی";
+            if (!confirm(`آیا از جابه‌جایی ${actionTitle} در تاریخ ${shiftDate} اطمینان دارید؟`)) {
                 return;
             }
 
-            if (fromSoundRecorderId === toSoundRecorderId) {
-                alert("صدابردار اول و دوم نمی‌‌توانند یکسان باشند.");
-                return;
-            }
+            this.disabled = true;
+            const originalText = this.innerHTML;
+            this.innerHTML = '<span class="spinner-border spinner-border-sm"></span> در حال انجام...';
 
-            if (!fromNetworkVal || !fromShiftVal || !toNetworkVal || !toShiftVal) {
-                alert("لطفاً شبکه‌ها و شیفت‌های مبدا و مقصد را کامل انتخاب کنید.");
-                return;
-            }
+            try {
+                const response = await fetch("{% url 'sound_recorders:current_affairs:create_new:swap_network_assignment' %}", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": "{{ csrf_token }}"
+                    },
+                    body: JSON.stringify({
+                        action: action,
+                        from_network: parseInt(fromNetworkVal, 10),
+                        from_shift: parseInt(fromShiftVal, 10),
+                        to_network: parseInt(toNetworkVal, 10),
+                        to_shift: parseInt(toShiftVal, 10),
+                        shift_date: shiftDate
+                    })
+                });
 
-            fetch("{% url 'sound_recorders:current_affairs:create_new:swap_network_assignment' %}", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRFToken": "{{ csrf_token }}"
-                },
-                body: JSON.stringify({
-                    from_sound_recorder_id: parseInt(fromSoundRecorderId),
-                    to_sound_recorder_id: parseInt(toSoundRecorderId),
-                    from_network: parseInt(fromNetworkVal),
-                    from_shift: parseInt(fromShiftVal),
-                    to_network: parseInt(toNetworkVal),
-                    to_shift: parseInt(toShiftVal),
-                    shift_date: shiftDate
-                })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    alert("✅ " + data.message);
-                    location.reload();
-                } else {
-                    alert("❌ " + data.message);
+                const data = await response.json();
+                if (!response.ok || data.status !== "success") {
+                    alert("❌ " + (data.message || "جابه‌جایی انجام نشد."));
+                    return;
                 }
-            })
-            .catch(err => {
-                console.error("Error:", err);
+
+                alert("✅ " + data.message);
+                location.reload();
+            } catch (error) {
+                console.error("Swap error:", error);
                 alert("خطا در ارتباط با سرور.");
-            });
+            } finally {
+                this.disabled = false;
+                this.innerHTML = originalText;
+            }
         });
-    }
+    });
+
 });
 </script>
 
