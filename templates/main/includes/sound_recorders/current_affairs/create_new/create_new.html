@@ -332,37 +332,37 @@
 <div class="scrollable-table mt-3">
   {% regroup shifts by network_id as network_groups %}
   <table id="color_table" class="table table-bordered small-table text-center">
-    <thead>
-      <tr>
-        <th rowspan="2" class="align-middle">تاریخ</th>
-        <th rowspan="2" class="align-middle">روز</th>
-        {% for group in network_groups %}
-          <th colspan="{{ group.list|length }}" class="text-center align-middle">
+    <tbody>
+      {% for group in network_groups %}
+        <tr class="table-primary network-section-title">
+          <th colspan="{{ group.list|length|add:2 }}" class="text-center">
             {{ group.list.0.network_name }}
           </th>
-        {% endfor %}
-      </tr>
-      <tr>
-        {% for shift in shifts %}
-          <th class="text-center">{{ shift.shift_name }}</th>
-        {% endfor %}
-      </tr>
-    </thead>
-    <tbody>
-      {% for day in daily_forms %}
-        <tr data-date="{{ day.greg_date }}"><td>{{ day.jalali_date }}</td><td>{{ day.jalali_day_name }}</td>
-          {% for shift in shifts %}
-            {% with date_lookup=shift_lookup|get_item:day.greg_date %}
-              {% if date_lookup %}
-                {% with cell=date_lookup|get_item:shift.key %}
-                  <td class="shift-cell align-middle" data-network-id="{{ shift.network_id }}" data-shift-id="{{ shift.shift_id }}" {% if cell %}data-recorder-id="{{ cell.sound_recorder }}"{% endif %}>{% if cell %}{{ cell.name }}{% endif %}</td>
-                {% endwith %}
-              {% else %}
-                <td class="shift-cell align-middle" data-network-id="{{ shift.network_id }}" data-shift-id="{{ shift.shift_id }}"></td>
-              {% endif %}
-            {% endwith %}
+        </tr>
+        <tr>
+          <th>تاریخ</th>
+          <th>روز</th>
+          {% for shift in group.list %}
+            <th>{{ shift.shift_name }}</th>
           {% endfor %}
         </tr>
+        {% for day in daily_forms %}
+          <tr data-date="{{ day.greg_date }}">
+            <td>{{ day.jalali_date }}</td>
+            <td>{{ day.jalali_day_name }}</td>
+            {% for shift in group.list %}
+              {% with date_lookup=shift_lookup|get_item:day.greg_date %}
+                {% if date_lookup %}
+                  {% with cell=date_lookup|get_item:shift.key %}
+                    <td class="shift-cell align-middle" data-network-id="{{ shift.network_id }}" data-shift-id="{{ shift.shift_id }}" {% if cell %}data-recorder-id="{{ cell.sound_recorder }}"{% endif %}>{% if cell %}{{ cell.name }}{% endif %}</td>
+                  {% endwith %}
+                {% else %}
+                  <td class="shift-cell align-middle" data-network-id="{{ shift.network_id }}" data-shift-id="{{ shift.shift_id }}"></td>
+                {% endif %}
+              {% endwith %}
+            {% endfor %}
+          </tr>
+        {% endfor %}
       {% endfor %}
     </tbody>
   </table>
