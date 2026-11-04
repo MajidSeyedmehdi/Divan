@@ -586,7 +586,17 @@ def create_new(request):
             with connect_db() as conn:
                 cursor = conn.cursor()
                 if action == "transfer_previous":
-                    cursor.execute("EXEC dbo.Sp_GetPreviousMonthAssignmentsAllNetworks @start_date=?, @end_date=?, @previous_start_date=?, @previous_end_date=?", (first_day_g,last_day_g,first_prev,last_prev))
+                    cursor.execute(
+                        """
+                        EXEC dbo.Sp_GetPreviousMonthAssignments
+                            @start_date=?,
+                            @end_date=?,
+                            @previous_start_date=?,
+                            @previous_end_date=?,
+                            @id_network=?
+                        """,
+                        (first_day_g, last_day_g, first_prev, last_prev, None),
+                    )
                 elif action == "current_month":
                     cursor.execute("EXEC Sp_ShiftShow @start_date=?, @end_date=?, @id_network=?", (first_day_g,last_day_g,network_id))
                 elif action == "final_month":
