@@ -16,7 +16,7 @@ class HeaderForm(forms.Form):
         queryset=Network.objects.filter(active=True, is_active=True, del_field=False),
         label="شبکه",
         required=False,
-        empty_label="انتخاب کنید"
+        empty_label="همه شبکه‌ها"
     )
 
     # sound_recorder = forms.ModelChoiceField(
