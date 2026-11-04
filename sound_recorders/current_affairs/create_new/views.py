@@ -634,7 +634,12 @@ def create_new(request):
                         )
                         if cursor.description:
                             cols = [column[0] for column in cursor.description]
-                            rows.extend(dict(zip(cols, row)) for row in cursor.fetchall())
+                            for result_row in cursor.fetchall():
+                                result = dict(zip(cols, result_row))
+                                # برخی نسخه‌های SP شناسه شبکه را خروجی نمی‌دهند؛
+                                # چون این اجرا مختص یک شبکه است، شناسه را از حلقه می‌گیریم.
+                                result.setdefault("Id_network", current_network_id)
+                                rows.append(result)
 
             if action != "transfer_previous":
                 lock_network_ids = (
