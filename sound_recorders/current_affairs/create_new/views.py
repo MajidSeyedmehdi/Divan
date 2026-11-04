@@ -543,20 +543,21 @@ def create_new(request):
     first_prev = first_prev_j.togregorian()
     last_prev = last_prev_j.togregorian()
 
-    # 3. ستون‌های جدول؛ در انتقال ماه قبل تمام شبکه‌ها
+    # 3. ستون‌های جدول؛ گزینه خالی در فرم یعنی «همه شبکه‌ها»
     columns = []
     network_shifts = Network_Shift.objects.filter(
         active=True, del_field=False,
         id_network__active=True, id_network__is_active=True, id_network__del_field=False,
         id_shift__active=True, id_shift__is_active=True, id_shift__del_field=False,
-    ).select_related("id_network", "id_shift").order_by("id_network__id_network", "id_shift__shift_number")
+    ).select_related("id_network", "id_shift").order_by(
+        "id_network__id_network", "id_shift__shift_number"
+    )
 
-    if action == "transfer_previous":
-        selected_network_shifts = network_shifts
-    elif selected_network:
-        selected_network_shifts = network_shifts.filter(id_network=selected_network)
-    else:
-        selected_network_shifts = []
+    selected_network_shifts = (
+        network_shifts.filter(id_network=selected_network)
+        if selected_network
+        else network_shifts
+    )
 
     for item in selected_network_shifts:
         columns.append({
@@ -580,12 +581,14 @@ def create_new(request):
     shift_lookup = {}
     is_locked = False
     rows = []
-    if action == "transfer_previous" or selected_network:
+    if action in ("transfer_previous", "current_month", "final_month", "lock"):
         network_id = selected_network.id_network if selected_network else None
         try:
             with connect_db() as conn:
                 cursor = conn.cursor()
+
                 if action == "transfer_previous":
+                    # NULL در SP به معنی انتقال از تمام شبکه‌هاست.
                     cursor.execute(
                         """
                         EXEC dbo.Sp_GetPreviousMonthAssignments
@@ -595,25 +598,63 @@ def create_new(request):
                             @previous_end_date=?,
                             @id_network=?
                         """,
-                        (first_day_g, last_day_g, first_prev, last_prev, None),
+                        (first_day_g, last_day_g, first_prev, last_prev, network_id),
                     )
-                elif action == "current_month":
-                    cursor.execute("EXEC Sp_ShiftShow @start_date=?, @end_date=?, @id_network=?", (first_day_g,last_day_g,network_id))
-                elif action == "final_month":
-                    cursor.execute("EXEC Sp_ShiftShow_Final @start_date=?, @end_date=?, @id_network=?", (first_day_g,last_day_g,network_id))
-                elif action == "lock":
-                    cursor.execute("EXEC Sp_Lock_Status_Shift ?, ?, ?", (network_id,lock_start_g,lock_end_g))
-                    conn.commit()
-                    cursor.execute("EXEC Sp_ShiftShow @start_date=?, @end_date=?, @id_network=?", (first_day_g,last_day_g,network_id))
-                if cursor.description:
-                    cols = [column[0] for column in cursor.description]
-                    rows = [dict(zip(cols,row)) for row in cursor.fetchall()]
+                    if cursor.description:
+                        cols = [column[0] for column in cursor.description]
+                        rows.extend(dict(zip(cols, row)) for row in cursor.fetchall())
 
-            if network_id and action != "transfer_previous":
-                with connect_db() as lock_conn:
-                    lock_cursor = lock_conn.cursor()
-                    lock_cursor.execute("SELECT TOP 1 1 FROM Tbl_Sound_Shift_Assignment WHERE Id_network=? AND Shift_date>=? AND Shift_date<? AND Lock=1", (network_id,first_day_g,next_month_j.togregorian()))
-                    is_locked = bool(lock_cursor.fetchone())
+                else:
+                    # SPهای نمایش و قفل، شناسه یک شبکه را می‌پذیرند؛
+                    # در حالت «همه شبکه‌ها» برای هر شبکه جداگانه اجرا می‌شوند.
+                    network_ids = (
+                        [network_id]
+                        if network_id is not None
+                        else list(
+                            network_shifts.values_list("id_network_id", flat=True).distinct()
+                        )
+                    )
+
+                    for current_network_id in network_ids:
+                        if action == "lock":
+                            cursor.execute(
+                                "EXEC Sp_Lock_Status_Shift ?, ?, ?",
+                                (current_network_id, lock_start_g, lock_end_g),
+                            )
+                            conn.commit()
+
+                        procedure = (
+                            "Sp_ShiftShow_Final"
+                            if action == "final_month"
+                            else "Sp_ShiftShow"
+                        )
+                        cursor.execute(
+                            f"EXEC {procedure} @start_date=?, @end_date=?, @id_network=?",
+                            (first_day_g, last_day_g, current_network_id),
+                        )
+                        if cursor.description:
+                            cols = [column[0] for column in cursor.description]
+                            rows.extend(dict(zip(cols, row)) for row in cursor.fetchall())
+
+            if action != "transfer_previous":
+                lock_network_ids = (
+                    [network_id] if network_id is not None
+                    else list(network_shifts.values_list("id_network_id", flat=True).distinct())
+                )
+                if lock_network_ids:
+                    placeholders = ",".join("?" for _ in lock_network_ids)
+                    with connect_db() as lock_conn:
+                        lock_cursor = lock_conn.cursor()
+                        lock_cursor.execute(
+                            f"""
+                            SELECT TOP 1 1
+                            FROM Tbl_Sound_Shift_Assignment
+                            WHERE Id_network IN ({placeholders})
+                              AND Shift_date >= ? AND Shift_date < ? AND Lock = 1
+                            """,
+                            (*lock_network_ids, first_day_g, next_month_j.togregorian()),
+                        )
+                        is_locked = bool(lock_cursor.fetchone())
 
             valid_dates = {item["greg_date"] for item in daily_forms}
             for row in rows:
