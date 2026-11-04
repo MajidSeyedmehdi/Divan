@@ -19,6 +19,13 @@ class HeaderForm(forms.Form):
         empty_label="همه شبکه‌ها"
     )
 
+    # تاریخ مستقل برای جابه‌جایی بین شبکه‌ها
+    swap_date = jDateField(
+        widget=AdminJalaliDateWidget(attrs={'class': 'form-control'}),
+        label="تاریخ جابه‌جایی",
+        required=False
+    )
+
     # sound_recorder = forms.ModelChoiceField(
     #     queryset=SelectSoundRecorder.objects.all(),
     #     label="صدابردار",
