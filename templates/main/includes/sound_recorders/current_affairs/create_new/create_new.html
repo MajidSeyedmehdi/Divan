@@ -316,7 +316,7 @@
           <li><strong>دکمه "جابجایی":</strong> برای انتساب صدابردار انتخاب‌شده به سلول‌های انتخابی.</li>
           <li><strong>دکمه "ثبت اولیه":</strong> داده‌ها را موقت ثبت می‌کند (قابل تغییر است).</li>
           <li><strong>دکمه "ثبت نهایی":</strong> پس از تکمیل تمام سلول‌ها، ثبت قطعی انجام می‌شود.</li>
-          <li><strong>دکمه "انتقال از ماه قبل":</strong> جدول شیفت های ماه قبل هر شبکه را نمایش می دهد.</li>
+          <li><strong>دکمه "انتقال از ماه قبل":</strong> برنامه تمام شبکه‌ها را در جدول ماه انتخاب‌شده نمایش می‌دهد؛ برای ذخیره از ثبت اولیه استفاده کنید.</li>
           <li><strong>دکمه "قفل شیفت اولیه":</strong> جدول شیفت اولیه و ثبت اولیه را برای شبکه و ماه مورد نظر قفل می‌کند.</li>
           <li><strong>نکته:</strong> اگر صدابردار بیش از ۱۶ ساعت شیفت متوالی داشته باشد، ثبت انجام نمی‌شود.</li>
         </ul>
@@ -331,34 +331,20 @@
 <!-- جدول شیفت‌ها -->
 <div class="scrollable-table mt-3">
   <table id="color_table" class="table table-bordered small-table text-center">
-    <thead>
-      <tr>
-        <th>تاریخ</th>
-        <th>روز</th>
-        {% for shift in shifts %}
-          <th>{{ shift.shift_time }}</th>
-        {% endfor %}
-      </tr>
-    </thead>
+    <thead><tr><th>تاریخ</th><th>روز</th>
+      {% for shift in shifts %}<th>{{ shift.network_name }}<br>{{ shift.shift_name }}</th>{% endfor %}
+    </tr></thead>
     <tbody>
       {% for day in daily_forms %}
-        <tr data-date="{{ day.greg_date }}">
-          <td>{{ day.jalali_date }}</td>
-          <td>{{ day.jalali_day_name }}</td>
+        <tr data-date="{{ day.greg_date }}"><td>{{ day.jalali_date }}</td><td>{{ day.jalali_day_name }}</td>
           {% for shift in shifts %}
             {% with date_lookup=shift_lookup|get_item:day.greg_date %}
               {% if date_lookup %}
-                {% with shift_key=shift.id_shift|stringformat:"s" %}
-                  {% with cell=date_lookup|get_item:shift_key %}
-                    <td class="shift-cell align-middle"
-                        data-shift-id="{{ shift.id_shift }}"
-                        {% if cell %}data-recorder-id="{{ cell.sound_recorder }}"{% endif %}>
-                      {% if cell %}{{ cell.name }}{% endif %}
-                    </td>
-                  {% endwith %}
+                {% with cell=date_lookup|get_item:shift.key %}
+                  <td class="shift-cell align-middle" data-network-id="{{ shift.network_id }}" data-shift-id="{{ shift.shift_id }}" {% if cell %}data-recorder-id="{{ cell.sound_recorder }}"{% endif %}>{% if cell %}{{ cell.name }}{% endif %}</td>
                 {% endwith %}
               {% else %}
-                <td class="shift-cell align-middle" data-shift-id="{{ shift.id_shift }}"></td>
+                <td class="shift-cell align-middle" data-network-id="{{ shift.network_id }}" data-shift-id="{{ shift.shift_id }}"></td>
               {% endif %}
             {% endwith %}
           {% endfor %}
@@ -367,7 +353,7 @@
     </tbody>
   </table>
 </div>
-    //<!-- اسکریپت SweetAlert2 باید قبل از اسکریپت‌های اصلی لود شود -->
+//<!-- اسکریپت SweetAlert2 باید قبل از اسکریپت‌های اصلی لود شود -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <!-- کدهای اسکریپت جاوااسکریپت منسجم -->
 <script>
@@ -487,9 +473,10 @@ document.addEventListener("DOMContentLoaded", function () {
             document.querySelectorAll('.shift-cell').forEach(td => {
                 const date = td.closest('tr').dataset.date;
                 const shift_id = parseInt(td.getAttribute("data-shift-id"));
+                const network_id = parseInt(td.getAttribute("data-network-id"));
                 const recorder_id = parseInt(td.dataset.recorderId);
 
-                if (recorder_id) assignments.push({ date, shift_id, sound_recorder_id: recorder_id });
+                if (recorder_id && network_id) assignments.push({ date, network_id, shift_id, sound_recorder_id: recorder_id });
             });
 
             if (box) {
