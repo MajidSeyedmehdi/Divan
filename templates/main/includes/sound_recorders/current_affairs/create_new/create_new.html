@@ -262,8 +262,9 @@
           <div class="d-flex flex-wrap align-items-center gap-2">
             <span class="fw-bold text-secondary me-2">جابجایی شبکه:</span>
             
-            <label for="id_swap_shift_date">تاریخ:</label>
-            {{ header_form.p_date }}
+            <label for="id_swap_date">تاریخ:</label>
+            {{ header_form.swap_date }}
+            {{ header_form.swap_date.media }}
 
             <label for="from_network">از شبکه:</label>
             <select id="from_network" class="form-select form-select-sm d-inline-block w-auto pe-4">
@@ -637,7 +638,7 @@ document.addEventListener("DOMContentLoaded", function () {
         button.addEventListener('click', async function (e) {
             e.preventDefault();
 
-            const shiftDateInput = document.getElementById("id_p_date");
+            const shiftDateInput = document.getElementById("id_swap_date");
             const shiftDate = shiftDateInput ? shiftDateInput.value.trim() : "";
             const fromNetworkVal = document.getElementById("from_network")?.value;
             const fromShiftVal = document.getElementById("from_shift")?.value;
