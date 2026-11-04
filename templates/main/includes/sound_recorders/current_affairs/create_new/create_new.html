@@ -330,10 +330,24 @@
 
 <!-- جدول شیفت‌ها -->
 <div class="scrollable-table mt-3">
+  {% regroup shifts by network_id as network_groups %}
   <table id="color_table" class="table table-bordered small-table text-center">
-    <thead><tr><th>تاریخ</th><th>روز</th>
-      {% for shift in shifts %}<th>{{ shift.network_name }}<br>{{ shift.shift_name }}</th>{% endfor %}
-    </tr></thead>
+    <thead>
+      <tr>
+        <th rowspan="2" class="align-middle">تاریخ</th>
+        <th rowspan="2" class="align-middle">روز</th>
+        {% for group in network_groups %}
+          <th colspan="{{ group.list|length }}" class="text-center align-middle">
+            {{ group.list.0.network_name }}
+          </th>
+        {% endfor %}
+      </tr>
+      <tr>
+        {% for shift in shifts %}
+          <th class="text-center">{{ shift.shift_name }}</th>
+        {% endfor %}
+      </tr>
+    </thead>
     <tbody>
       {% for day in daily_forms %}
         <tr data-date="{{ day.greg_date }}"><td>{{ day.jalali_date }}</td><td>{{ day.jalali_day_name }}</td>
