@@ -543,193 +543,79 @@ def create_new(request):
     first_prev = first_prev_j.togregorian()
     last_prev = last_prev_j.togregorian()
 
-    # --------------------------------------------------
-    # 3. شیفت‌های متعلق به شبکه
-    # --------------------------------------------------
-    shifts = []
+    # 3. ستون‌های جدول؛ در انتقال ماه قبل تمام شبکه‌ها
+    columns = []
+    network_shifts = Network_Shift.objects.filter(
+        active=True, del_field=False,
+        id_network__active=True, id_network__is_active=True, id_network__del_field=False,
+        id_shift__active=True, id_shift__is_active=True, id_shift__del_field=False,
+    ).select_related("id_network", "id_shift").order_by("id_network__id_network", "id_shift__shift_number")
 
-    if selected_network:
-        shift_ids = Network_Shift.objects.filter(
-            id_network=selected_network
-        ).values_list("id_shift", flat=True)
+    if action == "transfer_previous":
+        selected_network_shifts = network_shifts
+    elif selected_network:
+        selected_network_shifts = network_shifts.filter(id_network=selected_network)
+    else:
+        selected_network_shifts = []
 
-        shifts = Shift.objects.filter(
-            id_shift__in=shift_ids
-        ).order_by("shift_number")
+    for item in selected_network_shifts:
+        columns.append({
+            "network_id": item.id_network_id,
+            "network_name": item.id_network.network,
+            "shift_id": item.id_shift_id,
+            "shift_name": item.id_shift.shift_time or item.id_shift.shift_name or str(item.id_shift),
+            "key": "{}_{}".format(item.id_network_id, item.id_shift_id),
+        })
+    shifts = columns
 
-    # --------------------------------------------------
-    # 4. ساخت روزهای جدول ماه جدید
-    # --------------------------------------------------
-    weekdays_fa = {
-        "Saturday": "شنبه",
-        "Sunday": "یکشنبه",
-        "Monday": "دوشنبه",
-        "Tuesday": "سه‌شنبه",
-        "Wednesday": "چهارشنبه",
-        "Thursday": "پنجشنبه",
-        "Friday": "جمعه",
-    }
-
+    # 4. ساخت روزهای جدول ماه انتخاب‌شده
+    weekdays_fa = {"Saturday":"شنبه","Sunday":"یکشنبه","Monday":"دوشنبه","Tuesday":"سه‌شنبه","Wednesday":"چهارشنبه","Thursday":"پنجشنبه","Friday":"جمعه"}
     daily_forms = []
-
     for d in range(1, last_day_j.day + 1):
         j_day = jd.date(year, month, d)
         g_day = j_day.togregorian()
+        daily_forms.append({"jalali_date":j_day.strftime("%Y/%m/%d"),"jalali_day_name":weekdays_fa[j_day.strftime("%A")],"greg_date":g_day.strftime("%Y-%m-%d")})
 
-        daily_forms.append({
-            "jalali_date": j_day.strftime("%Y/%m/%d"),
-            "jalali_day_name": weekdays_fa[j_day.strftime("%A")],
-            "greg_date": g_day.strftime("%Y-%m-%d"),
-        })
-
-    # --------------------------------------------------
-    # 5. دریافت اطلاعات متناسب با دکمه انتخاب‌شده
-    # --------------------------------------------------
+    # 5. دریافت اطلاعات ماه
     shift_lookup = {}
     is_locked = False
     rows = []
-
-    if selected_network:
-        network_id = (
-            selected_network.id_network
-            if hasattr(selected_network, "id_network")
-            else int(selected_network)
-        )
-
+    if action == "transfer_previous" or selected_network:
+        network_id = selected_network.id_network if selected_network else None
         try:
             with connect_db() as conn:
                 cursor = conn.cursor()
-
-                if action == "current_month":
-                    cursor.execute(
-                        """
-                        EXEC Sp_ShiftShow
-                            @start_date=?,
-                            @end_date=?,
-                            @id_network=?
-                        """,
-                        (first_day_g, last_day_g, network_id),
-                    )
-
+                if action == "transfer_previous":
+                    cursor.execute("EXEC dbo.Sp_GetPreviousMonthAssignmentsAllNetworks @start_date=?, @end_date=?, @previous_start_date=?, @previous_end_date=?", (first_day_g,last_day_g,first_prev,last_prev))
+                elif action == "current_month":
+                    cursor.execute("EXEC Sp_ShiftShow @start_date=?, @end_date=?, @id_network=?", (first_day_g,last_day_g,network_id))
                 elif action == "final_month":
-                    cursor.execute(
-                        """
-                        EXEC Sp_ShiftShow_Final
-                            @start_date=?,
-                            @end_date=?,
-                            @id_network=?
-                        """,
-                        (first_day_g, last_day_g, network_id),
-                    )
-
-                elif action == "transfer_previous":
-
-                    cursor.execute(
-                        """
-                        EXEC dbo.Sp_GetPreviousMonthAssignments
-                            @start_date=?,
-                            @end_date=?,
-                            @previous_start_date=?,
-                            @previous_end_date=?,
-                            @id_network=?
-                        """,
-                        (
-                            first_day_g,
-                            last_day_g,
-                            first_prev,
-                            last_prev,
-                            network_id,
-                        ),
-                    )
-
+                    cursor.execute("EXEC Sp_ShiftShow_Final @start_date=?, @end_date=?, @id_network=?", (first_day_g,last_day_g,network_id))
                 elif action == "lock":
-                    cursor.execute(
-                        """
-                        EXEC Sp_Lock_Status_Shift ?, ?, ?
-                        """,
-                        (network_id, lock_start_g, lock_end_g),
-                    )
+                    cursor.execute("EXEC Sp_Lock_Status_Shift ?, ?, ?", (network_id,lock_start_g,lock_end_g))
                     conn.commit()
-                    is_locked = True
-
-                    cursor.execute(
-                        """
-                        EXEC Sp_ShiftShow
-                            @start_date=?,
-                            @end_date=?,
-                            @id_network=?
-                        """,
-                        (first_day_g, last_day_g, network_id),
-                    )
-
-                # نتیجه هر استور فقط یک بار خوانده می‌شود
+                    cursor.execute("EXEC Sp_ShiftShow @start_date=?, @end_date=?, @id_network=?", (first_day_g,last_day_g,network_id))
                 if cursor.description:
-                    columns = [
-                        column[0] for column in cursor.description
-                    ]
-                    rows = [
-                        dict(zip(columns, row))
-                        for row in cursor.fetchall()
-                    ]
+                    cols = [column[0] for column in cursor.description]
+                    rows = [dict(zip(cols,row)) for row in cursor.fetchall()]
 
-                # بررسی قفل بودن ماه جدید
+            if network_id and action != "transfer_previous":
                 with connect_db() as lock_conn:
                     lock_cursor = lock_conn.cursor()
+                    lock_cursor.execute("SELECT TOP 1 1 FROM Tbl_Sound_Shift_Assignment WHERE Id_network=? AND Shift_date>=? AND Shift_date<? AND Lock=1", (network_id,first_day_g,next_month_j.togregorian()))
+                    is_locked = bool(lock_cursor.fetchone())
 
-                    lock_cursor.execute(
-                        """
-                        SELECT TOP 1 1
-                        FROM Tbl_Sound_Shift_Assignment
-                        WHERE Id_network = ?
-                          AND Shift_date >= ?
-                          AND Shift_date < ?
-                          AND Lock = 1
-                        """,
-                        (
-                            network_id,
-                            first_day_g,
-                            next_month_j.togregorian(),
-                        ),
-                    )
-
-                    if lock_cursor.fetchone():
-                        is_locked = True
-
-                # ------------------------------------------
-                # 6. قرار دادن اطلاعات در جدول صفحه
-                # ------------------------------------------
-                valid_dates = {
-                    item["greg_date"] for item in daily_forms
-                }
-
-                for r in rows:
-                    shift_id = str(r["Id_shift"])
-                    recorder_id = r["Id_sound_recorder"]
-                    name = r.get("SoundRecorderName")
-                    shift_date = r["Shift_date"]
-
-                    if hasattr(shift_date, "strftime"):
-                        date_str = shift_date.strftime("%Y-%m-%d")
-                    else:
-                        date_str = str(shift_date)[:10]
-
-                    if date_str not in valid_dates:
-                        continue
-
-                    # اگر در ماه قبل صدابرداری برای این
-                    # شیفت متناظر وجود نداشته، سلول خالی بماند.
-                    if recorder_id is None:
-                        continue
-
-                    shift_lookup.setdefault(
-                        date_str, {}
-                    )[shift_id] = {
-                        "name": name or "",
-                        "sound_recorder": recorder_id,
-                    }
-
-                print("SHIFT LOOKUP DATES:", len(shift_lookup))
-
+            valid_dates = {item["greg_date"] for item in daily_forms}
+            for row in rows:
+                row_network_id = row.get("Id_network", network_id)
+                shift_id = row["Id_shift"]
+                shift_date = row["Shift_date"]
+                date_str = shift_date.strftime("%Y-%m-%d") if hasattr(shift_date,"strftime") else str(shift_date)[:10]
+                recorder_id = row.get("Id_sound_recorder")
+                if date_str not in valid_dates or recorder_id is None:
+                    continue
+                key = "{}_{}".format(row_network_id, shift_id)
+                shift_lookup.setdefault(date_str,{})[key] = {"name":row.get("SoundRecorderName") or "","sound_recorder":recorder_id}
         except Exception as e:
             print("SQL Error:", repr(e))
 
@@ -765,7 +651,10 @@ def save_shift_assignments_bulk(request):
             cursor = conn.cursor()
             for a in assignments:
                 shift_date = a["date"]
-                # دریافت نام روز (در صورت نیاز می‌توانید locale تنظیم کنید)
+                assignment_network_id = a.get("network_id") or network_id
+                if not assignment_network_id:
+                    errors.append("شناسه شبکه برای یکی از شیفت‌ها مشخص نیست.")
+                    continue
                 shift_day = pyodbc.Date.fromisoformat(shift_date).strftime('%A')
                 if action == "initial":
                     cursor.execute(
@@ -773,7 +662,7 @@ def save_shift_assignments_bulk(request):
                         (
                             a["sound_recorder_id"],
                             a["shift_id"],
-                            network_id,
+                            assignment_network_id,
                             shift_date,
                             shift_day,
                             user_name
@@ -787,7 +676,7 @@ def save_shift_assignments_bulk(request):
                         (
                             a["sound_recorder_id"],
                             a["shift_id"],
-                            network_id,
+                            assignment_network_id,
                             shift_date,
                             shift_day,
                             user_name
