@@ -68,66 +68,97 @@ def get_user_manager_id(cursor, user):
 
     row = cursor.fetchone()
     return row[0] if row else None
-def live_programs_summary_view(request):
-    start_date = request.GET.get('start_date') or request.POST.get('start_date') or None
-    end_date = request.GET.get('end_date') or request.POST.get('end_date') or None
-    id_live_status = request.GET.get('id_live_status') or None
-    id_network = request.GET.get('id_network') or None
+def get_previous_jalali_month_range():
+    """بازه ماه شمسی کاملِ قبل از ماه جاری را برمی‌گرداند."""
+    today = jdatetime.date.today()
+    previous_month_last_day = today.replace(day=1) - timedelta(days=1)
+    previous_month_first_day = previous_month_last_day.replace(day=1)
+    return previous_month_first_day, previous_month_last_day
 
-    # تایید/لغو تایید فقط وضعیت‌های ثبت‌شده و در انتظار پرداخت را جابه‌جا می‌کند.
+
+def live_programs_summary_view(request):
+    default_start, default_end = get_previous_jalali_month_range()
+
+    # در اولین ورود، بازه ماه شمسی قبل به‌صورت خودکار اعمال می‌شود.
+    filter_data = request.GET.copy()
+    if request.method == "POST":
+        start_date = request.POST.get("start_date") or request.GET.get("start_date")
+        end_date = request.POST.get("end_date") or request.GET.get("end_date")
+    else:
+        start_date = request.GET.get("start_date")
+        end_date = request.GET.get("end_date")
+
+    start_date = start_date or default_start.strftime("%Y/%m/%d")
+    end_date = end_date or default_end.strftime("%Y/%m/%d")
+
+    filter_data["start_date"] = start_date
+    filter_data["end_date"] = end_date
+
+    id_live_status = (
+        request.POST.get("live_status") or request.GET.get("live_status")
+        or request.POST.get("id_live_status") or request.GET.get("id_live_status") or None
+    )
+    id_network = (
+        request.POST.get("network") or request.GET.get("network")
+        or request.POST.get("id_network") or request.GET.get("id_network") or None
+    )
+
     if request.method == "POST" and request.POST.get("action") in ("confirm", "reject"):
         try:
             program_id = int(request.POST.get("id_manual_program"))
             target_status = 2 if request.POST["action"] == "confirm" else 1
-            source_status = 1 if target_status == 2 else 2
-            start_greg = jalali_to_gregorian(start_date) if start_date else None
-            end_greg = jalali_to_gregorian(end_date) if end_date else None
-            if start_date and not start_greg or end_date and not end_greg:
+
+            start_greg = jalali_to_gregorian(start_date)
+            end_greg = jalali_to_gregorian(end_date)
+            if not start_greg or not end_greg:
                 raise ValueError("فرمت تاریخ معتبر نیست.")
-            if start_greg and end_greg and start_greg > end_greg:
+            if start_greg > end_greg:
                 raise ValueError("تاریخ شروع نباید بعد از تاریخ پایان باشد.")
+
+            username = request.user.username if request.user.is_authenticated else "system"
 
             with connect_db() as conn:
                 cursor = conn.cursor()
-                cursor.execute("""
-                    UPDATE dbo.Tbl_Sound_Shift_Live
-                    SET Id_live_payment_status = ?,
-                        Update_date = SYSDATETIMEOFFSET(),
-                        User_name = ?
-                    WHERE Id_manual_program = ?
-                      AND Active = 1 AND Del = 0
-                      AND Id_live_payment_status = ?
-                      AND (? IS NULL OR Live_shift_date >= ?)
-                      AND (? IS NULL OR Live_shift_date <= ?)
-                      AND EXISTS (
-                          SELECT 1
-                          FROM dbo.Tbl_Program_Sound_Spec p
-                          WHERE p.Id_manual_program = dbo.Tbl_Sound_Shift_Live.Id_manual_program
-                            AND p.Active = 1 AND p.Del = 0
-                            AND NULLIF(LTRIM(RTRIM(p.Code)), '') IS NOT NULL
-                      )
-                """, (
-                    target_status, request.user.username if request.user.is_authenticated else 'system', program_id, source_status,
-                    start_greg, start_greg, end_greg, end_greg
-                ))
-                changed = cursor.rowcount
+                cursor.execute(
+                    """
+                    EXEC dbo.Sp_Update_Live_Payment_Status_By_Period
+                        @Id_manual_program = ?,
+                        @StartDate = ?,
+                        @EndDate = ?,
+                        @TargetStatus = ?,
+                        @UserName = ?
+                    """,
+                    (program_id, start_greg, end_greg, target_status, username),
+                )
+                result = cursor.fetchone()
+                changed = int(result[0]) if result and result[0] is not None else 0
                 conn.commit()
+
             if changed:
                 messages.success(request, f"وضعیت {changed} رکورد با موفقیت تغییر کرد.")
             else:
-                messages.warning(request, "رکوردی با وضعیت قبلی در بازه انتخاب‌شده برای تغییر وجود نداشت.")
+                messages.warning(
+                    request,
+                    "در بازه انتخاب‌شده رکوردی با وضعیت قابل تغییر پیدا نشد؛ سایر رکوردها بدون تغییر باقی ماندند."
+                )
         except (TypeError, ValueError) as exc:
             messages.error(request, str(exc) or "اطلاعات ارسالی معتبر نیست.")
         except Exception:
             logger.exception("Live payment approval update failed")
             messages.error(request, "خطا در تغییر وضعیت پرداخت.")
-        query = request.GET.urlencode()
-        return redirect(request.path + (f"?{query}" if query else ""))
 
-    form = HeaderForm(request.GET or None)
+        # بازگشت به همان فیلترها، حتی اگر درخواست POST از خود جدول ارسال شده باشد.
+        for key in ("live_status", "network"):
+            value = request.POST.get(key)
+            if value:
+                filter_data[key] = value
+        return redirect(request.path + "?" + filter_data.urlencode())
+
+    form = HeaderForm(filter_data)
     status_dict = {str(s.id_live_status): s.status for s in LiveStatus.objects.all()}
-    start_greg = jalali_to_gregorian(start_date) if start_date else None
-    end_greg = jalali_to_gregorian(end_date) if end_date else None
+    start_greg = jalali_to_gregorian(start_date)
+    end_greg = jalali_to_gregorian(end_date)
+
     programs = []
     with connection.cursor() as cursor:
         cursor.execute(
@@ -137,21 +168,27 @@ def live_programs_summary_view(request):
         columns = [col[0] for col in cursor.description]
         for row in cursor.fetchall():
             prog = dict(zip(columns, row))
-            prog['Has_Pending'] = int(prog.get('Pending_Payment_Count') or 0) > 0
-            prog['Has_Estimate_Code'] = bool(str(prog.get('Prog_Code') or '').strip())
-            status_id = prog.get('Id_live_status')
-            prog['Status_Name'] = status_dict.get(str(status_id), '-') if status_id is not None else '-'
-            prog['Start_date'] = jdatetime.date.fromgregorian(date=prog['Start_date']).strftime('%Y/%m/%d') if prog.get('Start_date') else '-'
-            prog['End_date'] = jdatetime.date.fromgregorian(date=prog['End_date']).strftime('%Y/%m/%d') if prog.get('End_date') else '-'
+            prog["Has_Pending"] = int(prog.get("Pending_Payment_Count") or 0) > 0
+            prog["Has_Estimate_Code"] = bool(str(prog.get("Prog_Code") or "").strip())
+            status_id = prog.get("Id_live_status")
+            prog["Status_Name"] = status_dict.get(str(status_id), "-") if status_id is not None else "-"
+            prog["Start_date"] = (
+                jdatetime.date.fromgregorian(date=prog["Start_date"]).strftime("%Y/%m/%d")
+                if prog.get("Start_date") else "-"
+            )
+            prog["End_date"] = (
+                jdatetime.date.fromgregorian(date=prog["End_date"]).strftime("%Y/%m/%d")
+                if prog.get("End_date") else "-"
+            )
             programs.append(prog)
 
-    return render(request, 'main/includes/sound_recorders/live_program_audit/live_programs_summary.html', {
-        'programs': programs,
-        'header_form': form,
-        'filter_start_date': start_date,
-        'filter_end_date': end_date,
-        'filter_id_live_status': id_live_status,
-        'filter_id_network': id_network,
+    return render(request, "main/includes/sound_recorders/live_program_audit/live_programs_summary.html", {
+        "programs": programs,
+        "header_form": form,
+        "filter_start_date": start_date,
+        "filter_end_date": end_date,
+        "filter_id_live_status": id_live_status,
+        "filter_id_network": id_network,
     })
 
 
