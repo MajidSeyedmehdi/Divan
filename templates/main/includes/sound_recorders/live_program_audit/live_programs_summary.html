@@ -376,6 +376,8 @@
                         <input type="hidden" name="id_manual_program" value="{{ prog.Id_manual_program }}">
                         <input type="hidden" name="start_date" value="{{ filter_start_date|default:'' }}">
                         <input type="hidden" name="end_date" value="{{ filter_end_date|default:'' }}">
+                        <input type="hidden" name="live_status" value="{{ filter_id_live_status|default:'' }}">
+                        <input type="hidden" name="network" value="{{ filter_id_network|default:'' }}">
                         {% if prog.Has_Pending %}
                             <button type="submit" name="action" value="reject"
                                     class="btn btn-sm btn-outline-danger" title="بازگشت به ثبت شده">✖</button>
@@ -389,7 +391,7 @@
                 {% endif %}
             </td>
             <td>
-                <a href="{% url 'sound_recorders:live_program_audit:live_financial_calculation:live_program_details' prog.Id_manual_program %}" class="btn btn-sm btn-primary">مشاهده جزئیات</a>
+                <a href="{% url 'sound_recorders:live_program_audit:live_financial_calculation:live_program_details' prog.Id_manual_program %}?start_date={{ filter_start_date|urlencode }}&end_date={{ filter_end_date|urlencode }}" class="btn btn-sm btn-primary">مشاهده جزئیات</a>
             </td>
         </tr>
         {% empty %}
