@@ -7,6 +7,7 @@ from sound_recorders.live_program_audit.main_live_programs.views import jalali_t
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.db import connection
+from django.utils import timezone
 from utils.db_connection import connect_db
 import logging
 logger = logging.getLogger(__name__)
@@ -70,7 +71,7 @@ def get_user_manager_id(cursor, user):
     return row[0] if row else None
 def get_previous_jalali_month_range():
     """بازه ماه شمسی کاملِ قبل از ماه جاری را برمی‌گرداند."""
-    today = jdatetime.date.today()
+    today = jdatetime.date.fromgregorian(date=timezone.localdate())
     previous_month_last_day = today.replace(day=1) - timedelta(days=1)
     previous_month_first_day = previous_month_last_day.replace(day=1)
     return previous_month_first_day, previous_month_last_day
