@@ -35,7 +35,8 @@ class HeaderForm(forms.Form):
             is_active=True
         ),
         label="انتخاب شبکه",
-        empty_label="   انتخاب شبکه",
+        empty_label="همه شبکه‌ها",
+        required=False,
         widget=forms.Select(
             attrs={
                 'class': 'form-select'
@@ -50,7 +51,8 @@ class HeaderForm(forms.Form):
             # is_active=True
         ),
         label="وضعیت",
-        empty_label="وضعیت",
+        empty_label="همه وضعیت‌ها",
+        required=False,
         widget=forms.Select(
             attrs={
                 'id': 'id_live_status', 'class': 'form-control'

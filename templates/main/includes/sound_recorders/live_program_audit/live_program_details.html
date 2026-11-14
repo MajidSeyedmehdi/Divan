@@ -249,41 +249,57 @@
                 {% endif %}
 </div>
 <div class="mb-3 d-flex gap-2">
-            <a href="{% if manager_mode %}{% url manager_summary_url %}{% else %}{% url 'sound_recorders:live_program_audit:live_financial_calculation:live_programs_summary' %}{% endif %}"
-               class="btn btn-secondary d-flex align-items-center gap-2 px-3">
-                <i class="fa fa-arrow-right"></i>
-                بازگشت
-            </a>
-        </div>
+    <a href="javascript:history.back()"
+       class="btn btn-secondary d-flex align-items-center gap-2 px-3">
+        <i class="fa fa-arrow-right"></i>
+        بازگشت
+    </a>
+</div>
 
 <form method="get" id="mainForm" class="mb-3">
     <input type="hidden" name="id_manual_program"
            value="{{ request.GET.id_manual_program }}">
 
     <input type="hidden" name="start_date"
-           value="{{ request.GET.start_date }}">
+           value="{{ start_date }}">
+{#           value="{{ request.GET.start_date }}">#}
 
     <input type="hidden" name="end_date"
-           value="{{ request.GET.end_date }}">
+           value="{{ end_date }}">
+{#           value="{{ request.GET.end_date }}">#}
 
     <div class="col-md-12">
         <div class="breadcrumb-box shadow">
             <div class="breadcrumb-right">
                 <div class="d-flex flex-wrap align-items-center gap-4">
+                        <div class="d-flex align-items-center gap-2">
+                        <label for="id_live_payment_status"
+                               class="form-label mb-0 text-nowrap">
+                            وضعیت پرداخت:
+                        </label>
 
-                    {% if manager_mode %}
-                        <span class="badge bg-warning text-dark py-2">فقط رکوردهای در انتظار پرداخت</span>
-                    {% else %}
-                    <div class="d-flex align-items-center gap-2">
-                        <label for="id_live_payment_status" class="form-label mb-0 text-nowrap">وضعیت پرداخت:</label>
-                        <div style="min-width: 200px;">{{ header_form.live_payment_status }}</div>
+                        <div style="min-width: 200px;">
+                            {{ header_form.live_payment_status }}
+                        </div>
                     </div>
-                    {% endif %}
 
-                    <button type="submit"
-                            class="btn btn-primary">
+                    <button type="submit" class="btn btn-primary">
                         جستجو
                     </button>
+
+{#                    {% if manager_mode %}#}
+{#                        <span class="badge bg-warning text-dark py-2">فقط رکوردهای در انتظار پرداخت</span>#}
+{#                    {% else %}#}
+{#                    <div class="d-flex align-items-center gap-2">#}
+{#                        <label for="id_live_payment_status" class="form-label mb-0 text-nowrap">وضعیت پرداخت:</label>#}
+{#                        <div style="min-width: 200px;">{{ header_form.live_payment_status }}</div>#}
+{#                    </div>#}
+{#                    {% endif %}#}
+{##}
+{#                    <button type="submit"#}
+{#                            class="btn btn-primary">#}
+{#                        جستجو#}
+{#                    </button>#}
 
                 </div>
             </div>

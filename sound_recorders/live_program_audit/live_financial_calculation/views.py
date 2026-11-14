@@ -34,6 +34,18 @@ def jalali_to_gregorian(date_value):
         logger.error(f"Jalali date conversion error: {date_value} - {e}")
         return None
 
+def get_previous_jalali_month_range():
+
+    today = jdatetime.date.fromgregorian(
+        date=timezone.localdate()
+    )
+
+    previous_month_last_day = today.replace(day=1) - timedelta(days=1)
+
+    previous_month_first_day = previous_month_last_day.replace(day=1)
+
+    return previous_month_first_day, previous_month_last_day
+
 def gregorian_to_jalali_str(date_value, fmt="%Y/%m/%d"):
     if not date_value:
         return ""
@@ -69,12 +81,7 @@ def get_user_manager_id(cursor, user):
 
     row = cursor.fetchone()
     return row[0] if row else None
-def get_previous_jalali_month_range():
-    """بازه ماه شمسی کاملِ قبل از ماه جاری را برمی‌گرداند."""
-    today = jdatetime.date.fromgregorian(date=timezone.localdate())
-    previous_month_last_day = today.replace(day=1) - timedelta(days=1)
-    previous_month_first_day = previous_month_last_day.replace(day=1)
-    return previous_month_first_day, previous_month_last_day
+
 
 
 def live_programs_summary_view(request):
@@ -296,42 +303,6 @@ def live_program_details_view(request, id_manual_program):
             Decimal("0"),
         )
         data = rows
-        # فیلتر وضعیت پرداخت
-        # if selected_payment_status:
-        #     status_obj = LivePaymentStatus.objects.filter(
-        #         pk=selected_payment_status
-        #     ).first()
-        #
-        #     if status_obj is None:
-        #         context["error"] = "وضعیت پرداخت انتخاب‌شده معتبر نیست."
-        #         context["data"] = []
-        #         context["row_count"] = 0
-        #         context["total_amount_filtered"] = Decimal("0")
-        #         return render(request, template_name, context)
-        #
-        #     selected_status_text = str(
-        #         status_obj.payment_status or ""
-        #     ).strip()
-        #
-        #     selected_status_id = str(
-        #         status_obj.pk
-        #     ).strip()
-        #
-        #     data = []
-        #
-        #     for row in rows:
-        #         payment_status_value = str(
-        #             row.get("Live_Payment_Status") or ""
-        #         ).strip()
-        #
-        #         # پشتیبانی از خروجی‌ای که متن وضعیت یا شناسه وضعیت دارد
-        #         if (
-        #             payment_status_value == selected_status_text
-        #             or payment_status_value == selected_status_id
-        #         ):
-        #             data.append(row)
-        # else:
-        #     data = rows
 
         # آمار رکوردهای پس از فیلتر
         context["data"] = data

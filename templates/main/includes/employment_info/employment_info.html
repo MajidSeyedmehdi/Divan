@@ -693,7 +693,7 @@
                                     <label class="col-sm-4 col-form-label">رپرتاژ</label>
                                     <div class="col-sm-8">
                                         <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" name="permision_reportaj" value="1" {% if prefilled_data.permision_reportaj %}checked{% endif %}
+                                            <input class="form-check-input" type="checkbox" name="permision_reportaj" value="1" {% if prefilled_data.permision_reportaj %}checked{% endif %}>
                                             <label class="form-check-label">بله</label>
                                         </div>
                                     </div>
@@ -722,6 +722,13 @@
                                     <div class="col-sm-8">
                                         <div class="form-check">
                                             <input class="form-check-input" type="checkbox" name="permision_assistant_sound_recorder" value="1" {% if prefilled_data.permision_assistant_sound_recorder %}checked{% endif %}>
+                                            <label class="form-check-label">بله</label>
+                                        </div>
+                                    </div>
+                                    <label class="col-sm-4 col-form-label">صدابردار ناظر</label>
+                                    <div class="col-sm-8">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="permision_supervisor" value="1" {% if prefilled_data.permision_supervisor %}checked{% endif %}>
                                             <label class="form-check-label">بله</label>
                                         </div>
                                     </div>

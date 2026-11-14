@@ -111,7 +111,18 @@
             text-align: center;
         }
     }
-
+            /* برای ظاهر مرتب هدر bredcrumb *//* ثابت ماندن کل پنل انتخاب و عملیات هنگام اسکرول */
+    /* ثابت نگه داشتن پنل عملیات هنگام اسکرول عمودی صفحه */
+    
+    .sticky-parent {
+        position: sticky !important;
+        position: -webkit-sticky !important;
+        top: 0;
+        z-index: 1050;
+        background: #fff;
+        width: 100%;
+        box-sizing: border-box;
+    }
     .breadcrumb-box {
         background: #fff;
         border-radius: 12px;
@@ -209,7 +220,7 @@
 </style>
 
 <!-- فرم انتخاب تاریخ و شبکه -->
-<div class="col-md-12">
+<div class="col-md-12 sticky-parent">
   <div class="breadcrumb-box shadow">
     <div class="breadcrumb-right">
         <form method="post" class="mb-3">
@@ -469,21 +480,21 @@ document.addEventListener("DOMContentLoaded", function () {
             const network_id = networkSelect ? parseInt(networkSelect.value) : null;
             const assignments = [];
 
-            let hasEmpty = false;
-            document.querySelectorAll('.shift-cell').forEach(td => {
-                const recorder_id = td.dataset.recorderId;
-                if (!recorder_id) hasEmpty = true;
-            });
+            {#let hasEmpty = false;#}
+            {#document.querySelectorAll('.shift-cell').forEach(td => {#}
+            {#    const recorder_id = td.dataset.recorderId;#}
+            {#    if (!recorder_id) hasEmpty = true;#}
+            {#});#}
 
             const box = document.getElementById("error-box");
 
-            if (action === "final" && hasEmpty) {
-                if (box) {
-                    box.textContent = "❌ لطفاً قبل از ثبت نهایی، تمام سلول‌ها را تکمیل کنید.";
-                    box.classList.remove("d-none");
-                }
-                return;
-            }
+            {#if (action === "final" && hasEmpty) {#}
+            {#    if (box) {#}
+            {#        box.textContent = "❌ لطفاً قبل از ثبت نهایی، تمام سلول‌ها را تکمیل کنید.";#}
+            {#        box.classList.remove("d-none");#}
+            {#    }#}
+            {#    return;#}
+            {#}#}
 
             document.querySelectorAll('.shift-cell').forEach(td => {
                 const date = td.closest('tr').dataset.date;

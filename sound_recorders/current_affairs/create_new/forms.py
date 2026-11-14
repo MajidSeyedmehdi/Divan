@@ -12,6 +12,13 @@ class HeaderForm(forms.Form):
     p_date = jDateField(widget=AdminJalaliDateWidget(attrs={'class': 'form-control'}),
         label="تاریخ",
         required=True)
+
+    # تاریخ مستقل برای جابه‌جایی شبکه
+    swap_shift_date = jDateField(
+        widget=AdminJalaliDateWidget(attrs={'class': 'form-control'}),
+        label="تاریخ جابه‌جایی",
+        required=False
+    )
     network = forms.ModelChoiceField(
         queryset=Network.objects.filter(active=True, is_active=True, del_field=False),
         label="شبکه",

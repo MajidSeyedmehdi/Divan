@@ -249,12 +249,12 @@
                 {% endif %}
 </div>
 <div class="mb-3 d-flex gap-2">
-            <a href="{% if manager_mode %}{% url manager_summary_url %}{% else %}{% url 'sound_recorders:live_program_audit:live_financial_calculation:live_programs_summary' %}{% endif %}"
-               class="btn btn-secondary d-flex align-items-center gap-2 px-3">
-                <i class="fa fa-arrow-right"></i>
-                بازگشت
-            </a>
-        </div>
+    <a href="javascript:history.back()"
+       class="btn btn-secondary d-flex align-items-center gap-2 px-3">
+        <i class="fa fa-arrow-right"></i>
+        بازگشت
+    </a>
+</div>
 
 <form method="get" id="mainForm" class="mb-3">
     <input type="hidden" name="id_manual_program"

@@ -86,7 +86,8 @@ def employment_info_view(request):
                 'permision_15_khordad': permisions.permision_15_khordad,
                 'permision_fanni_poshtibani': permisions.permision_fanni_poshtibani,
                 'permision_sound_recorders': permisions.permision_sound_recorders,
-                'permision_assistant_sound_recorder' : permisions.permision_assistant_sound_recorder
+                'permision_assistant_sound_recorder' : permisions.permision_assistant_sound_recorder,
+                'permision_supervisor': permisions.permision_supervisor,
             })
         financial = Financial.objects.filter(id_personal=person).first()
         if financial:

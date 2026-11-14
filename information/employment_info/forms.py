@@ -211,7 +211,7 @@ class PermisionsForm(forms.ModelForm):
     class Meta:
         model = Permisions
         fields = [
-            'permision_studio', 'permision_fanni_pakhsh', 'permision_reportaj','permision_15_khordad', 'permision_fanni_poshtibani', 'permision_sound_recorders' , 'permision_assistant_sound_recorder'
+            'permision_studio', 'permision_fanni_pakhsh', 'permision_reportaj','permision_15_khordad', 'permision_fanni_poshtibani', 'permision_sound_recorders' , 'permision_assistant_sound_recorder','permision_supervisor'
         ]
         widgets = {
             'permision_studio': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
@@ -221,6 +221,7 @@ class PermisionsForm(forms.ModelForm):
             'permision_fanni_poshtibani': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'permision_sound_recorders': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'permision_assistant_sound_recorder' : forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'permision_supervisor': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
 
     def save_sp(self, user, update=False, id_personal=None, id_permision=None):
@@ -237,6 +238,7 @@ class PermisionsForm(forms.ModelForm):
                 int(bool(self.cleaned_data.get('permision_fanni_poshtibani'))),
                 int(bool(self.cleaned_data.get('permision_sound_recorders'))),
                 int(bool(self.cleaned_data.get('permision_assistant_sound_recorder'))),
+                int(bool(self.cleaned_data.get('permision_supervisor'))),
                 user.username,  # @permision_user_name
 
             ]
@@ -244,7 +246,7 @@ class PermisionsForm(forms.ModelForm):
             cursor.execute("""
                 EXEC Sp_UpdatePermisionsInformation
                     @id_permision=%s, @id_personal=%s, @permision_studio=%s, @permision_fanni_pakhsh=%s, @permision_reportaj=%s,
-                    @permision_15_khordad=%s, @permision_fanni_poshtibani=%s, @permision_sound_recorders=%s, @permision_assistant_sound_recorder=%s ,  @permision_user_name=%s
+                    @permision_15_khordad=%s, @permision_fanni_poshtibani=%s, @permision_sound_recorders=%s, @permision_assistant_sound_recorder=%s ,@permision_supervisor=%s ,  @permision_user_name=%s
             """, params)
             result = cursor.fetchone()
 

@@ -297,48 +297,57 @@
                 </div>
                 {% endif %}
 
-    {{ header_form.media }}
-    <div class="col-md-12">
-        <div class="breadcrumb-box shadow">
+{{ header_form.media }}
+
+<div class="col-md-12">
+    <div class="breadcrumb-box shadow">
+
+        <form method="get" action="">
             <div class="breadcrumb-right">
 
                 <div class="d-flex flex-wrap align-items-center gap-4">
 
-                    <!-- تاریخ شروع -->
                     <div class="d-flex align-items-center gap-2">
                         <label class="form-label mb-0">
                             تاریخ شروع
                         </label>
-
                         {{ header_form.start_date }}
                     </div>
-                                        <!-- تاریخ پایان -->
+
                     <div class="d-flex align-items-center gap-2">
                         <label class="form-label mb-0">
                             تاریخ پایان
                         </label>
-
                         {{ header_form.end_date }}
                     </div>
-                    <!-- شبکه اصلی -->
-                        <div class="d-flex align-items-center gap-2">
-                            <label for="{{ header_form.network.id_for_label }}">شبکه:</label>
-                            {{ header_form.network }}
-                        </div>
-                    
-                                        <!-- شبکه اصلی -->
-                        <div class="d-flex align-items-center gap-2">
-                            <label for="{{ header_form.live_status.id_for_label }}">وضعیت:</label>
-                            {{ header_form.live_status }}
-                        </div>
 
-                        <button type="submit" class="btn btn-primary px-4" style="height: 35px; border-radius: 8px;">جستجو</button>
+                    <div class="d-flex align-items-center gap-2">
+                        <label for="{{ header_form.network.id_for_label }}">
+                            شبکه:
+                        </label>
+                        {{ header_form.network }}
+                    </div>
 
-        </div>  
-            
-        </div>
-            
-      </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <label for="{{ header_form.live_status.id_for_label }}">
+                            وضعیت:
+                        </label>
+                        {{ header_form.live_status }}
+                    </div>
+
+                    <button type="submit"
+                            class="btn btn-primary px-4"
+                            style="height: 35px; border-radius: 8px;">
+                        جستجو
+                    </button>
+
+                </div>
+
+            </div>
+        </form>
+
+    </div>
+</div>
 <table class="table table-bordered text-center">
     <thead>
         <tr>
@@ -351,7 +360,7 @@
             <th>جدید</th>
             <th>در انتظار پرداخت</th>
             <th>وضعیت</th>
-            <th>واحد رسیدگی کننده</th>
+{#            <th>واحد رسیدگی کننده</th>#}
             <th>تایید / عدم تایید</th>
             <th>جزئیات</th>
         </tr>
@@ -368,7 +377,7 @@
             <td><span class="badge bg-info">{{ prog.Registered_Count }}</span></td>
             <td><span class="badge bg-warning">{{ prog.Pending_Payment_Count }}</span></td>
             <td>{{ prog.Status_Name }}</td>
-            <td>واحد مالی</td>
+{#            <td>واحد مالی</td>#}
             <td>
                 {% if prog.Has_Estimate_Code %}
                     <form method="post" action="" class="d-inline">
@@ -399,6 +408,6 @@
         {% endfor %}
     </tbody>
 </table>
-
+</div>
 
 {% endblock %}

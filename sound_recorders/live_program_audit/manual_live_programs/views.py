@@ -2,6 +2,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import SelectNetwork, ShiftNumber, NetworkShift
 from django.shortcuts import render, redirect
+from django.contrib import messages
 import jdatetime
 from datetime import date
 import pyodbc
@@ -26,13 +27,15 @@ def gregorian_to_jalali(date_obj):
 
     return jdatetime.date.fromgregorian(date=date_obj)
 
+
 def manual_save(request):
+
     # =========================================================
-    # 1. AJAX: گرفتن شیفت‌های مربوط به شبکه
+    # 1. AJAX: دریافت شیفت‌های مربوط به شبکه
     # =========================================================
     if (
-            request.headers.get('x-requested-with') == 'XMLHttpRequest'
-            or request.GET.get('action') == 'get_shifts'
+        request.headers.get('x-requested-with') == 'XMLHttpRequest'
+        or request.GET.get('action') == 'get_shifts'
     ):
         network_id = request.GET.get('network_id')
         shifts = []
@@ -51,13 +54,14 @@ def manual_save(request):
                     {'id': s.id_shift, 'name': str(s.shift_number)}
                     for s in shifts_qs
                 ]
+
             except (ValueError, TypeError):
                 pass
 
         return JsonResponse({'shifts': shifts})
 
     # =========================================================
-    # 2. فرم اصلی و متغیرها
+    # 2. فرم اصلی و متغیرهای اولیه
     # =========================================================
     default_start = jdatetime.date.today()
 
@@ -68,18 +72,36 @@ def manual_save(request):
 
     top_list = []
     bottom_list = []
-    selected_id_raw = request.POST.get("selected_id", "").strip() if request.method == "POST" else request.GET.get("selected_id", "").strip()
+
+    if request.method == "POST":
+        selected_id_raw = request.POST.get("selected_id", "").strip()
+    else:
+        selected_id_raw = request.GET.get("selected_id", "").strip()
+
     shift_recorder_name = "تعیین نشده"
+    assigned_program_id = None
 
     # =========================================================
     # 3. توابع دیتابیس
     # =========================================================
 
     def get_top_list(start_date, network, shift_number_obj):
+
         result = []
-        start_date_gregorian = start_date.togregorian() if start_date else None
+
+        start_date_gregorian = (
+            start_date.togregorian() if start_date else None
+        )
+
         network_id = network.id_network if network else None
-        shift_num = int(shift_number_obj.shift_number) if shift_number_obj and hasattr(shift_number_obj, 'shift_number') else None
+
+        shift_num = (
+            int(shift_number_obj.shift_number)
+            if shift_number_obj and hasattr(
+                shift_number_obj, 'shift_number'
+            )
+            else None
+        )
 
         if not start_date_gregorian or not network_id:
             return result
@@ -87,140 +109,300 @@ def manual_save(request):
         try:
             with connect_db() as conn:
                 cursor = conn.cursor()
+
                 cursor.execute(
                     """
-                    EXEC dbo.Sp_Manual_Live_Show
+                    EXEC Sp_Manual_Live_Show
                         @StartDate=?,
                         @Id_network=?,
                         @ShiftNumber=?
                     """,
-                    start_date_gregorian,
-                    network_id,
-                    shift_num
+                    (
+                        start_date_gregorian,
+                        network_id,
+                        shift_num
+                    )
                 )
-                columns = [column[0] for column in cursor.description]
-                raw_programs = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+                columns = [
+                    column[0] for column in cursor.description
+                ]
+
+                raw_programs = [
+                    dict(zip(columns, row))
+                    for row in cursor.fetchall()
+                ]
 
                 for row in raw_programs:
+
                     if row.get('Start_date'):
-                        row['Start_date_jalali'] = jdatetime.date.fromgregorian(date=row['Start_date']).strftime('%Y/%m/%d')
+                        row['Start_date_jalali'] = (
+                            jdatetime.date.fromgregorian(
+                                date=row['Start_date']
+                            ).strftime('%Y/%m/%d')
+                        )
                     else:
                         row['Start_date_jalali'] = '-'
 
                     if row.get('End_date'):
-                        row['End_date_jalali'] = jdatetime.date.fromgregorian(date=row['End_date']).strftime('%Y/%m/%d')
+                        row['End_date_jalali'] = (
+                            jdatetime.date.fromgregorian(
+                                date=row['End_date']
+                            ).strftime('%Y/%m/%d')
+                        )
                     else:
                         row['End_date_jalali'] = '-'
 
                     play_time = row.get('Play_time')
+
                     if play_time:
                         if hasattr(play_time, 'strftime'):
                             row['Play_time'] = play_time.strftime('%H:%M')
                         else:
                             time_str = str(play_time).split('.')[0]
-                            row['Play_time'] = time_str.replace('AM', '').replace('PM', '').strip()[:5]
+                            row['Play_time'] = (
+                                time_str.replace('AM', '')
+                                .replace('PM', '')
+                                .strip()[:5]
+                            )
 
                     result.append(row)
+
         except Exception as e:
             print("--> Error in get_top_list:", e)
 
         return result
 
-    def get_bottom_list(start_date, network, shift_number_obj, selected_id_str):
+    # =========================================================
+    # دریافت اطلاعات جدول پایین
+    # =========================================================
+
+    def get_bottom_list(
+            start_date,
+            network,
+            shift_number_obj,
+            selected_id_str
+    ):
+
         result = []
-        if not selected_id_str:
-            return result
 
-        start_date_gregorian = start_date.togregorian() if start_date else None
+        start_date_gregorian = (
+            start_date.togregorian() if start_date else None
+        )
+
         network_id = network.id_network if network else None
-        shift_num = int(shift_number_obj.shift_number) if shift_number_obj and hasattr(shift_number_obj, 'shift_number') else None
 
-        selected_ids = [int(i.strip()) for i in selected_id_str.split(',') if i.strip().isdigit()]
+        shift_num = (
+            int(shift_number_obj.shift_number)
+            if shift_number_obj and hasattr(
+                shift_number_obj, 'shift_number'
+            )
+            else None
+        )
 
-        if not start_date_gregorian or not network_id or not selected_ids:
+        if not start_date_gregorian or not network_id:
             return result
+
+        selected_ids = [
+            int(i.strip())
+            for i in (selected_id_str or '').split(',')
+            if i.strip().isdigit()
+        ]
+
+        # اگر برنامه‌ای انتخاب نشده باشد،
+        # تمام برنامه‌های تخصیص‌یافته تاریخ را دریافت کن.
+        if not selected_ids:
+            selected_ids = [None]
 
         try:
+
             with connect_db() as conn:
+
                 cursor = conn.cursor()
+
                 for prog_id in selected_ids:
-                    # فراخوانی استور Sp_Soundrecorder_assignment_Live برای دریافت اطلاعات سطر انتخابی
+
+                    only_assigned = 1 if prog_id is None else 0
+
                     cursor.execute(
                         """
-                        EXEC dbo.Sp_Soundrecorder_assignment_Live
+                        EXEC Sp_Soundrecorder_assignment_Live
                             @StartDate=?,
                             @Id_network=?,
                             @ShiftNumber=?,
-                            @Id_manual_program=?
+                            @Id_manual_program=?,
+                            @OnlyAssigned=?
                         """,
-                        start_date_gregorian,
-                        network_id,
-                        shift_num,
-                        prog_id
+                        (
+                            start_date_gregorian,
+                            network_id,
+                            shift_num,
+                            prog_id,
+                            only_assigned
+                        )
                     )
-                    columns = [column[0] for column in cursor.description]
-                    raw_programs = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+                    columns = [
+                        column[0] for column in cursor.description
+                    ]
+
+                    raw_programs = [
+                        dict(zip(columns, row))
+                        for row in cursor.fetchall()
+                    ]
 
                     for row in raw_programs:
+
                         if row.get('Start_date'):
-                            row['Start_date_jalali'] = jdatetime.date.fromgregorian(date=row['Start_date']).strftime('%Y/%m/%d')
+                            row['Start_date_jalali'] = (
+                                jdatetime.date.fromgregorian(
+                                    date=row['Start_date']
+                                ).strftime('%Y/%m/%d')
+                            )
                         else:
                             row['Start_date_jalali'] = '-'
 
                         if row.get('End_date'):
-                            row['End_date_jalali'] = jdatetime.date.fromgregorian(date=row['End_date']).strftime('%Y/%m/%d')
+                            row['End_date_jalali'] = (
+                                jdatetime.date.fromgregorian(
+                                    date=row['End_date']
+                                ).strftime('%Y/%m/%d')
+                            )
                         else:
                             row['End_date_jalali'] = '-'
 
                         play_time = row.get('Play_time')
+
                         if play_time:
                             if hasattr(play_time, 'strftime'):
                                 row['Play_time'] = play_time.strftime('%H:%M')
                             else:
                                 time_str = str(play_time).split('.')[0]
-                                row['Play_time'] = time_str.replace('AM', '').replace('PM', '').strip()[:5]
+                                row['Play_time'] = (
+                                    time_str.replace('AM', '')
+                                    .replace('PM', '')
+                                    .strip()[:5]
+                                )
 
                         result.append(row)
+
         except Exception as e:
             print("--> Error in get_bottom_list:", e)
 
         return result
 
     # =========================================================
-    # 4. پردازش فرم و اجرا
+    # 4. پردازش فرم
     # =========================================================
-    assigned_program_id = None
+
     if header_form.is_valid():
+
         start_date = header_form.cleaned_data.get('start_date')
         network = header_form.cleaned_data.get('network')
         shift_number_obj = header_form.cleaned_data.get('shift_number')
 
-        start_date_gregorian = start_date.togregorian() if start_date else None
-        network_id = network.id_network if network else None
+        start_date_gregorian = (
+            start_date.togregorian() if start_date else None
+        )
+
+        network_id = (
+            network.id_network if network else None
+        )
+
+        shift_num = (
+            int(shift_number_obj.shift_number)
+            if shift_number_obj and hasattr(
+                shift_number_obj, 'shift_number'
+            )
+            else None
+        )
+
+        # =====================================================
+        # 5. مدیریت Session برای برنامه‌های مخفی‌شده
+        # =====================================================
+
+        hidden_context_key = (
+            f"{start_date_gregorian}|{network_id}|{shift_num}"
+        )
+
+        hidden_program_map = request.session.get(
+            'manual_live_hidden_programs',
+            {}
+        )
+
+        hidden_program_ids = hidden_program_map.get(
+            hidden_context_key,
+            []
+        )
+
+        hidden_program_ids = [
+            str(x) for x in hidden_program_ids
+        ]
+
+        # =====================================================
+        # 6. پردازش POST
+        # =====================================================
 
         if request.method == "POST":
 
-            # دریافت اکشن از name="action" یا name="formAction"
-            action = request.POST.get("action") or request.POST.get("formAction")
+            action = (
+                request.POST.get("action")
+                or request.POST.get("formAction")
+            )
 
-            if action == "assign_sound_recorder":
+            # -------------------------------------------------
+            # جستجوی جدید: پاک کردن برنامه‌های مخفی‌شده
+            # -------------------------------------------------
+            if action == "search":
 
-                id_manual_program = request.POST.get("confirm_program_id")
-                id_sound_recorder = request.POST.get("confirm_recorder_id")
+                hidden_program_ids = []
 
-                if not id_sound_recorder or id_sound_recorder in ['None', 'null', '', '0']:
-                    messages.error(  request, "صدابردار شیفت مشخص نشده است."  )
+                hidden_program_map[hidden_context_key] = []
+                request.session['manual_live_hidden_programs'] = (
+                    hidden_program_map
+                )
+
+                selected_id_raw = ""
+
+            # =================================================
+            # تخصیص صدابردار
+            # =================================================
+
+            elif action == "assign_sound_recorder":
+
+                id_manual_program = request.POST.get(
+                    "confirm_program_id"
+                )
+
+                id_sound_recorder = request.POST.get(
+                    "confirm_recorder_id"
+                )
+
+                if (
+                    not id_sound_recorder
+                    or id_sound_recorder in [
+                        'None', 'null', '', '0'
+                    ]
+                ):
+
+                    messages.error(
+                        request,
+                        "صدابردار شیفت مشخص نشده است."
+                    )
 
                 elif id_manual_program and start_date_gregorian:
+
                     conn = None
                     cursor = None
 
                     try:
-                        user_name = ( request.user.username if request.user.is_authenticated else "System"
+
+                        user_name = (
+                            request.user.username
+                            if request.user.is_authenticated
+                            else "System"
                         )
-                        # -----------------------------------------
-                        # تبدیل روز هفته به فارسی
-                        # -----------------------------------------
+
                         weekdays_fa = {
                             'Saturday': 'شنبه',
                             'Sunday': 'یکشنبه',
@@ -231,42 +413,55 @@ def manual_save(request):
                             'Friday': 'جمعه'
                         }
 
-                        shift_day_en = start_date_gregorian.strftime('%A')
-                        shift_day_fa = weekdays_fa.get(shift_day_en, "")
-                        # -----------------------------------------
-                        # اتصال به دیتابیس
-                        # -----------------------------------------
+                        shift_day_en = (
+                            start_date_gregorian.strftime('%A')
+                        )
+
+                        shift_day_fa = weekdays_fa.get(
+                            shift_day_en,
+                            ""
+                        )
+
                         conn = connect_db()
                         cursor = conn.cursor()
-                        # -----------------------------------------
-                        # استور اول
-                        # ذخیره صدابردار
-                        # -----------------------------------------
-                        sql = """
-                            EXEC dbo.Sp_Save_Soundrecorders_Live
-                                @Id_manual_program = ?,
-                                @Id_sound_recorder = ?,
-                                @LiveShiftDate = ?,
-                                @LiveShiftDay = ?,
-                                @User_name = ?
-                        """
-                        params = (
-                            int(id_manual_program),
-                            int(id_sound_recorder),
-                            str(start_date_gregorian),
-                            shift_day_fa,
-                            user_name
+
+                        cursor.execute(
+                            """
+                            EXEC Sp_Save_Soundrecorders_Live
+                                @Id_manual_program=?,
+                                @Id_sound_recorder=?,
+                                @LiveShiftDate=?,
+                                @LiveShiftDay=?,
+                                @User_name=?
+                            """,
+                            (
+                                int(id_manual_program),
+                                int(id_sound_recorder),
+                                str(start_date_gregorian),
+                                shift_day_fa,
+                                user_name
+                            )
                         )
-                        cursor.execute(sql, params)
-                        # -----------------------------------------
-                        # Commit
-                        # -----------------------------------------
+
                         conn.commit()
-                        assigned_program_id = str(id_manual_program)
+
+                        # -------------------------------------
+                        # مخفی کردن برنامه تخصیص‌یافته
+                        # -------------------------------------
+
+                        program_id_str = str(id_manual_program)
+
+                        if program_id_str not in hidden_program_ids:
+                            hidden_program_ids.append(
+                                program_id_str
+                            )
+
+                        # -------------------------------------
+                        # اضافه کردن برنامه به جدول پایین
+                        # -------------------------------------
 
                         current_ids = []
 
-                        # IDهایی که قبل از این انتخاب در جدول پایین بودند
                         if selected_id_raw:
                             current_ids = [
                                 x.strip()
@@ -274,54 +469,82 @@ def manual_save(request):
                                 if x.strip().isdigit()
                             ]
 
-                        # اگر برنامه جدید قبلاً در لیست نیست، اضافه شود
-                        if id_manual_program and str(id_manual_program) not in current_ids:
-                            current_ids.append(str(id_manual_program))
+                        if program_id_str not in current_ids:
+                            current_ids.append(program_id_str)
 
-                        # تبدیل دوباره به رشته comma-separated
                         selected_id_raw = ','.join(current_ids)
 
                         messages.success(
                             request,
                             "صدابردار شیفت با موفقیت ذخیره شد."
                         )
+
                     except Exception as e:
+
                         if conn:
                             try:
                                 conn.rollback()
                             except Exception:
                                 pass
+
                         messages.error(
                             request,
                             f"خطا در ذخیره‌سازی: {e}"
                         )
+
                     finally:
+
                         if cursor:
                             try:
                                 cursor.close()
                             except Exception:
                                 pass
+
                         if conn:
                             try:
                                 conn.close()
                             except Exception:
                                 pass
 
+            # =================================================
+            # تغییر صدابردار
+            # =================================================
+
             elif action == "confirm_recorder_change":
 
-                id_manual_program = request.POST.get( "confirm_program_id")
-                id_sound_recorder = request.POST.get( "confirm_recorder_id")
+                id_manual_program = request.POST.get(
+                    "confirm_program_id"
+                )
+
+                id_sound_recorder = request.POST.get(
+                    "confirm_recorder_id"
+                )
+
                 if not id_manual_program:
-                    messages.error( request,"شناسه برنامه مشخص نشده است." )
+
+                    messages.error(
+                        request,
+                        "شناسه برنامه مشخص نشده است."
+                    )
 
                 elif not id_sound_recorder:
-                    messages.error( request, "صدابردار جدید مشخص نشده است."  )
+
+                    messages.error(
+                        request,
+                        "صدابردار جدید مشخص نشده است."
+                    )
 
                 elif not start_date_gregorian:
-                    messages.error(  request,"تاریخ مشخص نشده است."  )
+
+                    messages.error(
+                        request,
+                        "تاریخ مشخص نشده است."
+                    )
 
                 else:
+
                     try:
+
                         user_name = (
                             request.user.username
                             if request.user.is_authenticated
@@ -329,13 +552,12 @@ def manual_save(request):
                         )
 
                         with connect_db() as conn:
+
                             cursor = conn.cursor()
-                            # =========================================
-                            # تغییر صدابردار توسط Stored Procedure
-                            # =========================================
+
                             cursor.execute(
                                 """
-                                EXEC dbo.Sp_Update_SoundRecorder_Live
+                                EXEC Sp_Update_SoundRecorder_Live
                                     @Id_manual_program=?,
                                     @Id_sound_recorder=?,
                                     @Live_shift_date=?,
@@ -349,58 +571,75 @@ def manual_save(request):
                                 )
                             )
 
-                            # =========================================
-                            # بررسی تعداد رکوردهای تغییر کرده
-                            # =========================================
                             row = cursor.fetchone()
+
                             updated_rows = row[0] if row else 0
+
                             conn.commit()
 
                         if updated_rows > 0:
-                            # =========================================
-                            # برنامه فعلی را به لیست برنامه‌های پایین
-                            # اضافه می‌کنیم و قبلی‌ها را نگه می‌داریم
-                            # =========================================
+
                             current_ids = []
+
                             if selected_id_raw:
                                 current_ids = [
                                     x.strip()
                                     for x in selected_id_raw.split(',')
                                     if x.strip().isdigit()
                                 ]
-                            if (
-                                    id_manual_program
-                                    and str(id_manual_program) not in current_ids
-                            ):
-                                current_ids.append(
-                                    str(id_manual_program)
-                                )
+
+                            program_id_str = str(id_manual_program)
+
+                            if program_id_str not in current_ids:
+                                current_ids.append(program_id_str)
+
                             selected_id_raw = ','.join(current_ids)
+
                             messages.success(
                                 request,
                                 "صدابردار با موفقیت تغییر کرد."
                             )
+
                         else:
+
                             messages.warning(
                                 request,
                                 "رکوردی برای تغییر صدابردار پیدا نشد."
                             )
+
                     except Exception as e:
+
                         messages.error(
                             request,
                             f"خطا در تغییر صدابردار: {e}"
                         )
 
+            # =================================================
+            # انتخاب برنامه برای جدول پایین
+            # =================================================
+
             elif action == "submit_bottom":
+
                 prog_id = request.POST.get("selected_id")
+
                 if prog_id:
                     selected_id_raw = prog_id
 
-            elif action == "save":
-                print("--- FULL POST DATA ---", request.POST)
+            # =================================================
+            # ایجاد برنامه دستی
+            # =================================================
 
-                program_name = request.POST.get("program_name")
-                target_network_id = request.POST.get("network_name") or network_id
+            elif action == "save":
+
+                program_name = request.POST.get(
+                    "program_name", ""
+                ).strip()
+
+                target_network_id = (
+                    request.POST.get("network_name")
+                    or network_id
+                )
+
                 play_time = request.POST.get("play_time")
                 time_duration = request.POST.get("time_duration")
 
@@ -412,56 +651,24 @@ def manual_save(request):
                 thursday = 1 if 'Thursday' in request.POST else 0
                 friday = 1 if 'Friday' in request.POST else 0
 
-                if start_date_gregorian and target_network_id and program_name:
-                    with connect_db() as conn:
-                        cursor = conn.cursor()
-                        cursor.execute(
-                            """
-                            EXEC dbo.Sp_Insert_program_manual
-                                @StartDate=?,
-                                @Program_name=?,
-                                @Id_network=?,
-                                @Play_time=?,
-                                @Time_duration=?,
-                                @Saturday=?,
-                                @Sunday=?,
-                                @Monday=?,
-                                @Tuesday=?,
-                                @Wednesday=?,
-                                @Thursday=?,
-                                @Friday=?
-                            """,
-                            start_date_gregorian,
-                            program_name,
-                            int(target_network_id),
-                            play_time,
-                            int(time_duration) if time_duration else 0,
-                            saturday, sunday, monday, tuesday, wednesday, thursday, friday
-                        )
-                        conn.commit()
+                if not target_network_id:
 
-            elif action == "extend":
-                extend_start_date = date.today()
-                program_name = request.POST.get("extend_program_name")
-                target_network_id = request.POST.get("extend_network_name") or network_id
-                play_time = request.POST.get("extend_play_time")
-                time_duration = request.POST.get("extend_time_duration")
+                    messages.error(
+                        request,
+                        "لطفاً شبکه را انتخاب کنید."
+                    )
 
-                saturday = 1 if request.POST.get("extend_Saturday") else 0
-                sunday = 1 if request.POST.get("extend_Sunday") else 0
-                monday = 1 if request.POST.get("extend_Monday") else 0
-                tuesday = 1 if request.POST.get("extend_Tuesday") else 0
-                wednesday = 1 if request.POST.get("extend_Wednesday") else 0
-                thursday = 1 if request.POST.get("extend_Thursday") else 0
-                friday = 1 if request.POST.get("extend_Friday") else 0
+                else:
 
-                if extend_start_date and target_network_id and program_name:
                     try:
+
                         with connect_db() as conn:
+
                             cursor = conn.cursor()
+
                             cursor.execute(
                                 """
-                                EXEC dbo.Sp_Extend_program_manual
+                                EXEC Sp_Insert_program_manual
                                     @StartDate=?,
                                     @Program_name=?,
                                     @Id_network=?,
@@ -475,33 +682,233 @@ def manual_save(request):
                                     @Thursday=?,
                                     @Friday=?
                                 """,
-                                extend_start_date,
-                                program_name,
-                                int(target_network_id),
-                                play_time,
-                                int(time_duration) if time_duration else 0,
-                                saturday, sunday, monday, tuesday, wednesday, thursday, friday
+                                (
+                                    start_date_gregorian,
+                                    program_name,
+                                    int(target_network_id),
+                                    play_time,
+                                    int(time_duration) if time_duration else 0,
+                                    saturday,
+                                    sunday,
+                                    monday,
+                                    tuesday,
+                                    wednesday,
+                                    thursday,
+                                    friday
+                                )
                             )
-                            conn.commit()
+
+                            result = cursor.fetchone()
+
+                            if result:
+
+                                status = result[0]
+                                message = result[1]
+
+                                if status == "DUPLICATE":
+
+                                    messages.warning(
+                                        request,
+                                        message
+                                    )
+
+                                elif status == "SUCCESS":
+
+                                    conn.commit()
+
+                                    messages.success(
+                                        request,
+                                        message
+                                    )
+
+                                else:
+
+                                    conn.rollback()
+
+                                    messages.error(
+                                        request,
+                                        "نتیجه ایجاد برنامه نامشخص است."
+                                    )
+
+                            else:
+
+                                conn.rollback()
+
+                                messages.error(
+                                    request,
+                                    "استور نتیجه‌ای برای ایجاد برنامه برنگرداند."
+                                )
+
                     except Exception as e:
-                        print("--> SQL Execution ERROR:", e)
 
-        # دریافت داده‌های جدول بالا و پایین
-        top_list = get_top_list(start_date, network, shift_number_obj)
-        bottom_list = get_bottom_list(start_date, network, shift_number_obj, selected_id_raw)
+                        print(
+                            "--> Error creating manual program:",
+                            repr(e)
+                        )
 
-        # مقداردهی نام صدابردار بالای صفحه از نتایج
+                        messages.error(
+                            request,
+                            "هنگام ایجاد برنامه خطایی رخ داد."
+                        )
+
+            # =================================================
+            # تمدید برنامه
+            # =================================================
+
+            elif action == "extend":
+
+                extend_start_date = date.today()
+
+                program_name = request.POST.get(
+                    "extend_program_name"
+                )
+
+                target_network_id = (
+                    request.POST.get("extend_network_name")
+                    or network_id
+                )
+
+                play_time = request.POST.get(
+                    "extend_play_time"
+                )
+
+                time_duration = request.POST.get(
+                    "extend_time_duration"
+                )
+
+                saturday = 1 if request.POST.get("extend_Saturday") else 0
+                sunday = 1 if request.POST.get("extend_Sunday") else 0
+                monday = 1 if request.POST.get("extend_Monday") else 0
+                tuesday = 1 if request.POST.get("extend_Tuesday") else 0
+                wednesday = 1 if request.POST.get("extend_Wednesday") else 0
+                thursday = 1 if request.POST.get("extend_Thursday") else 0
+                friday = 1 if request.POST.get("extend_Friday") else 0
+
+                if extend_start_date and target_network_id and program_name:
+
+                    try:
+
+                        with connect_db() as conn:
+
+                            cursor = conn.cursor()
+
+                            cursor.execute(
+                                """
+                                EXEC Sp_Extend_program_manual
+                                    @StartDate=?,
+                                    @Program_name=?,
+                                    @Id_network=?,
+                                    @Play_time=?,
+                                    @Time_duration=?,
+                                    @Saturday=?,
+                                    @Sunday=?,
+                                    @Monday=?,
+                                    @Tuesday=?,
+                                    @Wednesday=?,
+                                    @Thursday=?,
+                                    @Friday=?
+                                """,
+                                (
+                                    extend_start_date,
+                                    program_name,
+                                    int(target_network_id),
+                                    play_time,
+                                    int(time_duration) if time_duration else 0,
+                                    saturday,
+                                    sunday,
+                                    monday,
+                                    tuesday,
+                                    wednesday,
+                                    thursday,
+                                    friday
+                                )
+                            )
+
+                            conn.commit()
+
+                        messages.success(
+                            request,
+                            "اعتبار برنامه با موفقیت تمدید شد."
+                        )
+
+                    except Exception as e:
+
+                        print(
+                            "--> SQL Execution ERROR:",
+                            e
+                        )
+
+                        messages.error(
+                            request,
+                            f"خطا در تمدید برنامه: {e}"
+                        )
+
+        # =====================================================
+        # 7. ذخیره لیست برنامه‌های مخفی‌شده در Session
+        # =====================================================
+
+        hidden_program_map[hidden_context_key] = hidden_program_ids
+
+        request.session['manual_live_hidden_programs'] = (
+            hidden_program_map
+        )
+
+        # =====================================================
+        # 8. دریافت جدول بالا
+        # =====================================================
+
+        top_list = get_top_list(
+            start_date,
+            network,
+            shift_number_obj
+        )
+
+        # فقط مخفی‌سازی نمایشی؛ هیچ رکوردی از دیتابیس حذف نمی‌شود
+        top_list = [
+            item for item in top_list
+            if str(item.get('Id_manual_program'))
+            not in hidden_program_ids
+        ]
+
+        # =====================================================
+        # 9. دریافت جدول پایین
+        # =====================================================
+
+        bottom_list = get_bottom_list(
+            start_date,
+            network,
+            shift_number_obj,
+            selected_id_raw
+        )
+
+        # =====================================================
+        # 10. نام صدابردار شیفت
+        # =====================================================
+
         shift_recorder_name = "تعیین نشده"
+
         if top_list:
+
             for item in top_list:
+
                 name = item.get('ShiftSoundRecorderName')
+
                 if name and name != "تعیین نشده":
+
                     shift_recorder_name = name
                     break
 
     else:
+
         if request.method == "POST":
-            print("--> Form validation errors:", header_form.errors)
+            print(
+                "--> Form validation errors:",
+                header_form.errors
+            )
+
+    # =========================================================
+    # 11. Context
+    # =========================================================
 
     context = {
         "header_form": header_form,
@@ -509,8 +916,8 @@ def manual_save(request):
         "top_list": top_list,
         "bottom_list": bottom_list,
         "selected_id": selected_id_raw,
-        'shift_recorder_name': shift_recorder_name,
-        'assigned_program_id': assigned_program_id,
+        "shift_recorder_name": shift_recorder_name,
+        "assigned_program_id": assigned_program_id,
     }
 
     return render(
@@ -518,6 +925,7 @@ def manual_save(request):
         "main/includes/sound_recorders/live_program_audit/manual_live_programs.html",
         context
     )
+
 
 def edit(request):
     default_start = jdatetime.date.today()
@@ -537,13 +945,41 @@ def edit(request):
             # دریافت اطلاعات فرم
             id_manual_program = request.POST.get("id_manual_program", "" ).strip()
             program_name = request.POST.get("modalProgramNameInput", "" ).strip()
-            end_date = request.POST.get("end_date", "").strip()
+
+            end_date_raw = request.POST.get("end_date", "").strip()
+            if not end_date_raw:
+                raise ValueError("تاریخ اعتبار خالی است.")
+
+            try:
+                normalized_date = end_date_raw.replace("-", "/")
+                parts = normalized_date.split("/")
+
+                if len(parts) != 3:
+                    raise ValueError(
+                        f"فرمت تاریخ اعتبار نامعتبر است: {end_date_raw}"
+                    )
+
+                year, month, day = map(int, parts)
+
+                # تبدیل شمسی به میلادی
+                end_date = jdatetime.date(
+                    year, month, day
+                ).togregorian()
+
+            except Exception as exc:
+                print("END DATE CONVERSION ERROR:", repr(exc))
+                raise ValueError(f"خطا در تبدیل تاریخ اعتبار: {exc}")
             play_time = request.POST.get("play_time", "").strip()
             time_duration = request.POST.get("time_duration", "").strip()
-            if request.POST.get("type") == "1":
+            permitted_count = request.POST.get("permitted_count", "").strip()
+
+            type_value = request.POST.get("type")
+
+            if type_value == "1":
                 program_type = "تک نرخ"
             else:
                 program_type = None
+
 
             # اعتبارسنجی اولیه
             if not id_manual_program:
@@ -587,12 +1023,13 @@ def edit(request):
 
                 cursor.execute(
                     """
-                    EXEC dbo.Sp_Edit_program_manual
+                    EXEC Sp_Edit_program_manual
                         @Id_manual_program = ?,
                         @EndDate = ?,
                         @Program_name = ?,
                         @Play_time = ?,
                         @Time_duration = ?,
+                        @Permitted_count = ?,
                         @Type = ?,
                         @Saturday = ?,
                         @Sunday = ?,
@@ -608,6 +1045,7 @@ def edit(request):
                         program_name,
                         play_time,
                         time_duration,
+                        permitted_count,
                         program_type,
                         saturday,
                         sunday,
@@ -619,14 +1057,12 @@ def edit(request):
                     )
                 )
 
+                result = cursor.fetchone()
                 conn.commit()
             if is_ajax:
                 return JsonResponse({"status": "success", "message": "اطلاعات برنامه با موفقیت ویرایش شد."})
 
-            messages.success(
-                request,
-                "اطلاعات برنامه با موفقیت ویرایش شد."
-            )
+            messages.success( request, "اطلاعات برنامه با موفقیت ویرایش شد." )
 
         except Exception as e:
             if is_ajax:
@@ -668,7 +1104,7 @@ def edit(request):
                         # ارسال پارامترها به استور پروسیجر
                         cursor.execute(
                             """
-                            EXEC dbo.Sp_Manual_Edit_Show
+                            EXEC Sp_Manual_Edit_Show
                                 @Id_network = ?,
                                 @ProgramName = ?,
                                 @Id_live_status = ?
@@ -680,15 +1116,18 @@ def edit(request):
                             )
                         )
 
-                        columns = [
-                            column[0]
-                            for column in cursor.description
-                        ]
+                        columns = [column[0] for column in cursor.description]
 
                         raw_programs = [
                             dict(zip(columns, row))
                             for row in cursor.fetchall()
                         ]
+
+                        print("COLUMNS:", columns)
+
+                        for row in raw_programs:
+                            print("TYPE:", repr(row.get("Type")))
+                            print("type:", repr(row.get("type")))
 
                         for row in raw_programs:
                             if row.get("Start_date"):

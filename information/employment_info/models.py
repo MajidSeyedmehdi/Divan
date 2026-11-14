@@ -427,6 +427,7 @@ class Permisions(models.Model):
     permision_fanni_poshtibani = models.BooleanField(db_column='Permision_fanni_poshtibani', default=False, null=True)
     permision_sound_recorders = models.BooleanField(db_column='Permision_sound_recorders', default=False, null=True)
     permision_assistant_sound_recorder =models.BooleanField(db_column='Permision_assistant_sound_recorder', default=False, null=True)
+    permision_supervisor = models.BooleanField(db_column='Permision_supervisor',default=False, null=True)
     active = models.BooleanField(db_column='Active', default=True, null=True)
     del_field = models.BooleanField(db_column='Del', default=False, null=True)
     user_name = models.CharField(db_column='User_name', max_length=50, db_collation='Persian_100_CI_AS')
